@@ -257,6 +257,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                     </Grid>
                 </ItemsPanelTemplate>
@@ -272,6 +273,12 @@
 
             <StatusBarItem Grid.Column="2">
                 <TextBlock Text="{Binding EditablePackFile}" Margin="5, 0, 5, 5"/>
+            </StatusBarItem>
+
+            <StatusBarItem Grid.Column="3" Visibility="{Binding IsLoadingPacks, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Loading game packs..." Margin="5, 0, 5, 5" Foreground="#FFAAAAAA"/>
+                </StackPanel>
             </StatusBarItem>
         </StatusBar>
     </Grid>

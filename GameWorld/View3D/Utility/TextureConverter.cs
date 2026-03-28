@@ -50,13 +50,8 @@ namespace GameWorld.Core.Utility
                 return false;
             }
 
+            // WaitForExit() in SaveDDSTextureAsPNG ensures the file is written before we reach here
             var newFileFound = File.Exists(outputFileName);
-            if (newFileFound == false)
-            {
-                Thread.Sleep(500);
-                newFileFound = File.Exists(outputFileName);
-            }
-
             if (newFileFound == false)
                 _logger.Here().Error($"Failed to create texture as PNG for unknown reason");
             return newFileFound;
@@ -75,6 +70,7 @@ namespace GameWorld.Core.Utility
             pProcess.StartInfo.CreateNoWindow = true;
             pProcess.Start();
             var output = pProcess.StandardOutput.ReadToEnd();
+            pProcess.WaitForExit(); // Ensure file is fully written before returning
             _logger.Here().Information(output);
 
             return Path.ChangeExtension(fileToConvert, ".png");

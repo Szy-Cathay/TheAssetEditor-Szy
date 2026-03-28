@@ -10,12 +10,18 @@ namespace GameWorld.Core.Rendering.RenderItems
     {
         private readonly MeshObject _geometry;
         private readonly IShader _shader;
-        private readonly Matrix _modelMatrix;
+        private Matrix _modelMatrix;
 
         public GeometryRenderItem(MeshObject geometry, IShader shader, Matrix modelMatrix)
         {
             _geometry = geometry;
             _shader = shader;
+            _modelMatrix = modelMatrix;
+        }
+
+        // Update world matrix for pooled reuse (avoids per-frame allocation)
+        public void UpdateWorldMatrix(Matrix modelMatrix)
+        {
             _modelMatrix = modelMatrix;
         }
 

@@ -21,6 +21,7 @@ namespace GameWorld.Core.Components.Rendering
         private readonly ArcBallCamera _camera;
         private readonly Dictionary<RenderBuckedId, List<IRenderItem>> _renderItems = [];
         private readonly List<VertexPositionColor> _renderLines = [];
+        private VertexPositionColor[] _renderLinesArray;     // Cached array to avoid ToArray() per frame
         private readonly IDeviceResolver _deviceResolverComponent;
         private readonly SceneRenderParametersStore _sceneLightParameters;
         private readonly IEventHub _eventHub;
@@ -150,7 +151,6 @@ namespace GameWorld.Core.Components.Rendering
             device.SetRenderTarget(_glowRenderTarget);
             Render3DObjects(commonShaderParameters, RenderingTechnique.Emissive);
 
-            // Draw the result to the backBuffer
             device.SetRenderTarget(backBufferRenderTarget);
             spriteBatch.Begin();
             spriteBatch.Draw(_defaultRenderTarget, new Rectangle(0, 0, screenWidth, screenHeight), Color.White);
@@ -199,7 +199,11 @@ namespace GameWorld.Core.Components.Rendering
                 foreach (var pass in shader.CurrentTechnique.Passes)
                 {
                     pass.Apply();
-                    device.DrawUserPrimitives(PrimitiveType.LineList, _renderLines.ToArray(), 0, _renderLines.Count / 2);
+                    // Reuse cached array instead of allocating via ToArray() each frame
+                    if (_renderLinesArray == null || _renderLinesArray.Length < _renderLines.Count)
+                        _renderLinesArray = new VertexPositionColor[_renderLines.Count];
+                    _renderLines.CopyTo(_renderLinesArray, 0);
+                    device.DrawUserPrimitives(PrimitiveType.LineList, _renderLinesArray, 0, _renderLines.Count / 2);
                 }
             }
 

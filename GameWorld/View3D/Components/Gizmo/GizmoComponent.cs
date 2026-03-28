@@ -53,12 +53,19 @@ namespace GameWorld.Core.Components.Gizmo
         {
             _gizmo = new Gizmo(_camera, _mouse, _deviceResolverComponent.Device, _resourceLibary);
             _gizmo.ActivePivot = PivotType.ObjectCenter;
+            _gizmo.SetKeyboard(_keyboard);  // Enable keyboard axis locking
             _gizmo.TranslateEvent += GizmoTranslateEvent;
             _gizmo.RotateEvent += GizmoRotateEvent;
             _gizmo.ScaleEvent += GizmoScaleEvent;
             _gizmo.StartEvent += GizmoTransformStart;
             _gizmo.StopEvent += GizmoTransformEnd;
+            _gizmo.RequestRestoreInitialState += OnRequestRestoreInitialState;
         }
+
+        /// <summary>
+        /// Get the Gizmo instance (for SelectionComponent to check modal transform state)
+        /// </summary>
+        public Gizmo Gizmo => _gizmo;
 
         private void OnSelectionChanged(ISelectionState state)
         {
@@ -68,17 +75,53 @@ namespace GameWorld.Core.Components.Gizmo
                 _gizmo.Selection.Add(_activeTransformation);
 
             _gizmo.ResetDeltas();
+            // Note: Don't auto-enable Gizmo here - user must click toolbar icon first
+        }
+
+        /// <summary>
+        /// Called when Gizmo needs to restore initial state for Blender-style modal transform
+        /// (for rotation and scale, which calculate from initial state each frame)
+        /// </summary>
+        private void OnRequestRestoreInitialState()
+        {
+            if (_activeTransformation?.HasBackup == true)
+            {
+                // Restore vertices and reset transform state
+                // The subsequent transform event will build the new total transform from scratch
+                _activeTransformation.RestoreVertexState(resetTransform: true);
+            }
         }
 
         private void GizmoTransformStart()
         {
+            // Only set mouse owner, don't start command here
+            // Command will be started in GizmoTransformEnd for confirm
             _mouse.MouseOwner = this;
-            _activeTransformation.Start(_commandManager);
         }
 
         private void GizmoTransformEnd()
         {
-            _activeTransformation.Stop(_commandManager);
+            // Check if this is a cancel operation
+            if (_gizmo.IsModalCancelled)
+            {
+                // Cancel: restore vertices to initial state (like Blender's restoreTransObjects)
+                // Reset transform state as well since we're going back to initial
+                _activeTransformation?.RestoreVertexState(resetTransform: true);
+                _activeTransformation?.ClearBackup();
+                _gizmo.IsModalCancelled = false;
+            }
+            else
+            {
+                // Confirm: record the final transform for undo/redo
+                // Use ConfirmModalTransform to avoid the Start() method which resets _totalGizomTransform
+                _activeTransformation?.ClearBackup();
+                _activeTransformation?.ConfirmModalTransform(_commandManager);
+            }
+
+            // Reset _isEnabled after modal transform ends
+            // Gizmo should only be visible when explicitly enabled via toolbar button
+            _isEnabled = false;
+
             if (_mouse.MouseOwner == this)
             {
                 _mouse.MouseOwner = null;
@@ -127,6 +170,38 @@ namespace GameWorld.Core.Components.Gizmo
                     return;
             }
 
+            // Blender-style hotkey triggers for modal transform
+            // G = Translate, R = Rotate, S = Scale
+            // Active whenever there is a selection (no need to enable Gizmo first)
+            // Press hotkey to enter modal transform mode, mouse moves to transform
+            // Left click to confirm, Right click or Escape to cancel
+            if (_gizmo.Selection.Count > 0 && !_gizmo.IsInModalTransform)
+            {
+                if (_keyboard.IsKeyReleased(Keys.G))
+                {
+                    StartModalTransform(GizmoMode.Translate);
+                    return;
+                }
+                else if (_keyboard.IsKeyReleased(Keys.R))
+                {
+                    StartModalTransform(GizmoMode.Rotate);
+                    return;
+                }
+                else if (_keyboard.IsKeyReleased(Keys.S))
+                {
+                    StartModalTransform(GizmoMode.NonUniformScale);
+                    return;
+                }
+            }
+
+            // Handle modal transform updates
+            if (_gizmo.IsInModalTransform)
+            {
+                var isCameraMoving = _keyboard.IsKeyDown(Keys.LeftAlt);
+                _gizmo.Update(gameTime, !isCameraMoving);
+                return;
+            }
+
             if (!_isEnabled)
                 return;
 
@@ -136,12 +211,23 @@ namespace GameWorld.Core.Components.Gizmo
             else if (_gizmo.ActiveMode == GizmoMode.UniformScale && !_isCtrlPressed)
                 _gizmo.ActiveMode = GizmoMode.NonUniformScale;
 
-            //// Toggle space mode:
-            //if (_keyboard.IsKeyReleased(Keys.Home))
-            //    _gizmo.ToggleActiveSpace();
+            var isCameraMoving2 = _keyboard.IsKeyDown(Keys.LeftAlt);
+            _gizmo.Update(gameTime, !isCameraMoving2);
+        }
 
-            var isCameraMoving = _keyboard.IsKeyDown(Keys.LeftAlt);
-            _gizmo.Update(gameTime, !isCameraMoving);
+        /// <summary>
+        /// Start Blender-style modal transform
+        /// </summary>
+        private void StartModalTransform(GizmoMode mode)
+        {
+            // Don't set _isEnabled = true - Gizmo should not be visible during modal transform
+            _mouse.MouseOwner = this;
+
+            // Backup initial vertex state (like Blender's createTransData)
+            // This allows cancel to restore vertices to original positions
+            _activeTransformation?.BackupVertexState();
+
+            _gizmo.StartModalTransform(mode);
         }
 
         public void SetGizmoMode(GizmoMode mode)
@@ -175,7 +261,9 @@ namespace GameWorld.Core.Components.Gizmo
                     return;
             }
 
-            if (!_isEnabled)
+            // During modal transform, always draw (for dashed line visuals)
+            // Otherwise, only draw if gizmo is enabled
+            if (!_isEnabled && !_gizmo.IsInModalTransform)
                 return;
 
             _gizmo.Draw();

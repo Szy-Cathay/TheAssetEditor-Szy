@@ -48,6 +48,10 @@ namespace GameWorld.Core.SceneNodes
         public SkeletonBoneAnimationResolver? AttachmentBoneResolver { get; set; } = null;  // This is a hack - remove at some point
 
     
+        // Pooled buffers to avoid per-frame allocations
+        private readonly Matrix[] _animationBuffer = new Matrix[256];
+        private GeometryRenderItem? _pooledRenderItem;
+
         public Rmv2MeshNode(MeshObject meshObject, IRmvMaterial material, CapabilityMaterial shader, AnimationPlayer animationPlayer)
         {
             RmvMaterial = material;
@@ -69,9 +73,9 @@ namespace GameWorld.Core.SceneNodes
             var animationCapability = Material.TryGetCapability<AnimationCapability>();
             if (animationCapability != null)
             {
-                var data = new Matrix[256];
+                // Reset all entries to identity before filling animation data
                 for (var i = 0; i < 256; i++)
-                    data[i] = Matrix.Identity;
+                    _animationBuffer[i] = Matrix.Identity;
 
                 if (AnimationPlayer != null)
                 {
@@ -79,11 +83,11 @@ namespace GameWorld.Core.SceneNodes
                     if (frame != null)
                     {
                         for (var i = 0; i < frame.BoneTransforms.Count(); i++)
-                            data[i] = frame.BoneTransforms[i].WorldTransform;
+                            _animationBuffer[i] = frame.BoneTransforms[i].WorldTransform;
                     }
                 }
 
-                animationCapability.AnimationTransforms = data;
+                animationCapability.AnimationTransforms = _animationBuffer;
                 animationCapability.AnimationWeightCount = Geometry.WeightCount;
                 animationCapability.ApplyAnimation = AnimationPlayer != null && AnimationPlayer.IsEnabled && Geometry.VertexFormat != UiVertexFormat.Static;
             }
@@ -94,7 +98,14 @@ namespace GameWorld.Core.SceneNodes
             var modelWithOffset = ModelMatrix * Matrix.CreateTranslation(PivotPoint);
             RenderMatrix = modelWithOffset;
 
-            renderEngine.AddRenderItem(RenderBuckedId.Normal, new GeometryRenderItem(Geometry, Material, modelWithOffset * parentWorld));
+            // Reuse pooled render item instead of allocating new each frame
+            var worldMatrix = modelWithOffset * parentWorld;
+            if (_pooledRenderItem == null)
+                _pooledRenderItem = new GeometryRenderItem(Geometry, Material, worldMatrix);
+            else
+                _pooledRenderItem.UpdateWorldMatrix(worldMatrix);
+
+            renderEngine.AddRenderItem(RenderBuckedId.Normal, _pooledRenderItem);
 
             if (DisplayPivotPoint)
                 renderEngine.AddRenderLines(LineHelper.AddLocator(PivotPoint, 1, Color.Red));

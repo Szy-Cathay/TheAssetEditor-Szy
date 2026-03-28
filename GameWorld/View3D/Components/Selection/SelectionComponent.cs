@@ -8,6 +8,7 @@ using GameWorld.Core.Commands.Bone;
 using GameWorld.Core.Commands.Face;
 using GameWorld.Core.Commands.Object;
 using GameWorld.Core.Commands.Vertex;
+using GameWorld.Core.Components.Gizmo;
 using GameWorld.Core.Components.Input;
 using GameWorld.Core.Components.Rendering;
 using GameWorld.Core.SceneNodes;
@@ -28,6 +29,9 @@ namespace GameWorld.Core.Components.Selection
         Vector2 _startDrag;
         Vector2 _currentMousePos;
 
+        // Flag to skip next selection after modal transform confirmation
+        private bool _skipNextSelection = false;
+
         private readonly IKeyboardComponent _keyboardComponent;
         private readonly IMouseComponent _mouseComponent;
         private readonly ArcBallCamera _camera;
@@ -36,12 +40,14 @@ namespace GameWorld.Core.Components.Selection
         private readonly CommandFactory _commandFactory;
         private readonly SceneManager _sceneManger;
         private readonly RenderEngineComponent _resourceLibrary;
+        private readonly GizmoComponent _gizmoComponent;
 
         public SelectionComponent(
             IMouseComponent mouseComponent, IKeyboardComponent keyboardComponent,
             ArcBallCamera camera, SelectionManager selectionManager,
             IDeviceResolver deviceResolverComponent, CommandFactory commandFactory,
-            SceneManager sceneManager, RenderEngineComponent resourceLibrary)
+            SceneManager sceneManager, RenderEngineComponent resourceLibrary,
+            GizmoComponent gizmoComponent)
         {
             _mouseComponent = mouseComponent;
             _keyboardComponent = keyboardComponent;
@@ -51,6 +57,7 @@ namespace GameWorld.Core.Components.Selection
             _commandFactory = commandFactory;
             _sceneManger = sceneManager;
             _resourceLibrary = resourceLibrary;
+            _gizmoComponent = gizmoComponent;
         }
 
         public override void Initialize()
@@ -67,6 +74,14 @@ namespace GameWorld.Core.Components.Selection
 
         public override void Update(GameTime gameTime)
         {
+            // Check if Gizmo just finished modal transform - skip this selection
+            var gizmo = _gizmoComponent?.Gizmo;
+            if (gizmo != null && gizmo.JustFinishedModalTransform)
+            {
+                gizmo.ClearJustFinishedFlag();
+                _skipNextSelection = true;
+            }
+
             if (!_mouseComponent.IsMouseOwner(this))
                 return;
 
@@ -85,6 +100,14 @@ namespace GameWorld.Core.Components.Selection
 
             if (_mouseComponent.IsMouseButtonReleased(MouseButton.Left))
             {
+                // Skip selection if this is immediately after modal transform confirmation
+                if (_skipNextSelection)
+                {
+                    _skipNextSelection = false;
+                    _isMouseDown = false;
+                    return;
+                }
+
                 if (_isMouseDown)
                 {
                     var selectionRectangle = CreateSelectionRectangle(_startDrag, _currentMousePos);

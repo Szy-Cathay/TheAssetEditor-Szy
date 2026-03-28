@@ -68,18 +68,73 @@ namespace AssetEditor
             devConfigManager.Initialize(e);
             devConfigManager.OverrideSettings();
 
-            // Load all packfiles
-            if (settingsService.CurrentSettings.LoadCaPacksByDefault)
-                LoadCAPackFiles(settingsService);
+            // Show window first, then load packs in background
+            ShowMainWindow();
 
+            // Load pack files asynchronously to avoid blocking the UI
+            if (settingsService.CurrentSettings.LoadCaPacksByDefault)
+                LoadCAPackFilesAsync(settingsService);
+            else
+                FinishStartup(devConfigManager);
+        }
+
+        private async void LoadCAPackFilesAsync(ApplicationSettingsService settingsService)
+        {
+            var mainWindow = (MainWindow?)MainWindow;
+            var viewModel = mainWindow?.DataContext as MainViewModel;
+            if (viewModel != null)
+            {
+                viewModel.IsLoadingPacks = true;
+                viewModel.LoadingStatusText = "Loading game packs...";
+            }
+
+            var gamePath = settingsService.GetGamePathForCurrentGame();
+            if (gamePath != null)
+            {
+                var packfileService = _serviceProvider.GetRequiredService<IPackFileService>();
+                var containerLoader = _serviceProvider.GetRequiredService<IPackFileContainerLoader>();
+
+                // Load packs on background thread
+                var loadRes = await Task.Run(() => containerLoader.LoadAllCaFiles(settingsService.CurrentSettings.CurrentGame));
+
+                // Update UI on dispatcher thread
+                await Current.Dispatcher.InvokeAsync(() =>
+                {
+                    if (loadRes == null)
+                        MessageBox.Show($"Unable to load all CA packfiles in {gamePath}");
+                    else
+                        packfileService.AddContainer(loadRes);
+
+                    if (viewModel != null)
+                    {
+                        viewModel.IsLoadingPacks = false;
+                        viewModel.LoadingStatusText = "";
+                    }
+
+                    var devConfigManager = _serviceProvider.GetRequiredService<DevelopmentConfigurationManager>();
+                    FinishStartup(devConfigManager);
+                });
+            }
+            else
+            {
+                if (viewModel != null)
+                {
+                    viewModel.IsLoadingPacks = false;
+                    viewModel.LoadingStatusText = "";
+                }
+                var devConfigManager = _serviceProvider.GetRequiredService<DevelopmentConfigurationManager>();
+                FinishStartup(devConfigManager);
+            }
+        }
+
+        private void FinishStartup(DevelopmentConfigurationManager devConfigManager)
+        {
             devConfigManager.CreateTestPackFiles();
             devConfigManager.OpenFileOnLoad();
 
-            ShowMainWindow();
-
             _ipcServer = _serviceProvider.GetRequiredService<AssetEditorIpcServer>();
             _ipcServer.Start();
-            _ = CheckVersion(uiCommandFactory);
+            _ = CheckVersion(_serviceProvider.GetRequiredService<IUiCommandFactory>());
         }
 
         private static void HandleFirstTimeSettings(IUiCommandFactory uiCommandFactory, ApplicationSettingsService settingsService)
@@ -88,22 +143,6 @@ namespace AssetEditor
 
             settingsService.CurrentSettings.IsFirstTimeStartingApplication = false;
             settingsService.Save();
-        }
-
-        private void LoadCAPackFiles(ApplicationSettingsService settingsService)
-        {
-            var gamePath = settingsService.GetGamePathForCurrentGame();
-            if (gamePath != null)
-            {
-                var packfileService = _serviceProvider.GetRequiredService<IPackFileService>();
-                var containerLoader = _serviceProvider.GetRequiredService<IPackFileContainerLoader>();
-                var loadRes = containerLoader.LoadAllCaFiles(settingsService.CurrentSettings.CurrentGame);
-
-                if (loadRes == null)
-                    MessageBox.Show($"Unable to load all CA packfiles in {gamePath}");
-                else
-                    packfileService.AddContainer(loadRes);
-            }
         }
 
         void ShowMainWindow()

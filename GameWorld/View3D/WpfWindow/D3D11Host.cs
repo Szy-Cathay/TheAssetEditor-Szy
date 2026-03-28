@@ -97,10 +97,11 @@ namespace GameWorld.Core.WpfWindow
         public bool IsFixedTimeStep => false;
 
         /// <summary>
-        /// Gets or sets the target time between two updates. Defaults to 60fps.
-        /// WPF is limiting its rendering to 60 FPS max, therefore setting a target value higher than 60 fps (lower than TimeSpan.FromSeconds(1 / 60.0)) will have no effect.
+        /// Gets or sets the target time between two updates.
+        /// Set to 1 tick to sync with screen refresh rate (no artificial limit).
+        /// WPF CompositionTarget.Rendering will drive rendering at the display's refresh rate.
         /// </summary>
-        public TimeSpan TargetElapsedTime { get; set; } = TimeSpan.FromTicks(160000); // 60 fps
+        public TimeSpan TargetElapsedTime { get; set; } = TimeSpan.FromTicks(1); // Sync with screen refresh rate
 
         /// <summary>
         /// Gets a value indicating whether the controls runs in the context of a designer (e.g.

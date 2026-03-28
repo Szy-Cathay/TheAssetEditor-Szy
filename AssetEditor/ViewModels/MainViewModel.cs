@@ -31,6 +31,8 @@ namespace AssetEditor.ViewModels
         [ObservableProperty] public partial string EditablePackFile { get; set; }
         [ObservableProperty] public partial bool IsPackFileExplorerVisible { get; set; } = true;
         [ObservableProperty] public partial GridLength FileTreeColumnWidth { get; set; } = new GridLength(0.28, GridUnitType.Star);
+        [ObservableProperty] public partial bool IsLoadingPacks { get; set; } = false;
+        [ObservableProperty] public partial string LoadingStatusText { get; set; } = "";
 
 
         public MainViewModel(

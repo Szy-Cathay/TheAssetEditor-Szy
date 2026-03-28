@@ -28,32 +28,56 @@ namespace GameWorld.Core.Rendering.Geometry
 
         public void RebuildIndexBuffer(ushort[] indexList)
         {
-            if (IndexBuffer != null)
+            if (indexList.Length == 0)
             {
-                IndexBuffer.Dispose();
-                IndexBuffer = null;
+                if (IndexBuffer != null)
+                {
+                    IndexBuffer.Dispose();
+                    IndexBuffer = null;
+                }
+                return;
             }
 
-            if (indexList.Length != 0)
+            // Reuse existing buffer if large enough
+            if (IndexBuffer != null && IndexBuffer.IndexCount >= indexList.Length)
             {
-                IndexBuffer = new IndexBuffer(Device, typeof(ushort), indexList.Length, BufferUsage.None);
                 IndexBuffer.SetData(indexList);
+                return;
             }
+
+            // Only dispose+recreate if buffer is too small or null
+            if (IndexBuffer != null)
+                IndexBuffer.Dispose();
+
+            IndexBuffer = new IndexBuffer(Device, typeof(ushort), indexList.Length, BufferUsage.WriteOnly);
+            IndexBuffer.SetData(indexList);
         }
 
         public virtual void RebuildVertexBuffer(VertexPositionNormalTextureCustom[] vertArray, VertexDeclaration vertexDeclaration)
         {
-            if (VertexBuffer != null)
+            if (vertArray.Length == 0)
             {
-                VertexBuffer.Dispose();
-                VertexBuffer = null;
+                if (VertexBuffer != null)
+                {
+                    VertexBuffer.Dispose();
+                    VertexBuffer = null;
+                }
+                return;
             }
 
-            if (vertArray.Length != 0)
+            // Reuse existing buffer if large enough
+            if (VertexBuffer != null && VertexBuffer.VertexCount >= vertArray.Length)
             {
-                VertexBuffer = new VertexBuffer(Device, vertexDeclaration, vertArray.Length, BufferUsage.None);
                 VertexBuffer.SetData(vertArray);
+                return;
             }
+
+            // Only dispose+recreate if buffer is too small or null
+            if (VertexBuffer != null)
+                VertexBuffer.Dispose();
+
+            VertexBuffer = new VertexBuffer(Device, vertexDeclaration, vertArray.Length, BufferUsage.WriteOnly);
+            VertexBuffer.SetData(vertArray);
         }
 
         public IGraphicsCardGeometry Clone()

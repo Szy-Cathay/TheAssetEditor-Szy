@@ -96,7 +96,12 @@ namespace GameWorld.Core.Components.Selection
 
         public void SetState(ISelectionState state)
         {
-            _currentState.SelectionChanged -= SelectionManager_SelectionChanged;
+            if (state == null)
+                return;
+
+            if (_currentState != null)
+                _currentState.SelectionChanged -= SelectionManager_SelectionChanged;
+
             _currentState = state;
             _currentState.SelectionChanged += SelectionManager_SelectionChanged;
             SelectionManager_SelectionChanged(_currentState, true);

@@ -5,6 +5,7 @@
         RenderEngine,
         Input,
         Camera,
+        NavigationGizmo,
         Animation,
 
         Gizmo,
@@ -19,5 +20,6 @@
         RenderEngine,
         Gizmo,
         SelectionComponent,
+        NavigationGizmo,
     }
 }

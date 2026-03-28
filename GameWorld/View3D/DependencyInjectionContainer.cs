@@ -7,6 +7,7 @@ using GameWorld.Core.Commands.Vertex;
 using GameWorld.Core.Components;
 using GameWorld.Core.Components.Gizmo;
 using GameWorld.Core.Components.Input;
+using GameWorld.Core.Components.Navigation;
 using GameWorld.Core.Components.Rendering;
 using GameWorld.Core.Components.Selection;
 using GameWorld.Core.Rendering.Geometry;
@@ -101,6 +102,7 @@ namespace GameWorld.Core
 
             RegisterGameComponent<FpsComponent>(serviceCollection);
             RegisterGameComponent<ArcBallCamera>(serviceCollection);
+            RegisterGameComponent<NavigationGizmoComponent>(serviceCollection);
             RegisterGameComponent<SceneManager>(serviceCollection);
             RegisterGameComponent<GizmoComponent>(serviceCollection);
             RegisterGameComponent<SelectionManager>(serviceCollection);
@@ -110,7 +112,7 @@ namespace GameWorld.Core
             RegisterGameComponent<AnimationsContainerComponent>(serviceCollection);
             RegisterGameComponent<LightControllerComponent>(serviceCollection);
 
-            //serviceCollection.AddScoped<ISceneLightParameters>(x => x.GetRequiredService<LightControllerComponent>()); 
+            //serviceCollection.AddScoped<ISceneLightParameters>(x => x.GetRequiredService<LightControllerComponent>());
         }
 
         void RegisterCommands(IServiceCollection serviceCollection)

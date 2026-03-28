@@ -37,6 +37,16 @@ namespace GameWorld.Core.Components.Gizmo
         Matrix _totalGizomTransform = Matrix.Identity;
         bool _invertedWindingOrder = false;
 
+        // -- Modal transform state backup (like Blender's TransData.iloc) -- //
+        private List<List<Vector3>> _backupVertexPositions;
+        private List<List<Vector3>> _backupNormals;      // Backup normals to prevent lighting flicker
+        private List<List<Vector3>> _backupTangents;     // Backup tangents
+        private List<List<Vector3>> _backupBiNormals;    // Backup bi-normals
+        private List<List<int>> _backupIndexBuffers;
+        private Vector3 _backupPosition;                 // Backup initial position for rotation center
+        private Quaternion _backupOrientation;           // Backup initial orientation
+        private bool _hasBackup = false;
+
         public TransformGizmoWrapper(CommandFactory commandFactory, List<MeshObject> effectedObjects, ISelectionState vertexSelectionState)
         {
             _commandFactory = commandFactory;
@@ -161,6 +171,39 @@ namespace GameWorld.Core.Components.Gizmo
                 _activeCommand = null;
                 return;
             }
+        }
+
+        /// <summary>
+        /// Confirm modal transform - record the final transform for undo/redo
+        /// This is different from the normal gizmo flow where Start/Stop are used
+        /// </summary>
+        public void ConfirmModalTransform(CommandExecutor commandManager)
+        {
+            // Create the command with current transform state
+            if (_selectionState is BoneSelectionState)
+            {
+                var command = _commandFactory.Create<TransformBoneCommand>()
+                    .Configure(x => x.Configure(_selectedBones, (BoneSelectionState)_selectionState))
+                    .Build();
+                var matrix = _totalGizomTransform;
+                matrix.Translation = Position;
+                command.Transform = matrix;
+                commandManager.ExecuteCommand(command);
+            }
+            else
+            {
+                var command = _commandFactory.Create<TransformVertexCommand>()
+                    .Configure(x => x.Configure(_effectedObjects, Position))
+                    .Build();
+                command.InvertWindingOrder = _invertedWindingOrder;
+                command.Transform = _totalGizomTransform;
+                command.PivotPoint = Position;
+                commandManager.ExecuteCommand(command);
+            }
+
+            // Reset state after confirming
+            _totalGizomTransform = Matrix.Identity;
+            _invertedWindingOrder = false;
         }
 
         Matrix FixRotationAxis2(Matrix transform)
@@ -301,6 +344,129 @@ namespace GameWorld.Core.Components.Gizmo
         {
             return Position;
         }
+
+        #region Modal Transform State Backup (Blender-style)
+
+        /// <summary>
+        /// Backup current vertex state for modal transform (like Blender's createTransData)
+        /// Call this when modal transform starts
+        /// </summary>
+        public void BackupVertexState()
+        {
+            if (_effectedObjects == null || _effectedObjects.Count == 0)
+                return;
+
+            _backupVertexPositions = new List<List<Vector3>>();
+            _backupNormals = new List<List<Vector3>>();
+            _backupTangents = new List<List<Vector3>>();
+            _backupBiNormals = new List<List<Vector3>>();
+            _backupIndexBuffers = new List<List<int>>();
+
+            foreach (var mesh in _effectedObjects)
+            {
+                var positions = new List<Vector3>();
+                var normals = new List<Vector3>();
+                var tangents = new List<Vector3>();
+                var biNormals = new List<Vector3>();
+
+                for (int i = 0; i < mesh.VertexCount(); i++)
+                {
+                    var vertex = mesh.GetVertexExtented(i);
+                    positions.Add(new Vector3(vertex.Position.X, vertex.Position.Y, vertex.Position.Z));
+                    normals.Add(vertex.Normal);
+                    tangents.Add(vertex.Tangent);
+                    biNormals.Add(vertex.BiNormal);
+                }
+
+                _backupVertexPositions.Add(positions);
+                _backupNormals.Add(normals);
+                _backupTangents.Add(tangents);
+                _backupBiNormals.Add(biNormals);
+
+                // Convert List<ushort> to List<int> for backup
+                var indices = mesh.GetIndexBuffer().Select(x => (int)x).ToList();
+                _backupIndexBuffers.Add(indices);
+            }
+
+            // Backup position and orientation for rotation center
+            _backupPosition = _pos;
+            _backupOrientation = _orientation;
+
+            _hasBackup = true;
+        }
+
+        /// <summary>
+        /// Restore vertex state from backup (like Blender's restoreTransObjects)
+        /// Call this when modal transform is cancelled or when recalculating from initial state
+        /// </summary>
+        /// <param name="resetTransform">Whether to reset internal transform state (true for cancel, false for recalculating)</param>
+        public void RestoreVertexState(bool resetTransform = true)
+        {
+            if (!_hasBackup || _effectedObjects == null)
+                return;
+
+            for (int meshIndex = 0; meshIndex < _effectedObjects.Count && meshIndex < _backupVertexPositions.Count; meshIndex++)
+            {
+                var mesh = _effectedObjects[meshIndex];
+                var positions = _backupVertexPositions[meshIndex];
+                var normals = _backupNormals[meshIndex];
+                var tangents = _backupTangents[meshIndex];
+                var biNormals = _backupBiNormals[meshIndex];
+                var indices = _backupIndexBuffers[meshIndex];
+
+                for (int i = 0; i < positions.Count; i++)
+                {
+                    // Restore position
+                    mesh.VertexArray[i].Position = new Vector4(positions[i], 1);
+                    // Restore normals, tangents, bi-normals to prevent lighting flicker
+                    mesh.VertexArray[i].Normal = normals[i];
+                    mesh.VertexArray[i].Tangent = tangents[i];
+                    mesh.VertexArray[i].BiNormal = biNormals[i];
+                }
+                // Convert List<int> back to List<ushort> for SetIndexBuffer
+                mesh.SetIndexBuffer(indices.Select(x => (ushort)x).ToList());
+                mesh.RebuildVertexBuffer();
+            }
+
+            // Reset internal state only when explicitly requested (e.g., on cancel)
+            if (resetTransform)
+            {
+                _totalGizomTransform = Matrix.Identity;
+                _invertedWindingOrder = false;
+                // Restore position and orientation for correct rotation center
+                _pos = _backupPosition;
+                _orientation = _backupOrientation;
+            }
+        }
+
+        /// <summary>
+        /// Clear backup data (call when modal transform is confirmed or done)
+        /// </summary>
+        public void ClearBackup()
+        {
+            _backupVertexPositions?.Clear();
+            _backupNormals?.Clear();
+            _backupTangents?.Clear();
+            _backupBiNormals?.Clear();
+            _backupIndexBuffers?.Clear();
+            _hasBackup = false;
+        }
+
+        /// <summary>
+        /// Check if there's a valid backup
+        /// </summary>
+        public bool HasBackup => _hasBackup;
+
+        /// <summary>
+        /// Reset the total gizmo transform (call when starting fresh transform)
+        /// </summary>
+        public void ResetTotalTransform()
+        {
+            _totalGizomTransform = Matrix.Identity;
+            _invertedWindingOrder = false;
+        }
+
+        #endregion
 
         public static TransformGizmoWrapper CreateFromSelectionState(ISelectionState state, CommandFactory commandFactory)
         {

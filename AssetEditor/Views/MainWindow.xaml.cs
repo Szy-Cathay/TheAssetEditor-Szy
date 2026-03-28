@@ -4,7 +4,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using AssetEditor.ViewModels;
 using AssetEditor.WindowsTitleMenu;
+using Microsoft.Extensions.DependencyInjection;
 using Shared.Core.Settings;
 using Shared.Core.ToolCreation;
 using Shared.Ui.BaseDialogs.PackFileTree;
@@ -18,10 +20,12 @@ namespace AssetEditor.Views
         IEditorInterface _draggedItem;
 
         private readonly ApplicationSettingsService _applicationSettingsService;
+        private readonly IServiceProvider _serviceProvider;
 
-        public MainWindow(ApplicationSettingsService applicationSettingsService)
+        public MainWindow(ApplicationSettingsService applicationSettingsService, IServiceProvider serviceProvider)
         {
             _applicationSettingsService = applicationSettingsService;
+            _serviceProvider = serviceProvider;
 
             InitializeComponent();
             SourceInitialized += OnSourceInitialized;
@@ -201,10 +205,25 @@ namespace AssetEditor.Views
 
         private void NewWindowMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var w = new MainWindow(_applicationSettingsService);
-            w.WindowState = WindowState.Normal;
-            w.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-            w.Show();
+            // Create a new DI scope for the new window
+            // This ensures all scoped services (CommandExecutor, EventHub, etc.)
+            // are independent from the main window
+            var scope = _serviceProvider.CreateScope();
+            var scopedProvider = scope.ServiceProvider;
+
+            var mainWindow = scopedProvider.GetRequiredService<MainWindow>();
+            mainWindow.DataContext = scopedProvider.GetRequiredService<MainViewModel>();
+            mainWindow.WindowState = WindowState.Normal;
+            mainWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+
+            // Keep the scope alive until the window is closed
+            mainWindow.Closed += (s, args) => scope.Dispose();
+
+            mainWindow.Show();
+
+            // Ensure the window doesn't cover up the windows bar
+            mainWindow.MaxHeight = SystemParameters.MaximizedPrimaryScreenHeight;
+            mainWindow.MaxWidth = SystemParameters.MaximizedPrimaryScreenWidth;
         }
 
         private void QuitMenuItem_Click(object sender, RoutedEventArgs e)

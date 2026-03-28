@@ -92,6 +92,42 @@ namespace GameWorld.Core.Components.Gizmo
         public TransformSpace GizmoValueSpace = TransformSpace.Local;
         public PivotType ActivePivot = PivotType.SelectionCenter;
 
+        // -- Blender-style Modal Transform -- //
+        // Based on Blender's TransInfo and TransData structures
+        // Reference: Blender source/blender/editors/transform/transform_input.cc
+        public bool IsInModalTransform = false;
+        private Vector2 _modalTransformStartMousePos;    // Initial mouse position (imval in Blender)
+        private Vector3 _modalStartPivot;                // Initial pivot position
+        public bool IsModalCancelled = false;            // Flag to distinguish cancel from confirm
+
+        // Blender-style virtual mouse value accumulator
+        // This ensures frame-rate independent movement and smooth Shift behavior
+        private struct VirtualMouseValue
+        {
+            public Vector2 Prev;      // Previous virtual position
+            public Vector2 Accum;     // Accumulated displacement
+        }
+        private VirtualMouseValue _virtualMouse;
+
+        /// <summary>
+        /// Flag to indicate that modal transform just finished.
+        /// SelectionComponent should check this to prevent selecting other objects.
+        /// </summary>
+        public bool JustFinishedModalTransform { get; private set; } = false;
+
+        // For precise ray-plane intersection calculation (like Blender's InputVector)
+        private Vector3 _lastModalIntersection = Vector3.Zero;
+
+        // Dashed line parameters from mouse to pivot during modal transform
+        private const int DASH_SCREEN_LENGTH = 20;  // Length of each dash in screen pixels
+        private const int MAX_DASHES = 200;          // Maximum number of dashes to draw
+
+        // -- Numeric Input (Blender-style) -- //
+        // User can type numbers directly after G/R/S for precise input
+        private string _numericInput = "";            // Current numeric input string
+        public bool IsInNumericInput = false;         // Whether user is typing a number
+        private float _numericValue = 0f;             // Parsed numeric value
+
 
         #region BoundingSpheres
 
@@ -140,6 +176,7 @@ namespace GameWorld.Core.Components.Gizmo
 
         private readonly ArcBallCamera _camera;
         private readonly IMouseComponent _mouse;
+        private IKeyboardComponent _keyboard;
 
 
         public Gizmo(ArcBallCamera camera, IMouseComponent mouse, GraphicsDevice graphics, RenderEngineComponent renderEngineComponent)
@@ -157,6 +194,101 @@ namespace GameWorld.Core.Components.Gizmo
             _meshEffect = new BasicEffect(graphics);
 
             Initialize();
+        }
+
+        /// <summary>
+        /// Set keyboard component for axis locking via X/Y/Z keys
+        /// </summary>
+        public void SetKeyboard(IKeyboardComponent keyboard)
+        {
+            _keyboard = keyboard;
+        }
+
+        /// <summary>
+        /// Start Blender-style modal transform (mouse movement transforms without dragging)
+        /// </summary>
+        public void StartModalTransform(GizmoMode mode)
+        {
+            if (Selection.Count == 0)
+                return;
+
+            ActiveMode = mode;
+            ActiveAxis = GizmoAxis.None;
+            IsInModalTransform = true;
+            IsModalCancelled = false;
+
+            // Save initial mouse position (Blender: imval)
+            _modalTransformStartMousePos = _mouse.Position();
+
+            // Initialize virtual mouse accumulator (Blender-style)
+            // Reference: transform_input.cc applyMouseInput()
+            // IMPORTANT: Prev must be current mouse position, not Zero, to avoid first-frame jump
+            _virtualMouse.Prev = _modalTransformStartMousePos;
+            _virtualMouse.Accum = Vector2.Zero;
+
+            // Save pivot position
+            UpdateGizmoPosition();
+            _modalStartPivot = _position;
+            _lastModalIntersection = Vector3.Zero;
+
+            // Set cursor based on mode (Blender-style)
+            ModalCursorType cursorType = mode switch
+            {
+                GizmoMode.Translate => ModalCursorType.Move,
+                GizmoMode.Rotate => ModalCursorType.Rotate,
+                GizmoMode.NonUniformScale or GizmoMode.UniformScale => ModalCursorType.Scale,
+                _ => ModalCursorType.Default
+            };
+            _mouse.SetModalCursor(cursorType);
+
+            StartEvent?.Invoke();
+        }
+
+        /// <summary>
+        /// Confirm modal transform - keep current state
+        /// </summary>
+        public void ConfirmModalTransform()
+        {
+            if (!IsInModalTransform)
+                return;
+
+            IsInModalTransform = false;
+            ActiveAxis = GizmoAxis.None;
+            IsModalCancelled = false;
+            JustFinishedModalTransform = true;  // Prevent next selection
+
+            // Reset cursor to default
+            _mouse.ResetCursor();
+
+            StopEvent?.Invoke();
+        }
+
+        /// <summary>
+        /// Cancel modal transform - restore all objects to initial state
+        /// </summary>
+        public void CancelModalTransform()
+        {
+            if (!IsInModalTransform)
+                return;
+
+            IsInModalTransform = false;
+            ActiveAxis = GizmoAxis.None;
+            IsModalCancelled = true;
+            JustFinishedModalTransform = true;  // Prevent next selection
+            ResetDeltas();
+
+            // Reset cursor to default
+            _mouse.ResetCursor();
+
+            StopEvent?.Invoke();
+        }
+
+        /// <summary>
+        /// Clear the JustFinishedModalTransform flag after SelectionComponent has checked it.
+        /// </summary>
+        public void ClearJustFinishedFlag()
+        {
+            JustFinishedModalTransform = false;
         }
 
         private void Initialize()
@@ -219,8 +351,921 @@ namespace GameWorld.Core.Components.Gizmo
             _intersectPosition = Vector3.Zero;
         }
 
+        /// <summary>
+        /// Update Blender-style modal transform (mouse movement without dragging)
+        /// Uses Blender's virtual mouse accumulator pattern for frame-rate independent movement
+        /// Reference: Blender transform_input.cc applyMouseInput()
+        /// </summary>
+        private void UpdateModalTransform(GameTime gameTime)
+        {
+            UpdateGizmoPosition();
+
+            // -- Numeric Input Handling (Blender-style) -- //
+            // User can type numbers directly for precise input
+            HandleNumericInput();
+
+            // Axis locking via X/Y/Z keys
+            if (_keyboard.IsKeyReleased(Keys.X))
+            {
+                ActiveAxis = (ActiveAxis == GizmoAxis.X) ? GizmoAxis.None : GizmoAxis.X;
+            }
+            else if (_keyboard.IsKeyReleased(Keys.Y))
+            {
+                ActiveAxis = (ActiveAxis == GizmoAxis.Y) ? GizmoAxis.None : GizmoAxis.Y;
+            }
+            else if (_keyboard.IsKeyReleased(Keys.Z))
+            {
+                ActiveAxis = (ActiveAxis == GizmoAxis.Z) ? GizmoAxis.None : GizmoAxis.Z;
+            }
+
+            // Cancel via Right mouse button or Escape
+            if (_mouse.IsMouseButtonPressed(MouseButton.Right) || _keyboard.IsKeyReleased(Keys.Escape))
+            {
+                CancelModalTransform();
+                return;
+            }
+
+            // Confirm via Left mouse button or Enter (with or without numeric input)
+            if (_mouse.IsMouseButtonPressed(MouseButton.Left) || _keyboard.IsKeyReleased(Keys.Enter))
+            {
+                // If there's numeric input, apply it
+                if (IsInNumericInput && _numericInput.Length > 0)
+                {
+                    ApplyNumericInput();
+                }
+                ConfirmModalTransform();
+                return;
+            }
+
+            // -- Blender-style Virtual Mouse Accumulator (Frame-Rate Independent) --
+            // Reference: transform_input.cc:489-526
+            // Key concept: Track mouse movement incrementally, not from absolute position
+            // This makes infinite drag (cursor wrapping) much simpler to handle
+
+            var currentMousePos = _mouse.Position();
+            var screenSize = _mouse.GetScreenSize();
+            var viewportWidth = (int)screenSize.X;
+            var viewportHeight = (int)screenSize.Y;
+
+            // Calculate frame delta (mouse movement since last frame)
+            var frameDelta = currentMousePos - _virtualMouse.Prev;
+
+            // Infinite drag - wrap cursor when mouse approaches viewport edge
+            const int triggerZone = 20;
+            const int safeZone = 80;
+
+            var wrappedPos = currentMousePos;
+            bool needWrap = false;
+
+            if (currentMousePos.X < triggerZone)
+            {
+                wrappedPos.X = viewportWidth - safeZone;
+                needWrap = true;
+            }
+            else if (currentMousePos.X > viewportWidth - triggerZone)
+            {
+                wrappedPos.X = safeZone;
+                needWrap = true;
+            }
+
+            if (currentMousePos.Y < triggerZone)
+            {
+                wrappedPos.Y = viewportHeight - safeZone;
+                needWrap = true;
+            }
+            else if (currentMousePos.Y > viewportHeight - triggerZone)
+            {
+                wrappedPos.Y = safeZone;
+                needWrap = true;
+            }
+
+            if (needWrap)
+            {
+                // Wrap cursor to other side
+                _mouse.SetCursorPosition((int)wrappedPos.X, (int)wrappedPos.Y);
+
+                // Recalculate frame delta accounting for wrap
+                // The actual movement is: user moved to currentMousePos, then we wrapped to wrappedPos
+                // So the effective movement for this frame is just the movement before wrap
+                // And we set Prev to wrappedPos so next frame starts fresh from there
+                frameDelta = currentMousePos - _virtualMouse.Prev;  // Movement before wrap
+                _virtualMouse.Prev = wrappedPos;  // Next frame starts from wrapped position
+            }
+            else
+            {
+                _virtualMouse.Prev = currentMousePos;
+            }
+
+            // -- Precision Mode (Shift key) --
+            // Blender: Scale the frame delta for precise control
+            const float precisionFactor = 0.1f;  // Blender default: 1/10
+            bool isPrecisionNow = _keyboard.IsKeyDown(Keys.LeftShift) || _keyboard.IsKeyDown(Keys.RightShift);
+
+            if (isPrecisionNow)
+            {
+                frameDelta *= precisionFactor;
+            }
+
+            // Accumulate the delta (Blender-style virtual accumulator)
+            _virtualMouse.Accum += frameDelta;
+
+            // The final displacement is the accumulated value
+            var finalDisplacement = _virtualMouse.Accum;
+
+            // Apply transform based on mode using ABSOLUTE displacement
+            switch (ActiveMode)
+            {
+                case GizmoMode.Translate:
+                    {
+                        // For translation, use absolute displacement from initial position
+                        RequestRestoreInitialState?.Invoke();
+                        Vector3 totalTranslation = CalculateAbsoluteTranslation(finalDisplacement);
+                        ApplyModalTranslationFromInitial(totalTranslation);
+                        break;
+                    }
+                case GizmoMode.Rotate:
+                    {
+                        // For rotation, use absolute angle from initial position
+                        const float radiansPerPixel = 0.002f;
+                        float totalRotation = finalDisplacement.X * radiansPerPixel;
+                        RequestRestoreInitialState?.Invoke();
+                        ApplyModalRotationFromInitial(totalRotation);
+                        break;
+                    }
+                case GizmoMode.NonUniformScale:
+                case GizmoMode.UniformScale:
+                    {
+                        // For scale, use absolute scale factor from initial position
+                        RequestRestoreInitialState?.Invoke();
+                        float totalScaleFactor;
+                        if (IsInNumericInput && _numericInput.Length > 0)
+                        {
+                            totalScaleFactor = _numericValue;
+                        }
+                        else
+                        {
+                            totalScaleFactor = 1.0f + finalDisplacement.Y * 0.01f;
+                        }
+                        ApplyModalScaleFromInitial(totalScaleFactor);
+                        break;
+                    }
+            }
+        }
+
+        /// <summary>
+        /// Calculate absolute translation from accumulated mouse displacement
+        /// This is frame-rate independent and matches Blender's approach
+        /// </summary>
+        private Vector3 CalculateAbsoluteTranslation(Vector2 totalDisplacement)
+        {
+            if (ActiveAxis == GizmoAxis.None)
+            {
+                // Free translation on view plane
+                Vector3 viewDir = _camera.LookAt - _camera.Position;
+                viewDir.Normalize();
+
+                float distanceToObject = (_position - _camera.Position).Length();
+                float sensitivity = 0.001f * distanceToObject;
+
+                Vector3 cameraRight = Vector3.Cross(viewDir, Vector3.Up);
+                if (cameraRight.LengthSquared() < 0.001f)
+                    cameraRight = Vector3.Cross(viewDir, Vector3.UnitX);
+                cameraRight.Normalize();
+                Vector3 cameraUp = Vector3.Cross(cameraRight, viewDir);
+                cameraUp.Normalize();
+
+                return cameraRight * -totalDisplacement.X * sensitivity + cameraUp * -totalDisplacement.Y * sensitivity;
+            }
+            else
+            {
+                // Axis-constrained translation
+                return CalculateAxisConstrainedAbsoluteDelta(totalDisplacement);
+            }
+        }
+
+        /// <summary>
+        /// Calculate axis-constrained absolute translation
+        /// </summary>
+        private Vector3 CalculateAxisConstrainedAbsoluteDelta(Vector2 totalDisplacement)
+        {
+            Vector3 axisDirection;
+            switch (ActiveAxis)
+            {
+                case GizmoAxis.X:
+                    axisDirection = _rotationMatrix.Right;
+                    break;
+                case GizmoAxis.Y:
+                    axisDirection = _rotationMatrix.Up;
+                    break;
+                case GizmoAxis.Z:
+                    axisDirection = _rotationMatrix.Forward;
+                    break;
+                default:
+                    return Vector3.Zero;
+            }
+
+            // Project mouse displacement onto axis
+            var axisStart = _graphics.Viewport.Project(_modalStartPivot, _camera.ProjectionMatrix, _camera.ViewMatrix, Matrix.Identity);
+            var axisEnd = _graphics.Viewport.Project(_modalStartPivot + axisDirection, _camera.ProjectionMatrix, _camera.ViewMatrix, Matrix.Identity);
+            var screenAxis = new Vector2(axisEnd.X - axisStart.X, axisEnd.Y - axisStart.Y);
+            var screenAxisLength = screenAxis.Length();
+
+            if (screenAxisLength < 0.001f)
+                return Vector3.Zero;
+
+            var movement = (totalDisplacement.X * screenAxis.X + totalDisplacement.Y * screenAxis.Y) / screenAxisLength;
+
+            float distanceToObject = (_modalStartPivot - _camera.Position).Length();
+            float worldScale = distanceToObject * 0.001f;
+
+            return axisDirection * movement * worldScale;
+        }
+
+        /// <summary>
+        /// Apply translation from initial state using absolute displacement
+        /// Called each frame with total translation from initial position
+        /// </summary>
+        private void ApplyModalTranslationFromInitial(Vector3 totalTranslation)
+        {
+            if (totalTranslation == Vector3.Zero)
+                return;
+
+            foreach (var entity in Selection)
+            {
+                OnTranslateEvent(entity, totalTranslation);
+            }
+        }
+
+        /// <summary>
+        /// Handle numeric input during modal transform (Blender-style)
+        /// User can type numbers directly for precise transformation
+        /// </summary>
+        private void HandleNumericInput()
+        {
+            // Number keys (0-9) - use IsKeyReleased to detect key press
+            for (int i = 0; i <= 9; i++)
+            {
+                var key = (Keys)((int)Keys.D0 + i);
+                if (_keyboard.IsKeyReleased(key))
+                {
+                    if (!IsInNumericInput)
+                    {
+                        IsInNumericInput = true;
+                        _numericInput = "";
+                        _numericValue = 0f;
+                    }
+                    _numericInput += i.ToString();
+                    ParseNumericInput();
+                    return;
+                }
+            }
+
+            // Numpad number keys
+            for (int i = 0; i <= 9; i++)
+            {
+                var key = (Keys)((int)Keys.NumPad0 + i);
+                if (_keyboard.IsKeyReleased(key))
+                {
+                    if (!IsInNumericInput)
+                    {
+                        IsInNumericInput = true;
+                        _numericInput = "";
+                        _numericValue = 0f;
+                    }
+                    _numericInput += i.ToString();
+                    ParseNumericInput();
+                    return;
+                }
+            }
+
+            // Minus sign (for negative numbers)
+            if (_keyboard.IsKeyReleased(Keys.OemMinus) || _keyboard.IsKeyReleased(Keys.Subtract))
+            {
+                if (!IsInNumericInput)
+                {
+                    IsInNumericInput = true;
+                    _numericInput = "-";
+                    _numericValue = 0f;
+                }
+                else if (!_numericInput.StartsWith("-"))
+                {
+                    _numericInput = "-" + _numericInput;
+                    ParseNumericInput();
+                }
+                return;
+            }
+
+            // Decimal point
+            if (_keyboard.IsKeyReleased(Keys.OemPeriod) || _keyboard.IsKeyReleased(Keys.Decimal) || _keyboard.IsKeyReleased(Keys.OemComma))
+            {
+                if (!IsInNumericInput)
+                {
+                    IsInNumericInput = true;
+                    _numericInput = "0.";
+                    _numericValue = 0f;
+                }
+                else if (!_numericInput.Contains("."))
+                {
+                    _numericInput += ".";
+                    ParseNumericInput();
+                }
+                return;
+            }
+
+            // Backspace - delete last character
+            if (_keyboard.IsKeyReleased(Keys.Back))
+            {
+                if (IsInNumericInput && _numericInput.Length > 0)
+                {
+                    _numericInput = _numericInput.Substring(0, _numericInput.Length - 1);
+                    if (_numericInput.Length == 0 || _numericInput == "-")
+                    {
+                        _numericValue = 0f;
+                    }
+                    else
+                    {
+                        ParseNumericInput();
+                    }
+                }
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Parse the numeric input string to a float value
+        /// </summary>
+        private void ParseNumericInput()
+        {
+            if (float.TryParse(_numericInput, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out float result))
+            {
+                _numericValue = result;
+            }
+        }
+
+        /// <summary>
+        /// Apply the numeric input value as transformation
+        /// Called when user presses Enter or Left mouse button
+        /// </summary>
+        private void ApplyNumericInput()
+        {
+            if (!IsInNumericInput || _numericInput.Length == 0)
+                return;
+
+            RequestRestoreInitialState?.Invoke();
+
+            switch (ActiveMode)
+            {
+                case GizmoMode.Translate:
+                    {
+                        // Numeric value is the distance to move
+                        Vector3 direction;
+                        if (ActiveAxis == GizmoAxis.None)
+                        {
+                            // Move along view direction's X axis (screen right)
+                            Vector3 viewDir = _camera.LookAt - _camera.Position;
+                            viewDir.Normalize();
+                            direction = Vector3.Cross(viewDir, Vector3.Up);
+                            if (direction.LengthSquared() < 0.001f)
+                                direction = Vector3.Cross(viewDir, Vector3.UnitX);
+                            direction.Normalize();
+                        }
+                        else
+                        {
+                            switch (ActiveAxis)
+                            {
+                                case GizmoAxis.X:
+                                    direction = _rotationMatrix.Right;
+                                    break;
+                                case GizmoAxis.Y:
+                                    direction = _rotationMatrix.Up;
+                                    break;
+                                case GizmoAxis.Z:
+                                    direction = _rotationMatrix.Forward;
+                                    break;
+                                default:
+                                    direction = Vector3.UnitX;
+                                    break;
+                            }
+                        }
+                        Vector3 translation = direction * _numericValue;
+                        ApplyModalTranslation(translation);
+                        break;
+                    }
+                case GizmoMode.Rotate:
+                    {
+                        // Numeric value is the rotation angle in degrees
+                        float angleRadians = MathHelper.ToRadians(_numericValue);
+                        ApplyModalRotationFromInitial(angleRadians);
+                        break;
+                    }
+                case GizmoMode.NonUniformScale:
+                case GizmoMode.UniformScale:
+                    {
+                        // Numeric value is the scale factor
+                        ApplyModalScaleFromInitial(_numericValue);
+                        break;
+                    }
+            }
+
+            // Reset numeric input state
+            IsInNumericInput = false;
+            _numericInput = "";
+            _numericValue = 0f;
+        }
+
+        /// <summary>
+        /// Update gizmo world matrix for rendering (scale and position)
+        /// This is needed because modal transform early-exits from Update()
+        /// </summary>
+        private void UpdateGizmoWorldMatrix()
+        {
+            // -- Scale Gizmo to fit on-screen -- //
+            var vLength = _camera.Position - _position;
+            const float scaleFactor = 25;
+
+            _screenScale = vLength.Length() / scaleFactor;
+            var screenScaleMatrix = Matrix.CreateScale(new Vector3(_screenScale * ScaleModifier));
+
+            _localForward = Vector3.Transform(Vector3.Forward, Matrix.CreateFromQuaternion(Selection[0].Orientation));
+            _localUp = Vector3.Transform(Vector3.Up, Matrix.CreateFromQuaternion(Selection[0].Orientation));
+
+            // -- Vector Rotation (Local/World) -- //
+            _localForward.Normalize();
+            _localRight = Vector3.Cross(_localForward, _localUp);
+            _localUp = Vector3.Cross(_localRight, _localForward);
+            _localRight.Normalize();
+            _localUp.Normalize();
+
+            // -- Create Both World Matrices -- //
+            _objectOrientedWorld = screenScaleMatrix * Matrix.CreateWorld(_position, _localForward, _localUp);
+            _axisAlignedWorld = screenScaleMatrix * Matrix.CreateWorld(_position, SceneWorld.Forward, SceneWorld.Up);
+
+            // Assign World
+            if (GizmoDisplaySpace == TransformSpace.World || ActiveMode == GizmoMode.UniformScale)
+            {
+                _gizmoWorld = _axisAlignedWorld;
+
+                _rotationMatrix.Forward = SceneWorld.Forward;
+                _rotationMatrix.Up = SceneWorld.Up;
+                _rotationMatrix.Right = SceneWorld.Right;
+            }
+            else
+            {
+                _gizmoWorld = _objectOrientedWorld;
+
+                _rotationMatrix.Forward = _localForward;
+                _rotationMatrix.Up = _localUp;
+                _rotationMatrix.Right = _localRight;
+            }
+        }
+
+        /// <summary>
+        /// Calculate world-space transform delta from mouse movement
+        /// Like Blender's convertViewVec / ED_view3d_win_to_delta
+        /// Uses ray-plane intersection for accurate world-space movement
+        /// </summary>
+        private Vector3 CalculateModalTransformDelta(Vector2 mouseDelta)
+        {
+            if (ActiveAxis == GizmoAxis.None)
+            {
+                // Free translation on view plane using ray-plane intersection
+                // This ensures movement speed matches mouse movement visually
+
+                // Create a plane perpendicular to camera view direction, passing through pivot
+                Vector3 viewDir = _camera.LookAt - _camera.Position;
+                viewDir.Normalize();
+                Plane viewPlane = new Plane(viewDir, -Vector3.Dot(viewDir, _position));
+
+                // Get rays for current and last mouse positions
+                var currentRay = _camera.CreateCameraRay(_mouse.Position());
+                var lastRay = _camera.CreateCameraRay(_mouse.Position() - mouseDelta);
+
+                // Find intersections with view plane
+                var currentIntersect = currentRay.Intersects(viewPlane);
+                var lastIntersect = lastRay.Intersects(viewPlane);
+
+                if (currentIntersect.HasValue && lastIntersect.HasValue)
+                {
+                    var currentPoint = currentRay.Position + currentRay.Direction * currentIntersect.Value;
+                    var lastPoint = lastRay.Position + lastRay.Direction * lastIntersect.Value;
+                    return currentPoint - lastPoint;
+                }
+
+                // Fallback: use simple screen-space calculation
+                float distanceToObject = (_position - _camera.Position).Length();
+                float sensitivity = 0.001f * distanceToObject;
+
+                Vector3 cameraRight = Vector3.Cross(viewDir, Vector3.Up);
+                if (cameraRight.LengthSquared() < 0.001f)
+                    cameraRight = Vector3.Cross(viewDir, Vector3.UnitX);
+                cameraRight.Normalize();
+                Vector3 cameraUp = Vector3.Cross(cameraRight, viewDir);
+                cameraUp.Normalize();
+
+                return cameraRight * mouseDelta.X * sensitivity + cameraUp * -mouseDelta.Y * sensitivity;
+            }
+            else
+            {
+                // Axis-constrained translation using ray-plane intersection
+                return CalculateAxisConstrainedDelta(mouseDelta);
+            }
+        }
+
+        /// <summary>
+        /// Calculate frame-by-frame translation for incremental movement
+        /// This provides smooth, responsive feel like Blender
+        /// </summary>
+        private Vector3 CalculateFrameTranslation(Vector2 frameDelta)
+        {
+            if (ActiveAxis == GizmoAxis.None)
+            {
+                // Free translation - use simple screen-space to world-space conversion
+                Vector3 viewDir = _camera.LookAt - _camera.Position;
+                viewDir.Normalize();
+
+                float distanceToObject = (_position - _camera.Position).Length();
+                float sensitivity = 0.001f * distanceToObject;
+
+                Vector3 cameraRight = Vector3.Cross(viewDir, Vector3.Up);
+                if (cameraRight.LengthSquared() < 0.001f)
+                    cameraRight = Vector3.Cross(viewDir, Vector3.UnitX);
+                cameraRight.Normalize();
+                Vector3 cameraUp = Vector3.Cross(cameraRight, viewDir);
+                cameraUp.Normalize();
+
+                return cameraRight * -frameDelta.X * sensitivity + cameraUp * -frameDelta.Y * sensitivity;
+            }
+            else
+            {
+                // Axis-constrained translation
+                return CalculateAxisConstrainedFrameDelta(frameDelta);
+            }
+        }
+
+        /// <summary>
+        /// Calculate axis-constrained frame delta for incremental movement
+        /// </summary>
+        private Vector3 CalculateAxisConstrainedFrameDelta(Vector2 frameDelta)
+        {
+            // Get axis direction
+            Vector3 axisDirection;
+            switch (ActiveAxis)
+            {
+                case GizmoAxis.X:
+                    axisDirection = _rotationMatrix.Right;
+                    break;
+                case GizmoAxis.Y:
+                    axisDirection = _rotationMatrix.Up;
+                    break;
+                case GizmoAxis.Z:
+                    axisDirection = _rotationMatrix.Forward;
+                    break;
+                default:
+                    return Vector3.Zero;
+            }
+
+            // Project axis to screen to get movement scale
+            var axisStart = _graphics.Viewport.Project(_position, _camera.ProjectionMatrix, _camera.ViewMatrix, Matrix.Identity);
+            var axisEnd = _graphics.Viewport.Project(_position + axisDirection, _camera.ProjectionMatrix, _camera.ViewMatrix, Matrix.Identity);
+            var screenAxis = new Vector2(axisEnd.X - axisStart.X, axisEnd.Y - axisStart.Y);
+            var screenAxisLength = screenAxis.Length();
+
+            if (screenAxisLength < 0.001f)
+                return Vector3.Zero;
+
+            // Calculate movement along axis based on mouse delta projected onto axis direction
+            // Use dot product to get movement along the axis
+            var movement = (frameDelta.X * screenAxis.X + frameDelta.Y * screenAxis.Y) / screenAxisLength;
+
+            // Scale: 1 pixel = small world unit, scale by distance for consistent feel
+            float distanceToObject = (_position - _camera.Position).Length();
+            float worldScale = distanceToObject * 0.001f;
+
+            return axisDirection * movement * worldScale;
+        }
+
+        /// <summary>
+        /// Calculate delta for axis-constrained movement using ray-plane intersection
+        /// Same method as HandleTranslateAndScale in normal gizmo operation
+        /// </summary>
+        private Vector3 CalculateAxisConstrainedDelta(Vector2 mouseDelta)
+        {
+            Plane plane;
+            switch (ActiveAxis)
+            {
+                case GizmoAxis.X:
+                    plane = new Plane(Vector3.Forward, Vector3.Transform(_position, Matrix.Invert(_rotationMatrix)).Z);
+                    break;
+                case GizmoAxis.Y:
+                case GizmoAxis.Z:
+                    plane = new Plane(Vector3.Left, Vector3.Transform(_position, Matrix.Invert(_rotationMatrix)).X);
+                    break;
+                default:
+                    return Vector3.Zero;
+            }
+
+            var ray = _camera.CreateCameraRay(_mouse.Position());
+            var transform = Matrix.Invert(_rotationMatrix);
+            ray.Position = Vector3.Transform(ray.Position, transform);
+            ray.Direction = Vector3.TransformNormal(ray.Direction, transform);
+
+            Vector3 deltaTransform = Vector3.Zero;
+            var intersection = ray.Intersects(plane);
+            if (intersection.HasValue)
+            {
+                var intersectPosition = ray.Position + ray.Direction * intersection.Value;
+                var mouseDragDelta = Vector3.Zero;
+                if (_lastModalIntersection != Vector3.Zero)
+                    mouseDragDelta = intersectPosition - _lastModalIntersection;
+
+                // Clamp large deltas
+                var length = mouseDragDelta.Length();
+                if (length > 0.5f)
+                {
+                    var direction = Vector3.Normalize(mouseDragDelta);
+                    mouseDragDelta = direction * 0.5f;
+                }
+
+                switch (ActiveAxis)
+                {
+                    case GizmoAxis.X:
+                        deltaTransform = new Vector3(mouseDragDelta.X, 0, 0);
+                        break;
+                    case GizmoAxis.Y:
+                        deltaTransform = new Vector3(0, mouseDragDelta.Y, 0);
+                        break;
+                    case GizmoAxis.Z:
+                        deltaTransform = new Vector3(0, 0, mouseDragDelta.Z);
+                        break;
+                }
+
+                _lastModalIntersection = intersectPosition;
+            }
+
+            // Convert from local to world space
+            return Vector3.Transform(deltaTransform, _rotationMatrix);
+        }
+
+        /// <summary>
+        /// Apply translation using the standard event system
+        /// This ensures vertices are properly transformed
+        /// </summary>
+        private void ApplyModalTranslation(Vector3 delta)
+        {
+            if (delta == Vector3.Zero)
+                return;
+
+            // Trigger the translation event (same as normal gizmo drag)
+            foreach (var entity in Selection)
+            {
+                OnTranslateEvent(entity, delta);
+            }
+        }
+
+        /// <summary>
+        /// Apply rotation using the standard event system
+        /// </summary>
+        private void ApplyModalRotation(float deltaAngle, GameTime gameTime)
+        {
+            if (deltaAngle == 0)
+                return;
+
+            Matrix rotMatrix;
+            if (ActiveAxis == GizmoAxis.None)
+            {
+                rotMatrix = Matrix.CreateFromAxisAngle(Vector3.Up, deltaAngle);
+            }
+            else
+            {
+                Vector3 axis;
+                switch (ActiveAxis)
+                {
+                    case GizmoAxis.X:
+                        axis = _rotationMatrix.Right;
+                        break;
+                    case GizmoAxis.Y:
+                        axis = _rotationMatrix.Up;
+                        break;
+                    case GizmoAxis.Z:
+                        axis = _rotationMatrix.Forward;
+                        break;
+                    default:
+                        return;
+                }
+                rotMatrix = Matrix.CreateFromAxisAngle(axis, deltaAngle);
+            }
+
+            foreach (var entity in Selection)
+            {
+                OnRotateEvent(entity, rotMatrix);
+            }
+        }
+
+        /// <summary>
+        /// Apply scale using the standard event system
+        /// </summary>
+        private void ApplyModalScale(float scaleFactor)
+        {
+            if (scaleFactor == 0)
+                return;
+
+            Vector3 scale;
+            if (ActiveAxis == GizmoAxis.None)
+            {
+                scale = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+            }
+            else
+            {
+                scale = Vector3.Zero;
+                switch (ActiveAxis)
+                {
+                    case GizmoAxis.X:
+                        scale = new Vector3(scaleFactor, 0, 0);
+                        break;
+                    case GizmoAxis.Y:
+                        scale = new Vector3(0, scaleFactor, 0);
+                        break;
+                    case GizmoAxis.Z:
+                        scale = new Vector3(0, 0, scaleFactor);
+                        break;
+                }
+            }
+
+            foreach (var entity in Selection)
+            {
+                OnScaleEvent(entity, scale);
+            }
+        }
+
+        /// <summary>
+        /// Apply rotation from initial state (called each frame with total rotation angle)
+        /// Uses the event to transform from initial position around pivot
+        /// </summary>
+        private void ApplyModalRotationFromInitial(float totalAngle)
+        {
+            if (totalAngle == 0)
+                return;
+
+            // Calculate rotation matrix based on axis
+            Vector3 axis;
+            if (ActiveAxis == GizmoAxis.None)
+            {
+                // Blender-style: Free rotation around view direction (screen normal)
+                // This makes the object rotate within the screen plane
+                Vector3 viewDir = _camera.LookAt - _camera.Position;
+                viewDir.Normalize();
+                axis = viewDir;
+            }
+            else
+            {
+                switch (ActiveAxis)
+                {
+                    case GizmoAxis.X:
+                        axis = _rotationMatrix.Right;
+                        break;
+                    case GizmoAxis.Y:
+                        axis = _rotationMatrix.Up;
+                        break;
+                    case GizmoAxis.Z:
+                        axis = _rotationMatrix.Forward;
+                        break;
+                    default:
+                        return;
+                }
+            }
+
+            Matrix rotMatrix = Matrix.CreateFromAxisAngle(axis, totalAngle);
+
+            foreach (var entity in Selection)
+            {
+                OnRotateEvent(entity, rotMatrix);
+            }
+        }
+
+        /// <summary>
+        /// Apply incremental rotation (called each frame with frame delta)
+        /// This provides smooth, responsive rotation without restoring initial state
+        /// </summary>
+        private void ApplyModalRotationIncremental(float deltaAngle)
+        {
+            if (deltaAngle == 0)
+                return;
+
+            // Calculate rotation axis (Blender-style)
+            // Reference: Blender transform_mode.cc:1270-1285
+            Vector3 axis;
+            if (ActiveAxis == GizmoAxis.None)
+            {
+                // Blender: Use view matrix inverse's Z-axis (perpendicular to screen)
+                // In XNA, ViewMatrix.Backward is the direction from lookAt to camera
+                // This is the correct rotation axis for screen-plane rotation
+                axis = _camera.ViewMatrix.Backward;
+                axis.Normalize();
+            }
+            else
+            {
+                switch (ActiveAxis)
+                {
+                    case GizmoAxis.X:
+                        axis = _rotationMatrix.Right;
+                        break;
+                    case GizmoAxis.Y:
+                        axis = _rotationMatrix.Up;
+                        break;
+                    case GizmoAxis.Z:
+                        axis = _rotationMatrix.Forward;
+                        break;
+                    default:
+                        return;
+                }
+            }
+
+            axis.Normalize();
+            Matrix rotMatrix = Matrix.CreateFromAxisAngle(axis, deltaAngle);
+
+            foreach (var entity in Selection)
+            {
+                OnRotateEvent(entity, rotMatrix);
+            }
+        }
+
+        /// <summary>
+        /// Apply scale from initial state (called each frame with total scale factor)
+        /// </summary>
+        private void ApplyModalScaleFromInitial(float scaleFactor)
+        {
+            if (scaleFactor == 0)
+                return;
+
+            // Ensure scale doesn't go negative or zero
+            scaleFactor = Math.Max(0.001f, scaleFactor);
+
+            Vector3 scale;
+            if (ActiveAxis == GizmoAxis.None)
+            {
+                // Uniform scale
+                scale = new Vector3(scaleFactor - 1.0f, scaleFactor - 1.0f, scaleFactor - 1.0f);
+            }
+            else
+            {
+                // Non-uniform scale on specific axis
+                scale = Vector3.Zero;
+                switch (ActiveAxis)
+                {
+                    case GizmoAxis.X:
+                        scale = new Vector3(scaleFactor - 1.0f, 0, 0);
+                        break;
+                    case GizmoAxis.Y:
+                        scale = new Vector3(0, scaleFactor - 1.0f, 0);
+                        break;
+                    case GizmoAxis.Z:
+                        scale = new Vector3(0, 0, scaleFactor - 1.0f);
+                        break;
+                }
+            }
+
+            foreach (var entity in Selection)
+            {
+                OnScaleEvent(entity, scale);
+            }
+        }
+
+        private void UpdateGizmoVisuals()
+        {
+            // Update visual elements for modal transform
+            // Highlight active axis
+            ApplyColor(GizmoAxis.X, ActiveAxis == GizmoAxis.X ? _highlightColor : _axisColors[0]);
+            ApplyColor(GizmoAxis.Y, ActiveAxis == GizmoAxis.Y ? _highlightColor : _axisColors[1]);
+            ApplyColor(GizmoAxis.Z, ActiveAxis == GizmoAxis.Z ? _highlightColor : _axisColors[2]);
+        }
+
         public void Update(GameTime gameTime, bool enableMove)
         {
+            // Handle Blender-style modal transform (no gizmo display, just transform)
+            if (IsInModalTransform && _keyboard != null)
+            {
+                UpdateModalTransform(gameTime);
+                return;
+            }
+
+            // Blender-style axis locking via X/Y/Z keys during transform
+            if (_keyboard != null && _mouse.IsMouseButtonDown(MouseButton.Left))
+            {
+                if (_keyboard.IsKeyReleased(Keys.X))
+                {
+                    ActiveAxis = GizmoAxis.X;
+                }
+                else if (_keyboard.IsKeyReleased(Keys.Y))
+                {
+                    ActiveAxis = GizmoAxis.Y;
+                }
+                else if (_keyboard.IsKeyReleased(Keys.Z))
+                {
+                    ActiveAxis = GizmoAxis.Z;
+                }
+            }
+
             if (_isActive && enableMove)
             {
                 var translateScaleLocal = Vector3.Zero;
@@ -586,6 +1631,13 @@ namespace GameWorld.Core.Components.Gizmo
         #region Draw
         public void Draw()
         {
+            // During modal transform, only draw the dashed line (not the gizmo)
+            if (IsInModalTransform)
+            {
+                DrawModalTransformVisuals();
+                return;
+            }
+
             if (!_isActive)
                 return;
 
@@ -648,8 +1700,158 @@ namespace GameWorld.Core.Components.Gizmo
             }
 
             _graphics.DepthStencilState = DepthStencilState.Default;
-           
+
             Draw2D(view, projection);
+        }
+
+        /// <summary>
+        /// Draw dashed line from mouse to pivot during modal transform (Blender-style)
+        /// </summary>
+        private void DrawModalTransformVisuals()
+        {
+            var view = _camera.ViewMatrix;
+            var projection = _camera.ProjectionMatrix;
+
+            // Get pivot position
+            UpdateGizmoPosition();
+            var pivotPos = _position;
+
+            // Get mouse screen position
+            var mouseScreenPos = _mouse.Position();
+
+            // Project pivot to screen
+            var pivotScreen = _graphics.Viewport.Project(pivotPos, projection, view, Matrix.Identity);
+            var mouseScreenStart = new Vector3(mouseScreenPos.X, mouseScreenPos.Y, pivotScreen.Z);
+
+            // Draw axis indicator text
+            DrawAxisIndicator(view, projection);
+
+            // Draw numeric input display (Blender-style)
+            DrawNumericInput();
+        }
+
+        /// <summary>
+        /// Draw a dashed line using screen-space dash length for consistent visual appearance
+        /// </summary>
+        private void DrawDashedLineScreenSpace(Vector2 screenStart, Vector2 screenEnd, Vector3 worldStart, Vector3 worldEnd)
+        {
+            // Calculate screen-space distance
+            var screenDelta = screenEnd - screenStart;
+            var screenDistance = screenDelta.Length();
+            if (screenDistance < 1f)
+                return;
+
+            // Calculate number of dashes based on screen-space length
+            var dashCount = Math.Min((int)(screenDistance / DASH_SCREEN_LENGTH), MAX_DASHES);
+            if (dashCount < 2)
+                dashCount = 2;
+
+            // Calculate world-space direction and step
+            var worldDirection = worldEnd - worldStart;
+            var worldDistance = worldDirection.Length();
+            if (worldDistance < 0.001f)
+                return;
+            worldDirection.Normalize();
+
+            var vertices = new List<VertexPositionColor>();
+            var worldDashLength = worldDistance / dashCount;
+
+            // Create dashed pattern (draw every other dash)
+            for (int i = 0; i < dashCount; i += 2)
+            {
+                var dashStart = worldStart + worldDirection * (i * worldDashLength);
+                var dashEnd = worldStart + worldDirection * (Math.Min(i + 1, dashCount) * worldDashLength);
+
+                vertices.Add(new VertexPositionColor(dashStart, Color.White));
+                vertices.Add(new VertexPositionColor(dashEnd, Color.White));
+            }
+
+            if (vertices.Count < 2)
+                return;
+
+            _graphics.BlendState = BlendState.AlphaBlend;
+            _graphics.DepthStencilState = DepthStencilState.None;
+            _graphics.RasterizerState = RasterizerState.CullNone;
+
+            _lineEffect.World = Matrix.Identity;
+            _lineEffect.View = _camera.ViewMatrix;
+            _lineEffect.Projection = _camera.ProjectionMatrix;
+            _lineEffect.CurrentTechnique.Passes[0].Apply();
+
+            _graphics.DrawUserPrimitives(PrimitiveType.LineList, vertices.ToArray(), 0, vertices.Count / 2);
+
+            _graphics.DepthStencilState = DepthStencilState.Default;
+        }
+
+        /// <summary>
+        /// Draw axis indicator during modal transform (shows X/Y/Z when locked)
+        /// </summary>
+        private void DrawAxisIndicator(Matrix view, Matrix projection)
+        {
+            _renderEngineComponent.CommonSpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+
+            // Show active axis text near cursor
+            if (ActiveAxis != GizmoAxis.None)
+            {
+                var mousePos = _mouse.Position();
+                var axisText = ActiveAxis.ToString();
+
+                // Determine color based on axis
+                Color axisColor = ActiveAxis switch
+                {
+                    GizmoAxis.X => Color.Red,
+                    GizmoAxis.Y => Color.Green,
+                    GizmoAxis.Z => Color.Blue,
+                    _ => Color.White
+                };
+
+                _renderEngineComponent.CommonSpriteBatch.DrawString(
+                    _renderEngineComponent.DefaultFont,
+                    axisText,
+                    new Vector2(mousePos.X + 15, mousePos.Y + 15),
+                    axisColor);
+            }
+
+            _renderEngineComponent.CommonSpriteBatch.End();
+        }
+
+        /// <summary>
+        /// Draw numeric input display during modal transform (Blender-style)
+        /// Shows the typed number near the cursor
+        /// </summary>
+        private void DrawNumericInput()
+        {
+            if (!IsInNumericInput || _numericInput.Length == 0)
+                return;
+
+            _renderEngineComponent.CommonSpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+
+            var mousePos = _mouse.Position();
+
+            // Format the display text based on mode
+            string displayText = ActiveMode switch
+            {
+                GizmoMode.Translate => $"Move: {_numericInput}",
+                GizmoMode.Rotate => $"Rotate: {_numericInput}°",
+                GizmoMode.NonUniformScale or GizmoMode.UniformScale => $"Scale: {_numericInput}x",
+                _ => _numericInput
+            };
+
+            // Add axis indicator if locked
+            if (ActiveAxis != GizmoAxis.None)
+            {
+                displayText = $"{ActiveAxis}: {_numericInput}";
+                if (ActiveMode == GizmoMode.Rotate)
+                    displayText += "°";
+            }
+
+            _renderEngineComponent.CommonSpriteBatch.DrawString(
+                _renderEngineComponent.DefaultFont,
+                displayText,
+                new Vector2(mousePos.X + 15, mousePos.Y + 35),
+                Color.Yellow);
+
+            _renderEngineComponent.CommonSpriteBatch.End();
         }
 
         private void Draw2D(Matrix view, Matrix projection)
@@ -704,6 +1906,12 @@ namespace GameWorld.Core.Components.Gizmo
 
         public event TransformationStartDelegate StartEvent;
         public event TransformationStopDelegate StopEvent;
+
+        /// <summary>
+        /// Event to request restoring initial state (for Blender-style modal transform)
+        /// GizmoComponent handles this by calling RestoreVertexState on the wrapper
+        /// </summary>
+        public event Action RequestRestoreInitialState;
 
         private void OnTranslateEvent(ITransformable transformable, Vector3 delta)
         {

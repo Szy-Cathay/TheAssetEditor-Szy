@@ -7,8 +7,18 @@ using System;
 
 namespace GameWorld.Core.Components.Rendering
 {
+    /// <summary>
+    /// Camera projection type
+    /// </summary>
+    public enum ProjectionType
+    {
+        Perspective,
+        Orthographic
+    }
+
     public class ArcBallCamera : BaseComponent, IDisposable
     {
+
         GraphicsDevice _graphicsDevice;
         private readonly IMouseComponent _mouse;
         private readonly IKeyboardComponent _keyboard;
@@ -90,6 +100,41 @@ namespace GameWorld.Core.Components.Rendering
         //We keep track if one of our matrices is dirty
         //and reacalculate that matrix when it is accesed.
         private bool viewMatrixDirty = true;
+        private bool projectionMatrixDirty = true;
+
+        // Orthographic projection support
+        private ProjectionType _projectionType = ProjectionType.Perspective;
+        private float _orthoSize = 10f;
+
+        // Track viewport size changes to update projection matrix
+        private int _lastViewportWidth = 0;
+        private int _lastViewportHeight = 0;
+
+        /// <summary>
+        /// Current projection type (Perspective or Orthographic)
+        /// </summary>
+        public ProjectionType CurrentProjectionType
+        {
+            get => _projectionType;
+            set
+            {
+                projectionMatrixDirty = true;
+                _projectionType = value;
+            }
+        }
+
+        /// <summary>
+        /// Orthographic view size (half-height of the view)
+        /// </summary>
+        public float OrthoSize
+        {
+            get => _orthoSize;
+            set
+            {
+                projectionMatrixDirty = true;
+                _orthoSize = Math.Max(0.1f, value);
+            }
+        }
 
         public float MinPitch = -MathHelper.PiOver2 + 0.3f;
         public float MaxPitch = MathHelper.PiOver2 - 0.3f;
@@ -171,11 +216,31 @@ namespace GameWorld.Core.Components.Rendering
             }
         }
 
+        private Matrix _projectionMatrix;
+
         public Matrix ProjectionMatrix
         {
             get
             {
-                return RefreshProjection();
+                // Check if viewport size changed (happens when window/viewport is resized)
+                if (_graphicsDevice != null)
+                {
+                    var currentWidth = _graphicsDevice.Viewport.Width;
+                    var currentHeight = _graphicsDevice.Viewport.Height;
+                    if (currentWidth != _lastViewportWidth || currentHeight != _lastViewportHeight)
+                    {
+                        _lastViewportWidth = currentWidth;
+                        _lastViewportHeight = currentHeight;
+                        projectionMatrixDirty = true;
+                    }
+                }
+
+                if (projectionMatrixDirty)
+                {
+                    _projectionMatrix = RefreshProjection();
+                    projectionMatrixDirty = false;
+                }
+                return _projectionMatrix;
             }
         }
         #endregion
@@ -187,12 +252,60 @@ namespace GameWorld.Core.Components.Rendering
 
         public void Update(IMouseComponent mouse, IKeyboardComponent keyboard)
         {
-            if (!mouse.IsMouseOwner(this))
-                return;
-
             var deltaMouseX = -mouse.DeltaPosition().X;
             var deltaMouseY = mouse.DeltaPosition().Y;
             var deltaMouseWheel = mouse.DeletaScrollWheel();
+
+            // Scroll wheel zoom works even without mouse ownership (Blender-style)
+            if (deltaMouseWheel != 0)
+            {
+                if (Math.Abs(deltaMouseWheel) > 250)   // Weird bug, sometimes this value is very large, probably related to state clearing. Temp fix
+                    deltaMouseWheel = 250 * Math.Sign(deltaMouseWheel);
+
+                // In orthographic mode, adjust OrthoSize instead of Zoom
+                if (_projectionType == ProjectionType.Orthographic)
+                {
+                    // Slower zoom in ortho mode for better control
+                    _orthoSize += deltaMouseWheel * 0.001f * _orthoSize;
+                    _orthoSize = Math.Max(0.1f, _orthoSize);  // Prevent zero or negative
+                    projectionMatrixDirty = true;
+                }
+                else
+                {
+                    var oldZoom = Zoom / 10;
+                    Zoom += deltaMouseWheel * 0.005f * oldZoom;
+                }
+            }
+
+            // Check for middle mouse button (Blender-style navigation)
+            // Middle mouse navigation has priority and can take ownership from other components
+            var isMiddleMouseDown = mouse.IsMouseButtonDown(MouseButton.Middle);
+            var isShiftDown = keyboard.IsKeyDown(Keys.LeftShift);
+
+            // Blender-style: Middle mouse button navigation (no Alt required)
+            if (isMiddleMouseDown)
+            {
+                // Take ownership for camera navigation (overrides other components)
+                mouse.MouseOwner = this;
+
+                if (isShiftDown)
+                {
+                    // Shift + Middle mouse = Pan view
+                    MoveCameraRight(deltaMouseX * 0.01f * Zoom * .1f);
+                    MoveCameraUp(-deltaMouseY * 0.01f * Zoom * .1f);
+                }
+                else
+                {
+                    // Middle mouse only = Rotate view
+                    Yaw += deltaMouseX * 0.01f;
+                    Pitch += deltaMouseY * 0.01f;
+                }
+                return; // Exit early - middle mouse handled
+            }
+
+            // Check mouse ownership for other operations
+            if (!mouse.IsMouseOwner(this) && mouse.MouseOwner != null)
+                return;
 
             if (keyboard.IsKeyReleased(Keys.F4))
             {
@@ -200,6 +313,7 @@ namespace GameWorld.Core.Components.Rendering
                 _lookAt = Vector3.Zero;
             }
 
+            // Original Alt+Left/Right mouse navigation (kept for compatibility)
             var ownsMouse = mouse.MouseOwner;
             if (keyboard.IsKeyDown(Keys.LeftAlt))
             {
@@ -207,14 +321,14 @@ namespace GameWorld.Core.Components.Rendering
             }
             else
             {
-                if (ownsMouse == this)
+                // Only release mouse ownership if middle mouse is not pressed
+                if (ownsMouse == this && !isMiddleMouseDown)
                 {
                     mouse.MouseOwner = null;
                     mouse.ClearStates();
                     return;
                 }
             }
-
 
             if (keyboard.IsKeyDown(Keys.LeftAlt))
             {
@@ -229,26 +343,46 @@ namespace GameWorld.Core.Components.Rendering
                     MoveCameraRight(deltaMouseX * 0.01f * Zoom * .1f);
                     MoveCameraUp(-deltaMouseY * 0.01f * Zoom * .1f);
                 }
-                else if (deltaMouseWheel != 0)
-                {
-                    if (Math.Abs(deltaMouseWheel) > 250)   // Weird bug, sometimes this value is very large, probably related to state clearing. Temp fix
-                        deltaMouseWheel = 250 * Math.Sign(deltaMouseWheel);
-
-                    var oldZoom = Zoom / 10;
-                    Zoom += deltaMouseWheel * 0.005f * oldZoom;
-                    //_logger.Here().Information($"Setting zoom {Zoom} - {deltaMouseWheel} - {oldZoom}");
-                }
             }
         }
 
 
         Matrix RefreshProjection()
         {
-            return Matrix.CreatePerspectiveFieldOfView(
-                MathHelper.ToRadians(45), // 45 degree angle
-                _graphicsDevice.Viewport.Width /
-                (float)_graphicsDevice.Viewport.Height,
-                .01f, 25000) * Matrix.CreateScale(-1, 1, 1);
+            if (_projectionType == ProjectionType.Perspective)
+            {
+                return Matrix.CreatePerspectiveFieldOfView(
+                    MathHelper.ToRadians(45), // 45 degree angle
+                    _graphicsDevice.Viewport.Width /
+                    (float)_graphicsDevice.Viewport.Height,
+                    .01f, 25000) * Matrix.CreateScale(-1, 1, 1);
+            }
+            else
+            {
+                return CreateOrthographicProjection();
+            }
+        }
+
+        private Matrix CreateOrthographicProjection()
+        {
+            float aspectRatio = _graphicsDevice.Viewport.Width / (float)_graphicsDevice.Viewport.Height;
+            return Matrix.CreateOrthographic(
+                _orthoSize * aspectRatio,  // width
+                _orthoSize,                 // height
+                0.01f,                      // near
+                25000f                      // far
+            ) * Matrix.CreateScale(-1, 1, 1);
+        }
+
+        /// <summary>
+        /// Move camera in orthographic view (screen-space panning)
+        /// </summary>
+        public void MoveOrthoCamera(Vector2 delta)
+        {
+            float factor = _orthoSize * 0.002f;
+            // Both X and Y are negated to match visual expectation (drag direction)
+            MoveCameraRight(-delta.X * factor);
+            MoveCameraUp(delta.Y * factor);
         }
 
         public Ray CreateCameraRay(Vector2 mouseLocation)
