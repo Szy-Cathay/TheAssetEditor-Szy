@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using CommonControls;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -20,6 +21,7 @@ namespace CommonControls.SelectionListDialog
         public SelectionListWindow()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using CommonControls;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -14,6 +15,7 @@ namespace AssetEditor.Views.Updater
         public UpdaterWindow()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             Loaded += OnWindowLoaded;
         }
 

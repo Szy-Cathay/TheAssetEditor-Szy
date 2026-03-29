@@ -1,3 +1,4 @@
+using CommonControls;
 ﻿using System.Windows;
 
 namespace Editors.AnimatioReTarget.Editor.Saving
@@ -12,6 +13,7 @@ namespace Editors.AnimatioReTarget.Editor.Saving
         public SaveWindow(SaveSettings viewModel)
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             DataContext = viewModel;
         }
 

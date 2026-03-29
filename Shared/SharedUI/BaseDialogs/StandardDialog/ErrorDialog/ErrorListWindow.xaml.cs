@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.ObjectModel;
+using CommonControls;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -22,6 +23,7 @@ namespace CommonControls.BaseDialogs.ErrorListDialog
         {
             Owner = System.Windows.Application.Current.MainWindow;
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

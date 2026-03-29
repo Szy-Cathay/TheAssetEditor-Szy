@@ -1,3 +1,4 @@
+using CommonControls;
 ﻿using System.Windows;
 
 namespace AssetEditor.Views.Settings
@@ -10,6 +11,7 @@ namespace AssetEditor.Views.Settings
         public SettingsWindow()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

@@ -3,42 +3,24 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:views="clr-namespace:AssetEditor.Views" 
+        xmlns:views="clr-namespace:AssetEditor.Views"
         xmlns:viewFactory="clr-namespace:Shared.Ui.Common.DataTemplates;assembly=Shared.Ui"
         xmlns:datatemplates="clr-namespace:Shared.Ui.Common.DataTemplates;assembly=Shared.Ui"
-        xmlns:behaviors="clr-namespace:Shared.Ui.Common.Behaviors;assembly=Shared.Ui" 
+        xmlns:behaviors="clr-namespace:Shared.Ui.Common.Behaviors;assembly=Shared.Ui"
         xmlns:common="clr-namespace:Shared.Ui.Common;assembly=Shared.Ui"
-        xmlns:local="clr-namespace:AssetEditor" 
-        xmlns:materialIcons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF" 
-        xmlns:viewmodels="clr-namespace:AssetEditor.ViewModels" 
+        xmlns:local="clr-namespace:AssetEditor"
+        xmlns:materialIcons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+        xmlns:viewmodels="clr-namespace:AssetEditor.ViewModels"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
         behaviors:WindowCancellableClosingBehavior.Closing="{Binding ClosingCommand}"
         behaviors:WindowCancellableClosingBehavior.IsClosingWithoutPrompt="{Binding IsClosingWithoutPrompt}"
-        Style="{StaticResource CustomWindowStyle}"
         x:Name="window"
         Width="1920"
         Height="1080"
-        BorderThickness="{Binding RelativeSource={RelativeSource Mode=Self}, Path=WindowState, Converter={StaticResource windowStateToThicknessConverter}}"
         ResizeMode="CanResize"
-        WindowStyle="None"
-        Title="{Binding ApplicationTitle, UpdateSourceTrigger=PropertyChanged}">
-
-    <WindowChrome.WindowChrome>
-        <WindowChrome
-            CornerRadius="{x:Static SystemParameters.WindowCornerRadius}"
-            GlassFrameThickness="1,0,1,1"
-            NonClientFrameEdges="Left,Right,Bottom"
-            ResizeBorderThickness="{x:Static SystemParameters.WindowResizeBorderThickness}"
-            UseAeroCaptionButtons="False">
-            <WindowChrome.CaptionHeight>
-                <MultiBinding Converter="{StaticResource captionHeightConverter}">
-                    <Binding ElementName="titlebar" Path="ActualHeight" />
-                    <Binding ElementName="window" Path="BorderThickness.Top" />
-                </MultiBinding>
-            </WindowChrome.CaptionHeight>
-        </WindowChrome>
-    </WindowChrome.WindowChrome>
+        Title="{Binding ApplicationTitle, UpdateSourceTrigger=PropertyChanged}"
+        Background="{DynamicResource WindowBackground}">
 
     <Window.Resources>
         <datatemplates:EditorTemplateSelector x:Key="EditorSelector" />
@@ -47,98 +29,17 @@
 
     <Grid x:Name="rootGrid">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>  <!-- MenuBar -->
+            <RowDefinition Height="*"/>     <!-- Content -->
+            <RowDefinition Height="Auto" /> <!-- StatusBar -->
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.28*"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
 
-        <!-- Title Bar -->
-        <Grid
-            x:Name="titlebar"
-            Grid.Row="0"
-            Grid.ColumnSpan="3"
-            MinHeight="35"
-            Background="{DynamicResource TitleBar.Static.Background}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" MinWidth="40" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <!-- MenuBar -->
+        <DockPanel Grid.Row="0">
+            <views:MenuBarView/>
+        </DockPanel>
 
-            <Image
-                x:Name="icon"
-                Grid.Column="0"
-                Width="24"
-                Height="24"
-                Margin="10, 0, 3, 0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                MouseDown="Icon_MouseDown"
-                Source="pack://application:,,,/AssetEditor;component/AssetEditorIcon.png"/>
-
-            <DockPanel Grid.Column="1" HorizontalAlignment="Stretch">
-                <views:MenuBarView/>
-            </DockPanel>
-
-            <Button
-                Grid.Column="2"
-                Width="46"
-                Click="OnMinimizeButtonClick"
-                Style="{StaticResource TitleBarButtonStyle}"
-                ToolTip="Minimise"
-                VerticalAlignment="Stretch"
-                Height="Auto">
-                <Path
-                    Width="46"
-                    Height="32"
-                    Data="M 18,16 H 28"
-                    Stroke="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                    StrokeThickness="1" />
-            </Button>
-
-            <Button
-                x:Name="maximizeRestoreButton"
-                Grid.Column="3"
-                Width="46"
-                Click="OnMaximizeRestoreButtonClick"
-                Style="{StaticResource TitleBarButtonStyle}"
-                ToolTip="Maximise"
-                ToolTipOpening="MaximizeRestoreButton_ToolTipOpening"
-                VerticalAlignment="Stretch"
-                Height="Auto">
-                <Path
-                    Width="46"
-                    Height="32"
-                    Data="{Binding ElementName=window, Path=WindowState, Converter={StaticResource windowStateToPathConverter}}"
-                    Stroke="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                    StrokeThickness="1" />
-            </Button>
-
-            <Button
-                Grid.Column="4"
-                Width="46"
-                Click="OnCloseButtonClick"
-                Style="{StaticResource TitleBarCloseButtonStyle}"
-                ToolTip="Close"
-                VerticalAlignment="Stretch"
-                Height="Auto">
-                <Path
-                    Width="46"
-                    Height="32"
-                    Data="M 18.5,11 27.5,20 M 18.5,20 27.5,11"
-                    Stroke="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                    StrokeThickness="1" />
-            </Button>
-        </Grid>
-
-        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
+        <Border Grid.Row="1">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="{Binding FileTreeColumnWidth}"/>
@@ -249,7 +150,7 @@
             </Grid>
         </Border>
 
-        <StatusBar Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" BorderThickness="0, 1, 0, 0">
+        <StatusBar Grid.Row="2" BorderThickness="0, 1, 0, 0">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>

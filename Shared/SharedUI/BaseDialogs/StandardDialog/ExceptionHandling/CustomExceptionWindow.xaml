@@ -5,8 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Shared.Ui.Common.Exceptions"
         mc:Ignorable="d"
-        Style="{StaticResource CustomWindowStyle}"
-        Title="Error" Height="450" Width="800">
+        Title="Error" Height="450" Width="800" Background="#FF1C1C1C">
     <DockPanel>
 
         <Button DockPanel.Dock="Bottom" Content="Emergency - Force Close Current Window" Margin="5" Click="ForceCloseButtonPressed"/>

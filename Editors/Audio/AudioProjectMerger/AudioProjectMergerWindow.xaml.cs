@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using CommonControls;
 using Editors.Audio.AudioProjectConverter;
 
 namespace Editors.Audio.AudioProjectMerger
@@ -9,6 +10,7 @@ namespace Editors.Audio.AudioProjectMerger
         public AudioProjectMergerWindow()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             Loaded += AudioProjectConverterWindowLoaded;
         }
 

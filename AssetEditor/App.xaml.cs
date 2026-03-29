@@ -68,7 +68,8 @@ namespace AssetEditor
             devConfigManager.Initialize(e);
             devConfigManager.OverrideSettings();
 
-            // Show window first, then load packs in background
+            // Show window first, then load packs in background.
+            // Theme switching is handled by ThemesController (swaps colour dictionaries at runtime).
             ShowMainWindow();
 
             // Load pack files asynchronously to avoid blocking the UI

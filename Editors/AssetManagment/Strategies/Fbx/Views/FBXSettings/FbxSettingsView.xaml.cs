@@ -1,5 +1,6 @@
 ﻿using System.Windows.Controls;
 using System.Windows;
+using CommonControls;
 
 
 namespace AssetManagement.Strategies.Fbx.Views.FBXSettings
@@ -12,6 +13,7 @@ namespace AssetManagement.Strategies.Fbx.Views.FBXSettings
         public FBXSetttingsView()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
 
             ImportButton.Click += ImportButton_Click;
         }

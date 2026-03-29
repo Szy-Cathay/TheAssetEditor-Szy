@@ -1,5 +1,6 @@
 ﻿using Shared.Core.Misc;
 using System.Windows;
+using CommonControls;
 
 namespace AnimationEditor.MountAnimationCreator
 {
@@ -11,6 +12,7 @@ namespace AnimationEditor.MountAnimationCreator
         public BatchProcessOptionsWindow()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
         }
 
         public static BatchProcessOptions ShowDialog(string fragmentName, string savePrefix)

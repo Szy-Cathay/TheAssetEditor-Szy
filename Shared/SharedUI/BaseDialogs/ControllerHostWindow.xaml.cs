@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using CommonControls;
 using System.Windows;
 
 namespace CommonControls.BaseDialogs
@@ -15,6 +16,7 @@ namespace CommonControls.BaseDialogs
         public ControllerHostWindow()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
         }
 
         public ControllerHostWindow(bool alwaysTopMost = false, ResizeMode resizeMode = ResizeMode.NoResize)

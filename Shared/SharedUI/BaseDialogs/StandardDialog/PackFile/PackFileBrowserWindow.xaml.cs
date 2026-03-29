@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using CommonControls;
 using System.Windows;
 using System.Windows.Input;
 using Shared.Ui.BaseDialogs.PackFileTree;
@@ -29,6 +30,7 @@ namespace Shared.Ui.BaseDialogs.StandardDialog.PackFile
             ViewModel.Filter.AutoExapandResultsAfterLimitedCount = 50;
 
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             DataContext = this;
             PreviewKeyDown += HandleEsc;
         }

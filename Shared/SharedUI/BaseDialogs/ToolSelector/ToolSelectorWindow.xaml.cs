@@ -1,3 +1,4 @@
+using CommonControls;
 ﻿using System.Windows;
 
 namespace CommonControls.BaseDialogs.ToolSelector
@@ -10,6 +11,7 @@ namespace CommonControls.BaseDialogs.ToolSelector
         public ToolSelectorWindow()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

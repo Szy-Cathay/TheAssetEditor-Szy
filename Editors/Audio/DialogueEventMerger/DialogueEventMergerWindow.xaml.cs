@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using CommonControls;
 
 namespace Editors.Audio.DialogueEventMerger
 {
@@ -8,6 +9,7 @@ namespace Editors.Audio.DialogueEventMerger
         public DialogueEventMergerWindow()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             Loaded += DialogueEventMergerWindowLoaded;
         }
 

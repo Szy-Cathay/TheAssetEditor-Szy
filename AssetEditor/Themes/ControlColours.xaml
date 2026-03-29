@@ -268,7 +268,7 @@
     <SolidColorBrush x:Key="Markdown.Heading.Foreground"              Color="{DynamicResource AColour.Foreground.Static}"/>
     <SolidColorBrush x:Key="Markdown.Hyperlink.Foreground"            Color="{DynamicResource AColour.ColourfulGlyph.Static}"/>
     <SolidColorBrush x:Key="Markdown.Hyperlink.MouseOver.Foreground"  Color="{DynamicResource AColour.ColourfulGlyph.MouseOver}"/>
-    <SolidColorBrush x:Key="Markdown.Codeblock.Foregrond"             Color="{DynamicResource AColour.AColour.Foreground.Static}"/>
+    <SolidColorBrush x:Key="Markdown.Codeblock.Foregrond"             Color="{DynamicResource AColour.Foreground.Static}"/>
     <SolidColorBrush x:Key="Markdown.Codeblock.Background"            Color="{DynamicResource AColour.Tone6.Background.Static}"/>
     <SolidColorBrush x:Key="Markdown.Codeblock.Border"                Color="{DynamicResource AColour.Tone6.Border.Static}"/>
     <SolidColorBrush x:Key="Markdown.Note.Background"                 Color="{DynamicResource AColour.Tone6.Background.Static}"/>
@@ -289,4 +289,6 @@
 
     <SolidColorBrush x:Key="App.Background"                           Color="{DynamicResource AColour.Tone2.Background.Static}"/>
     <SolidColorBrush x:Key="App.Border"                               Color="{DynamicResource AColour.Tone5.Border.Static}"/>
+
+    <SolidColorBrush x:Key="WindowBackground"                         Color="{DynamicResource AColour.Tone2.Background.Static}"/>
 </ResourceDictionary>

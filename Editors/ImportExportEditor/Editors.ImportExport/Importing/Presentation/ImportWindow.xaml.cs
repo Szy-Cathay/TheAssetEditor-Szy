@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using CommonControls;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -25,6 +25,7 @@ namespace Editors.ImportExport.Importing.Presentation
         public ImportWindow(ImporterCoreViewModel viewModel)
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             _viewModel = viewModel;
             DataContext = _viewModel;
         }
@@ -38,7 +39,7 @@ namespace Editors.ImportExport.Importing.Presentation
         {
             if (!PathValidator.IsValid(_viewModel.SystemPath))
             {
-                MessageBox.Show("Invalid or empty path", "Error");
+                System.Windows.MessageBox.Show("Invalid or empty path", "Error");
                 return;
             }
 

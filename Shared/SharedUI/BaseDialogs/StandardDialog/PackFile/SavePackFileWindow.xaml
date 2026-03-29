@@ -4,9 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:packfiletree="clr-namespace:Shared.Ui.BaseDialogs.PackFileTree"
-        Style="{StaticResource CustomWindowStyle}"
         mc:Ignorable="d"
-        Title="SavePackFileWindow" Height="450" Width="800">
+        Title="SavePackFileWindow" Height="450" Width="800" Background="#FF1C1C1C">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>

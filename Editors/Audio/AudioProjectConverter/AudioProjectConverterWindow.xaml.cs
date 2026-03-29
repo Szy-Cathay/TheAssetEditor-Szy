@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using CommonControls;
 
 namespace Editors.Audio.AudioProjectConverter
 {
@@ -8,6 +9,7 @@ namespace Editors.Audio.AudioProjectConverter
         public AudioProjectConverterWindow()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             Loaded += AudioProjectConverterWindowLoaded;
         }
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using CommonControls;
 using System.Windows;
 using Shared.Ui.Editors.BoneMapping;
 
@@ -19,12 +20,14 @@ namespace CommonControls.Editors.BoneMapping.View
         public BoneMappingWindow()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
         }
 
         public BoneMappingWindow(BoneMappingViewModel dataContext, bool showApplyButton)
         {
             DataContext = dataContext;
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             if (showApplyButton == false)
                 ApplyButtonHandle.Visibility = Visibility.Collapsed;
 
@@ -37,8 +40,8 @@ namespace CommonControls.Editors.BoneMapping.View
             var res = viewModel.Validate(out string errorText);
             if (res == false)
             {
-                var messageBoxResult = MessageBox.Show("Are you sure you want to do this?\n\n" + errorText + "\n\nContinue?", "Error", MessageBoxButton.OKCancel);
-                if (messageBoxResult == MessageBoxResult.Cancel)
+                var messageBoxResult = System.Windows.MessageBox.Show("Are you sure you want to do this?\n\n" + errorText + "\n\nContinue?", "Error", System.Windows.MessageBoxButton.OKCancel);
+                if (messageBoxResult == System.Windows.MessageBoxResult.Cancel)
                     return;
             }
 

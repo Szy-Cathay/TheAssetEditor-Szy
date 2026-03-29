@@ -1,16 +1,16 @@
 ﻿<Window
-    x:Class="AssetManagement.Strategies.Fbx.ImportDialog.Views.FbxSettingsDialogView"                        
+    x:Class="AssetManagement.Strategies.Fbx.ImportDialog.Views.FbxSettingsDialogView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"     
-    xmlns:s="http://schemas.singulink.com/xaml"                      
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:s="http://schemas.singulink.com/xaml"
     xmlns:controls="clr-namespace:AssetManagement.Strategies.Fbx.ImportDialog.Views.SubPanelViews"
-    
-     mc:Ignorable="d" d:DesignWidth="380"   
+
+     mc:Ignorable="d" d:DesignWidth="380"
    ResizeMode="CanResize"
     Width="400"
-       >
+        Background="#FF1C1C1C">
     <Grid>
         <!--<DockPanel>-->
         <DockPanel>

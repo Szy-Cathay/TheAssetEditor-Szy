@@ -57,6 +57,7 @@
 
     <ItemGroup>
       <PackageReference Include="MdXaml" Version="1.27.0" />
+      <PackageReference Include="Panuon.WPF.UI" Version="1.2.4.9" />
     </ItemGroup>
 
     <ItemGroup>

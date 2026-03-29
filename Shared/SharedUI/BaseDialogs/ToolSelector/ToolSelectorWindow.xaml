@@ -8,8 +8,7 @@
         Title="Tool Selector"
         Height="250" Width="300"
         ResizeMode="NoResize"
-         Style="{StaticResource CustomWindowStyle}"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner" Background="#FF1C1C1C">
     <DockPanel  >
      
         <Button DockPanel.Dock="Bottom" Margin="5" Click="Button_Click">Open</Button>

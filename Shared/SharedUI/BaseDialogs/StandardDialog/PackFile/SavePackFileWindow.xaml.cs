@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using CommonControls;
 using System.Windows;
 using Shared.Core.PackFiles;
 using Shared.Ui.BaseDialogs.PackFileTree;
@@ -29,6 +30,7 @@ namespace Shared.Ui.BaseDialogs.StandardDialog.PackFile
             ViewModel.FileOpen += ViewModel_FileOpen;
             ViewModel.NodeSelected += ViewModel_FileSelected;
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             DataContext = this;
         }
 
@@ -54,13 +56,13 @@ namespace Shared.Ui.BaseDialogs.StandardDialog.PackFile
         {
             if (string.IsNullOrWhiteSpace(CurrentFileName))
             {
-                MessageBox.Show("No name provided, can not save file");
+                System.Windows.MessageBox.Show("No name provided, can not save file");
                 return;
             }
 
             if (SelectedFile != null)
             {
-                if (MessageBox.Show("Replace file?", "", MessageBoxButton.YesNo) == MessageBoxResult.No)
+                if (System.Windows.MessageBox.Show("Replace file?", "", System.Windows.MessageBoxButton.YesNo) == System.Windows.MessageBoxResult.No)
                     return;
             }
 

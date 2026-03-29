@@ -5,8 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Editors.ImportExport.Exporting.Presentation"
         mc:Ignorable="d"
-        Style="{StaticResource CustomWindowStyle}"
-        Title="Export" Height="350" Width="600">
+        Title="Export" Height="350" Width="600" Background="#FF1C1C1C">
 
     <Grid Margin="4">
         <Grid.ColumnDefinitions>

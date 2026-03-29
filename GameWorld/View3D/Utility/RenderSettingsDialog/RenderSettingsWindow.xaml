@@ -3,13 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GameWorld.Core.Utility.RenderSettingsDialog" 
-        xmlns:basedialogs="clr-namespace:Shared.Ui.BaseDialogs;assembly=Shared.Ui" 
+        xmlns:local="clr-namespace:GameWorld.Core.Utility.RenderSettingsDialog"
+        xmlns:basedialogs="clr-namespace:Shared.Ui.BaseDialogs;assembly=Shared.Ui"
         xmlns:colourpickerbutton="clr-namespace:Shared.Ui.BaseDialogs.ColourPickerButton;assembly=Shared.Ui"
         mc:Ignorable="d"
         ResizeMode="NoResize"
-        Style="{StaticResource CustomWindowStyle}"
-        Title="Render settings" Height="300" Width="347">
+        Title="Render settings" Height="300" Width="347" Background="#FF1C1C1C">
 
     <DockPanel LastChildFill="False">
         <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="Use backface culling" LabelWidth="150">

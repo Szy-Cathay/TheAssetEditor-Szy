@@ -16,7 +16,7 @@
                 <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}"/>
             </Menu.Resources>
 
-            <MenuItem Header="_File" BorderThickness="1.5" WindowChrome.IsHitTestVisibleInChrome="True">
+            <MenuItem Header="_File" BorderThickness="1.5">
 
                 <MenuItem Header="New Pack" Command="{Binding MenuBar.CreateNewPackFileCommand}"/>
                 <MenuItem Header="New AnimPack (Warhammer III)" Command="{Binding MenuBar.CreateAnimPackWarhammer3Command}"/>
@@ -72,11 +72,11 @@
                 <MenuItem Header="_Exit" />
             </MenuItem>
 
-            <MenuItem Header="View" BorderThickness="1.5" WindowChrome.IsHitTestVisibleInChrome="True">
+            <MenuItem Header="View" BorderThickness="1.5">
                 <MenuItem Header="Toggle Pack File Browser" Command="{Binding MenuBar.TogglePackFileExplorerCommand}"/>
             </MenuItem>
 
-            <MenuItem Header="Tools" BorderThickness="1.5" WindowChrome.IsHitTestVisibleInChrome="True" ItemsSource="{Binding MenuBar.Editors}">
+            <MenuItem Header="Tools" BorderThickness="1.5" ItemsSource="{Binding MenuBar.Editors}">
 
                 <MenuItem.ItemContainerStyle>
                     <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
@@ -93,7 +93,7 @@
 
             </MenuItem>
 
-            <MenuItem Header="Reports" BorderThickness="1.5" WindowChrome.IsHitTestVisibleInChrome="True">
+            <MenuItem Header="Reports" BorderThickness="1.5">
                 <MenuItem Header="Rmv2" Command="{Binding MenuBar.GenerateRmv2ReportCommand}"/>
                 <MenuItem Header="Meta Data" Command="{Binding MenuBar.GenerateMetaDataReportCommand}"/>
                 <MenuItem Header="File List" Command="{Binding MenuBar.GenerateFileListReportCommand}"/>
@@ -116,7 +116,7 @@
                 <MenuItem Header="Debug - Print Scopes" Command="{Binding MenuBar.PrintScopeCommand}" />
             </MenuItem>
 
-            <MenuItem Header="Help" BorderThickness="1.5" WindowChrome.IsHitTestVisibleInChrome="True">
+            <MenuItem Header="Help" BorderThickness="1.5">
                 <MenuItem Header="Modding Wiki" Command="{Binding MenuBar.OpenHelpCommand}"/>
 
                 <Separator/>

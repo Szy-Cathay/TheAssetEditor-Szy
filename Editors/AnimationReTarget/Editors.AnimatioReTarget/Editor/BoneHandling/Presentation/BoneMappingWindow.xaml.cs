@@ -30,5 +30,10 @@ namespace Editors.AnimatioReTarget.Editor.BoneHandling.Presentation
         }
 
         private void CancelButtonClick(object sender, RoutedEventArgs e) => Close();
+
+        private void BoneMappingView_Loaded(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

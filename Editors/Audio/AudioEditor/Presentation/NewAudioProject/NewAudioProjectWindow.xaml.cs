@@ -1,3 +1,4 @@
+using CommonControls;
 ﻿using System.Windows;
 
 namespace Editors.Audio.AudioEditor.Presentation.NewAudioProject
@@ -7,6 +8,7 @@ namespace Editors.Audio.AudioEditor.Presentation.NewAudioProject
         public NewAudioProjectWindow()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             Loaded += NewAudioProjectWindow_Loaded;
         }
 

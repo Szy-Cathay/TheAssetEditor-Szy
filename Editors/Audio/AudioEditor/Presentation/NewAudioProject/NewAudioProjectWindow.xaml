@@ -1,4 +1,4 @@
-﻿<Window 
+﻿<Window
     x:Class="Editors.Audio.AudioEditor.Presentation.NewAudioProject.NewAudioProjectWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -7,12 +7,11 @@
     xmlns:sys="clr-namespace:System;assembly=netstandard"
     xmlns:ValueConverters="clr-namespace:Editors.Audio.Shared.UI.ValueConverters"
     xmlns:Local="clr-namespace:Editors.Audio.AudioEditor.Presentation.NewAudioProject"
-    Style="{StaticResource CustomWindowStyle}"
     d:DataContext="{d:DesignInstance Type=Local:NewAudioProjectViewModel}"
     mc:Ignorable="d"
     Width="500"
     Height="170"
-    Title="New Audio Project">
+    Title="New Audio Project" Background="#FF1C1C1C">
 
     <Window.Resources>
         <ValueConverters:EnumConverter 

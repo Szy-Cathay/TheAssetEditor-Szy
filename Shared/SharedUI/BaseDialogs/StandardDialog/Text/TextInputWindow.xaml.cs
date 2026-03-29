@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using CommonControls;
 
 namespace CommonControls.BaseDialogs
 {
@@ -11,11 +12,13 @@ namespace CommonControls.BaseDialogs
         public TextInputWindow()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
         }
 
         public TextInputWindow(string title, string initialValue = "", bool focusTextInput = false)
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             Title = title;
             TextValue = initialValue;
             Owner = Application.Current.MainWindow;

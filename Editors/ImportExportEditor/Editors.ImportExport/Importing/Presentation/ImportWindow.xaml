@@ -5,11 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Editors.ImportExport.Importing.Presentation"
         mc:Ignorable="d"
-        Style="{StaticResource CustomWindowStyle}"
         Title="ImportWindow"  Width="800"                
          SizeToContent="Height"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize">
+        ResizeMode="NoResize" Background="#FF1C1C1C">
 
     <Grid Margin="4">
         <Grid.ColumnDefinitions>

@@ -2,10 +2,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media;
 using AssetEditor.ViewModels;
-using AssetEditor.WindowsTitleMenu;
+using CommonControls;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Core.Settings;
 using Shared.Core.ToolCreation;
@@ -28,8 +27,8 @@ namespace AssetEditor.Views
             _serviceProvider = serviceProvider;
 
             InitializeComponent();
-            SourceInitialized += OnSourceInitialized;
 
+            DarkTitleBarHelper.Enable(this);
             KeyDown += MainWindow_KeyDown;
         }
 
@@ -123,66 +122,6 @@ namespace AssetEditor.Views
             }
         }
 
-        private void OnSourceInitialized(object? sender, EventArgs e)
-        {
-            var source = (HwndSource)PresentationSource.FromVisual(this);
-            source.AddHook(WndProc);
-        }
-
-        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            switch (msg)
-            {
-                case NativeHelpers.WM_NCHITTEST:
-                    if (NativeHelpers.IsSnapLayoutEnabled())
-                    {
-                        // Return HTMAXBUTTON when the mouse is over the maximize/restore button
-                        var point = PointFromScreen(new Point(lParam.ToInt32() & 0xFFFF, lParam.ToInt32() >> 16));
-                        if (WindowsTitleMenu.WpfHelpers.GetElementBoundsRelativeToWindow(maximizeRestoreButton, this).Contains(point))
-                        {
-                            handled = true;
-                            // Apply hover button style
-                            maximizeRestoreButton.Background = (Brush)App.Current.Resources["TitleBar.Button.MouseOver.Background"];
-                            maximizeRestoreButton.Foreground = (Brush)App.Current.Resources["TitleBar.Button.MouseOver.Foreground"];
-                            return new IntPtr(NativeHelpers.HTMAXBUTTON);
-                        }
-                        else
-                        {
-                            // Apply default button style (cursor is not on the button)
-                            maximizeRestoreButton.Background = (Brush)App.Current.Resources["TitleBar.Button.Background"];
-                            maximizeRestoreButton.Foreground = (Brush)App.Current.Resources["TitleBar.Button.Foreground"];
-                        }
-                    }
-                    break;
-                case NativeHelpers.WM_NCLBUTTONDOWN:
-                    if (NativeHelpers.IsSnapLayoutEnabled())
-                    {
-                        if (wParam.ToInt32() == NativeHelpers.HTMAXBUTTON)
-                        {
-                            handled = true;
-                            // Apply pressed button style
-                            maximizeRestoreButton.Background = (Brush)App.Current.Resources["TitleBar.Button.Pressed.Background"];
-                            maximizeRestoreButton.Foreground = (Brush)App.Current.Resources["TitleBar.Button.Pressed.Foreground"];
-                        }
-                    }
-                    break;
-                case NativeHelpers.WM_NCLBUTTONUP:
-                    if (NativeHelpers.IsSnapLayoutEnabled())
-                    {
-                        if (wParam.ToInt32() == NativeHelpers.HTMAXBUTTON)
-                        {
-                            // Apply default button style
-                            maximizeRestoreButton.Background = (Brush)App.Current.Resources["TitleBar.Button.Background"];
-                            maximizeRestoreButton.Foreground = (Brush)App.Current.Resources["TitleBar.Button.Foreground"];
-                            // Maximize or restore the window
-                            ToggleWindowState();
-                        }
-                    }
-                    break;
-            }
-            return IntPtr.Zero;
-        }
-
         private void OnMinimizeButtonClick(object sender, RoutedEventArgs e)
         {
             SystemCommands.MinimizeWindow(this);
@@ -191,11 +130,6 @@ namespace AssetEditor.Views
         private void OnMaximizeRestoreButtonClick(object sender, RoutedEventArgs e)
         {
             ToggleWindowState();
-        }
-
-        private void MaximizeRestoreButton_ToolTipOpening(object sender, ToolTipEventArgs e)
-        {
-            maximizeRestoreButton.ToolTip = WindowState == WindowState.Normal ? "Maximize" : "Restore";
         }
 
         private void OnCloseButtonClick(object sender, RoutedEventArgs e)
@@ -229,14 +163,6 @@ namespace AssetEditor.Views
         private void QuitMenuItem_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
-        }
-
-        private void Icon_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left)
-                Close();
-            else if (e.ChangedButton == MouseButton.Left || e.ChangedButton == MouseButton.Right)
-                ShowSystemMenu(e.GetPosition(this));
         }
 
         public void ToggleWindowState()

@@ -1,3 +1,4 @@
+using CommonControls;
 ﻿using System.Windows;
 
 namespace AssetManagement.Strategies.Fbx.ImportDialog.Views
@@ -10,6 +11,7 @@ namespace AssetManagement.Strategies.Fbx.ImportDialog.Views
         public FbxSettingsDialogView()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             UpdateLayout();
             ImportButton.Click += ImportButton_Click;
             this.DataContext = this;

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Windows;
+using CommonControls;
 using Microsoft.Xna.Framework.Graphics;
 using Shared.Core.PackFiles.Models;
 
@@ -15,6 +16,7 @@ namespace Editors.ImportExport.Exporting.Presentation
         public ExportWindow(ExporterCoreViewModel viewModel)
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             _viewModel = viewModel;
             DataContext = _viewModel;
         }
@@ -28,7 +30,7 @@ namespace Editors.ImportExport.Exporting.Presentation
         {
             if (!PathValidator.IsValid(_viewModel.SystemPath))
             {
-                MessageBox.Show("Invalid or empty path", "Error");
+                System.Windows.MessageBox.Show("Invalid or empty path", "Error");
                 return;
             }
 

@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommonControls;
 using GameWorld.Core.Components;
 using GameWorld.Core.Components.Rendering;
 using Shared.Ui.BaseDialogs.ColourPickerButton;
@@ -58,6 +59,7 @@ namespace GameWorld.Core.Utility.RenderSettingsDialog
             
             DataContext = _model;
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
         }
 
         private void SaveButtonClick(object sender, RoutedEventArgs e)

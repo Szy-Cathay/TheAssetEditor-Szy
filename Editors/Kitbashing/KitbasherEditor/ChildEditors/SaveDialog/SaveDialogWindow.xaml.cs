@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using GameWorld.Core.Services.SceneSaving;
+using CommonControls;
 using KitbasherEditor.ViewModels.SaveDialog;
 
 namespace Editors.KitbasherEditor.ViewModels.SaveDialog
@@ -14,6 +15,7 @@ namespace Editors.KitbasherEditor.ViewModels.SaveDialog
         public SaveDialogWindow(SaveDialogViewModel saveDialogViewModel)
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             _saveDialogViewModel = saveDialogViewModel;
             DataContext = _saveDialogViewModel;
         }

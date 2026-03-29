@@ -9,7 +9,6 @@
         xmlns:behaviors="clr-namespace:Shared.Ui.Common.Behaviors;assembly=Shared.Ui"
         xmlns:local="clr-namespace:Editors.KitbasherEditor.ChildEditors.VertexDebugger"
         mc:Ignorable="d"
-         Style="{StaticResource CustomWindowStyle}"
         Closing="Window_Closing"
         Title="Vertex Debugger" Height="1200" Width="1100">
     <Grid>

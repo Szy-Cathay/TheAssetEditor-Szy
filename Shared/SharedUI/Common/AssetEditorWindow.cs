@@ -1,10 +1,12 @@
-﻿using System;
+using System;
 using System.Windows;
+using System.Windows.Media;
+using CommonControls;
 
 // there is a bug in visual studio code generation. Having generated classes with
-// Overlapping names (Shared.Ui and Editors.Shared) causes compile errors as the code 
+// Overlapping names (Shared.Ui and Editors.Shared) causes compile errors as the code
 // generator struggls to resolve the naming
-namespace WindowHandling 
+namespace WindowHandling
 {
     public  class AssetEditorWindow : Window, IDisposable
     {
@@ -15,6 +17,8 @@ namespace WindowHandling
         {
             Owner = Application.Current.MainWindow;
             Deactivated += AssetEdWindow_Deactivated;
+            Background = new SolidColorBrush(Color.FromRgb(28, 28, 28));
+            DarkTitleBarHelper.Enable(this);
         }
 
         private void AssetEdWindow_Deactivated(object? sender, EventArgs e)

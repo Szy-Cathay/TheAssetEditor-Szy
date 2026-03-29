@@ -7,16 +7,15 @@
     xmlns:Localisation="clr-namespace:Shared.Ui.Common;assembly=Shared.Ui"
     xmlns:Updater="clr-namespace:AssetEditor.Views.Updater"
     xmlns:MdXaml="clr-namespace:MdXaml;assembly=MdXaml"
-    xmlns:ViewModels="clr-namespace:AssetEditor.ViewModels" 
+    xmlns:ViewModels="clr-namespace:AssetEditor.ViewModels"
     d:DataContext="{d:DesignInstance Type=ViewModels:UpdaterViewModel}"
     mc:Ignorable="d"
-    Style="{StaticResource CustomWindowStyle}"
     Closed="OnClosed"
-    ResizeMode="NoResize"   
+    ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
-    SizeToContent="Height"    
+    SizeToContent="Height"
     Width="1000"
-    Title="{Localisation:Loc UpdaterWindow.Title}">
+    Title="{Localisation:Loc UpdaterWindow.Title}" Background="#FF1C1C1C">
 
     <Grid
         Margin="15, 15, 15, 15">

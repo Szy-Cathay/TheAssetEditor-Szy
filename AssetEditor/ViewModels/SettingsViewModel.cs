@@ -25,6 +25,11 @@ namespace AssetEditor.ViewModels
 
         [ObservableProperty] private string _selectedLanguage;
         [ObservableProperty] private ThemeType _currentTheme;
+        partial void OnCurrentThemeChanged(ThemeType value)
+        {
+            ThemesController.SetTheme(value);
+        }
+
         [ObservableProperty] private BackgroundColour _currentRenderEngineBackgroundColour;
         [ObservableProperty] private int _visualEditorsGridSize;
         [ObservableProperty] private bool _startMaximised;

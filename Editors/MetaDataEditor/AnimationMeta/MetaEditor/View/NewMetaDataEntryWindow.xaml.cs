@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
+using CommonControls;
 using System.Windows.Input;
 using CommunityToolkit.Diagnostics;
 using Shared.Core.Misc;
@@ -11,6 +12,7 @@ namespace Editors.AnimationMeta.Presentation.View
         public NewMetaDataEntryWindow()
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
         }
 
         private void OnOkClick(object sender, RoutedEventArgs e) => HandleOnClick();
@@ -22,7 +24,7 @@ namespace Editors.AnimationMeta.Presentation.View
 
             if (model.SelectedItem == null)
             {
-                MessageBox.Show("Nothing selected");
+                System.Windows.MessageBox.Show("Nothing selected");
                 return;
             }
 

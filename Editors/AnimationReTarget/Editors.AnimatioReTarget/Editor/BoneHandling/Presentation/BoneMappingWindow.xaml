@@ -7,7 +7,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:view="clr-namespace:CommonControls.Editors.BoneMapping.View;assembly=Editors.Shared.Core"
         mc:Ignorable="d"
-      Style="{StaticResource CustomWindowStyle}"
         Title="Bone Mapping Window" Height="450" Width="800">
     <Grid>
         <Grid.RowDefinitions>

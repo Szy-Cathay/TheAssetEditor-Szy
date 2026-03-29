@@ -4,12 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="TextInputWindow" 
+        Title="TextInputWindow"
         Width="310"
         Height="80"
         ResizeMode="NoResize"
-        Style="{StaticResource CustomWindowStyle}"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner" Background="#FF1C1C1C">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>

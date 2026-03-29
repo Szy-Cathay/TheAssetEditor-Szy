@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using CommonControls;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
@@ -22,6 +23,7 @@ namespace Shared.Ui.Common.Exceptions
         public CustomExceptionWindow(ExceptionInformation extendedExceptionInformation, IStandardDialogs standardDialogs, IEventHub eventHub, ScopeToken scopeToken, IScopeRepository scopeRepository)
         {
             InitializeComponent();
+            DarkTitleBarHelper.Enable(this);
             _extendedExceptionInformation = extendedExceptionInformation;
             _standardDialogs = standardDialogs;
             _eventHub = eventHub;
@@ -76,7 +78,7 @@ namespace Shared.Ui.Common.Exceptions
             };
             var text = JsonSerializer.Serialize(_extendedExceptionInformation, options);
             Clipboard.SetText(text);
-            MessageBox.Show("Error message copied to clipboard!");
+            System.Windows.MessageBox.Show("Error message copied to clipboard!");
         }
 
         private void CloseButtonPressed(object sender, RoutedEventArgs e) => Close();

@@ -7,7 +7,6 @@
         xmlns:view="clr-namespace:CommonControls.Editors.BoneMapping.View;assembly=Editors.Shared.Core" 
         xmlns:view1="clr-namespace:Editors.Shared.Core.Editors.BoneMapping.View;assembly=Editors.Shared.Core"
         mc:Ignorable="d"
-        Style="{StaticResource CustomWindowStyle}"
         Title="Mesh Fitter Tool" Height="500" Width="1000">
     <Grid>
         <Grid.RowDefinitions>
