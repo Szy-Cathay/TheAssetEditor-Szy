@@ -46,7 +46,7 @@ namespace Editors.Twui.Editor
             if (file == CurrentFile)
                 return;
 
-            DisplayName = "Twui Editor:" + Path.GetFileName(file.Name);
+            DisplayName = LocalizationManager.Instance.GetFormat("DisplayName.TwuiEditor", Path.GetFileName(file.Name));
 
             var contextBuilder = new ContextBuilder(_packFileService);
             ParsedTwuiFile = contextBuilder.Create(file);

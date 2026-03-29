@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:AssetEditor.Views.Settings"
           xmlns:loc="clr-namespace:Shared.Ui.Common;assembly=Shared.Ui"
         mc:Ignorable="d"
-        Title="Settings" Height="685" Width="850"
+        Title="{loc:Loc SettingsWindow.Title}" Height="685" Width="850"
         ResizeMode="NoResize" Background="#FF1C1C1C">
     <Grid>
         <Grid.RowDefinitions>

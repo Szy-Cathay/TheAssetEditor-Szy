@@ -9,6 +9,7 @@ using AssetManagement.Strategies.Fbx.ImportDialog.Views;
 using Shared.Core.Misc;
 using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Models;
+using Shared.Core.Services;
 using Shared.GameFormats.Animation;
 
 // finish "rationaliztion" this ModelView, around the concept of "FileInfoData" as input
@@ -161,7 +162,7 @@ namespace AssetManagement.Strategies.Fbx.ImportDialog.ViewModels
             {
                 Filter = "ANIM Files (*.anim)|*.anim|All files (*.*)|*.*\\",   // Clean this up so its correct based on the assetManagementFactory data
                 Multiselect = false,
-                Title = "Select .ANIM Skeleton File"
+                Title = LocalizationManager.Instance.Get("Title.SelectAnimSkeletonFile")
             };
 
             if (dialog.ShowDialog() == DialogResult.OK)

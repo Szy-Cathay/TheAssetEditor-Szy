@@ -9,6 +9,7 @@ using System.Linq;
 using System.Windows;
 using Microsoft.Win32;
 using Shared.Core.ErrorHandling;
+using Shared.Core.Services;
 using Shared.Ui.BaseDialogs.ErrorListDialog;
 using static Shared.Ui.BaseDialogs.ErrorListDialog.ErrorListViewModel;
 
@@ -35,7 +36,7 @@ namespace CommonControls.BaseDialogs.ErrorListDialog
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-            saveFileDialog.Title = "Save a File";
+            saveFileDialog.Title = LocalizationManager.Instance.Get("Title.SaveFile");
             if (saveFileDialog.ShowDialog() == true)
             {
                 var dataContext = (ErrorListViewModel)DataContext;

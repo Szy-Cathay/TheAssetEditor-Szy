@@ -147,7 +147,7 @@ namespace AssetEditor.ViewModels
                     var container = _packFileContainerLoader.Load(path);
                     if (container == null)
                     {
-                        System.Windows.MessageBox.Show($"Unable to load packfiles {path}");
+                        System.Windows.MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.UnableToLoadPackfiles", path));
                         return;
                     }
 

@@ -64,7 +64,7 @@ namespace Editors.AnimatioReTarget.Editor
             AnimationReTargetRenderingComponent renderingComponent,
             IPackFileService pfs) : base(editorHostParameters)
         {
-            DisplayName = "Animation transfer tool";
+            DisplayName = LocalizationManager.Instance.Get("DisplayName.AnimationTransferTool");
 
             _settings = new AnimationGenerationSettings();
             _boneManager = boneManager;

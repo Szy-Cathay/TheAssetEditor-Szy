@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using Shared.Core.Services;
 
 namespace Shared.Core.PackFiles.Utility
 {
@@ -19,7 +20,7 @@ namespace Shared.Core.PackFiles.Utility
         public bool CheckForDuplicates => true;
         public bool KeepDuplicateFile(string fileName)
         {
-            var res = MessageBox.Show($"Multiple files with the name '{fileName}' found.\n Yes = Rename and keep.\nNo = Skip", "DuplicateFile", MessageBoxButton.YesNo);
+            var res = MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.DuplicateFile", fileName), "DuplicateFile", MessageBoxButton.YesNo);
             return res == MessageBoxResult.Yes;
         }
     }

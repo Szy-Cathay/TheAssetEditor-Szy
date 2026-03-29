@@ -6,6 +6,7 @@ using GameWorld.Core.Services;
 using Serilog;
 using Shared.Core.ErrorHandling;
 using Shared.Core.PackFiles.Models;
+using Shared.Core.Services;
 using Shared.GameFormats.Animation;
 using Shared.GameFormats.RigidModel;
 using SharpGLTF.Geometry;
@@ -57,8 +58,8 @@ namespace Editors.ImportExport.Exporting.Exporters.RmvToGltf
                 if (skeletonAnimFile == null)
                 {
                     if (MessageBox.Show(
-                        "Skeleton file not found, \n(Have you loaded all CA pakcs for the right game?)\n Do you want to continue exporting without skeleton/animations?",
-                        "Warning!",
+                        LocalizationManager.Instance.Get("Msg.SkeletonNotFoundExport"),
+                        LocalizationManager.Instance.Get("Msg.GeneralError"),
                         MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
                         return;
                 }

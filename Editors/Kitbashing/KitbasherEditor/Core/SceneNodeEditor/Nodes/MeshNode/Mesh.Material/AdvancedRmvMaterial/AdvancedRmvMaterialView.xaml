@@ -6,7 +6,8 @@
              xmlns:userinterface="clr-namespace:GameWorld.Core.Utility.UserInterface;assembly=GameWorld.Core" 
              xmlns:mathviews1="clr-namespace:Shared.Ui.BaseDialogs.MathViews;assembly=Shared.Ui"
              xmlns:mathviews11="clr-namespace:CommonControls.MathViews;assembly=Shared.Ui" xmlns:basedialogs="clr-namespace:Shared.Ui.BaseDialogs;assembly=Shared.Ui"
-             mc:Ignorable="d" 
+             xmlns:loc="clr-namespace:Shared.Ui.Common;assembly=Shared.Ui"
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -21,46 +22,46 @@
         <Expander DockPanel.Dock="Top" IsExpanded="True">
             <Expander.Header>
                 <DockPanel  DockPanel.Dock="Top"  Background="{DynamicResource GroupBox.Header.Static.Background}">
-                    <Label Content="Advanced RMV" FontSize="{StaticResource HeaderFontSize}" Width="{StaticResource HeaderLabelLength}"/>
+                    <Label Content="{loc:Loc AdvancedRmvMaterial.Header}" FontSize="{StaticResource HeaderFontSize}" Width="{StaticResource HeaderLabelLength}"/>
                     <Separator/>
                 </DockPanel>
             </Expander.Header>
 
             <DockPanel LastChildFill="False">
 
-                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="Use Dirt" LabelWidth="{StaticResource labelWidth}">
+                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="{loc:Loc AdvancedRmvMaterial.UseDirt}" LabelWidth="{StaticResource labelWidth}">
                     <CheckBox IsChecked="{Binding UseDirt, UpdateSourceTrigger=PropertyChanged}"/>
                 </basedialogs:AeAttribute>
 
-                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="Use Decal" LabelWidth="{StaticResource labelWidth}" >
+                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="{loc:Loc AdvancedRmvMaterial.UseDecal}" LabelWidth="{StaticResource labelWidth}" >
                     <CheckBox IsChecked="{Binding UseDecal, UpdateSourceTrigger=PropertyChanged}"/>
                 </basedialogs:AeAttribute>
 
-                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="Use Skin" LabelWidth="{StaticResource labelWidth}">
+                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="{loc:Loc AdvancedRmvMaterial.UseSkin}" LabelWidth="{StaticResource labelWidth}">
                     <CheckBox IsChecked="{Binding UseSkin, UpdateSourceTrigger=PropertyChanged}"/>
                 </basedialogs:AeAttribute>
 
-                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="Dirt Map" LabelWidth="{StaticResource labelWidth}"  ToolTipEnumValue="None" IsEnabled="{Binding ShowDirtMap, UpdateSourceTrigger=PropertyChanged}">
+                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="{loc:Loc AdvancedRmvMaterial.DirtMap}" LabelWidth="{StaticResource labelWidth}"  ToolTipEnumValue="None" IsEnabled="{Binding ShowDirtMap, UpdateSourceTrigger=PropertyChanged}">
                     <userinterface:ShaderTextureView DataContext="{Binding DirtMap}"/>
                 </basedialogs:AeAttribute>
 
-                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="Dirt Mask" LabelWidth="{StaticResource labelWidth}"  ToolTipEnumValue="None" IsEnabled="{Binding ShowDirtMask, UpdateSourceTrigger=PropertyChanged}">
+                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="{loc:Loc AdvancedRmvMaterial.DirtMask}" LabelWidth="{StaticResource labelWidth}"  ToolTipEnumValue="None" IsEnabled="{Binding ShowDirtMask, UpdateSourceTrigger=PropertyChanged}">
                     <userinterface:ShaderTextureView DataContext="{Binding DirtMask}"/>
                 </basedialogs:AeAttribute>
 
-                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="Skin Mask" LabelWidth="{StaticResource labelWidth}"  ToolTipEnumValue="None" IsEnabled="{Binding ShowSkinMask, UpdateSourceTrigger=PropertyChanged}">
+                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="{loc:Loc AdvancedRmvMaterial.SkinMask}" LabelWidth="{StaticResource labelWidth}"  ToolTipEnumValue="None" IsEnabled="{Binding ShowSkinMask, UpdateSourceTrigger=PropertyChanged}">
                     <userinterface:ShaderTextureView DataContext="{Binding SkinMask}"/>
                 </basedialogs:AeAttribute>
 
-                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="Decal Mask" LabelWidth="{StaticResource labelWidth}"  ToolTipEnumValue="None" IsEnabled="{Binding ShowDecalMask, UpdateSourceTrigger=PropertyChanged}">
+                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="{loc:Loc AdvancedRmvMaterial.DecalMask}" LabelWidth="{StaticResource labelWidth}"  ToolTipEnumValue="None" IsEnabled="{Binding ShowDecalMask, UpdateSourceTrigger=PropertyChanged}">
                     <userinterface:ShaderTextureView DataContext="{Binding DecalMask}" />
                 </basedialogs:AeAttribute>
 
-                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="Uv Scale" LabelWidth="{StaticResource labelWidth}"  ToolTipEnumValue="None" IsEnabled="{Binding ShowUvScale, UpdateSourceTrigger=PropertyChanged}">
+                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="{loc:Loc AdvancedRmvMaterial.UvScale}" LabelWidth="{StaticResource labelWidth}"  ToolTipEnumValue="None" IsEnabled="{Binding ShowUvScale, UpdateSourceTrigger=PropertyChanged}">
                     <mathviews1:Vector2View DataContext="{Binding UvScale}" />
                 </basedialogs:AeAttribute>
 
-                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="Texture transform" LabelWidth="{StaticResource labelWidth}"  ToolTipEnumValue="None" IsEnabled="{Binding ShowTextureTransform, UpdateSourceTrigger=PropertyChanged}">
+                <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="{loc:Loc AdvancedRmvMaterial.TextureTransform}" LabelWidth="{StaticResource labelWidth}"  ToolTipEnumValue="None" IsEnabled="{Binding ShowTextureTransform, UpdateSourceTrigger=PropertyChanged}">
                     <mathviews11:Vector4View Vector4="{Binding TextureTransform}" />
                 </basedialogs:AeAttribute>
                 

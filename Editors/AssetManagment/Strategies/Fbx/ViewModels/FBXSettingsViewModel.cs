@@ -2,6 +2,7 @@
 using AssetManagement.Strategies.Fbx.Models;
 using System.Windows.Forms;
 using Shared.Core.Misc;
+using Shared.Core.Services;
 
 namespace AssetManagement.Strategies.Fbx.ViewModels
 {
@@ -22,7 +23,7 @@ namespace AssetManagement.Strategies.Fbx.ViewModels
             {
                 Filter = "ANIM Files (*.anim)|*.anim|All files (*.*)|*.*\\",   // Clean this up so its correct based on the assetManagementFactory data
                 Multiselect = false,
-                Title = "Select .ANIM Skeleton File"
+                Title = LocalizationManager.Instance.Get("Title.SelectAnimSkeletonFile")
             };
 
             if (dialog.ShowDialog() == DialogResult.OK)

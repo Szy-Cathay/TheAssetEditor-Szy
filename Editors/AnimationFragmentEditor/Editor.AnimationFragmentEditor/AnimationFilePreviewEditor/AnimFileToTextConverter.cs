@@ -2,6 +2,7 @@
 using System.Windows;
 using Shared.ByteParsing;
 using Shared.Core.PackFiles;
+using Shared.Core.Services;
 using Shared.GameFormats.Animation;
 using Shared.Ui.Editors.TextEditor;
 
@@ -66,7 +67,7 @@ namespace Editors.AnimationFragmentEditor.AnimationFilePreviewEditor
             }
             catch (Exception e)
             {
-                MessageBox.Show("Unable to open file\n" + e.Message);
+                MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.UnableToOpenFile", e.Message));
                 return "";
             }
         }

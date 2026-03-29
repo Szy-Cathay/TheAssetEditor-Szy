@@ -3,6 +3,7 @@ using System.Windows;
 using System.Xml;
 using Shared.Core.ErrorHandling.Exceptions;
 using Shared.Core.PackFiles;
+using Shared.Core.Services;
 using Shared.GameFormats.Vmd;
 using Shared.Ui.Editors.TextEditor;
 using static Shared.GameFormats.Vmd.VariantMeshDefinition;
@@ -19,7 +20,7 @@ namespace Editors.Shared.Core.Editors.VariantMeshDefinition
             }
             catch (Exception e)
             {
-                MessageBox.Show("Unable to open file\n" + e.Message);
+                MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.UnableToOpenFile", e.Message));
                 return "";
             }
         }

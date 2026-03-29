@@ -3,6 +3,7 @@ using System.ComponentModel;
 using CommonControls;
 using System.Windows;
 using Shared.Core.PackFiles;
+using Shared.Core.Services;
 using Shared.Ui.BaseDialogs.PackFileTree;
 using Shared.Ui.BaseDialogs.PackFileTree.ContextMenu;
 
@@ -56,13 +57,13 @@ namespace Shared.Ui.BaseDialogs.StandardDialog.PackFile
         {
             if (string.IsNullOrWhiteSpace(CurrentFileName))
             {
-                System.Windows.MessageBox.Show("No name provided, can not save file");
+                System.Windows.MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoNameProvided"));
                 return;
             }
 
             if (SelectedFile != null)
             {
-                if (System.Windows.MessageBox.Show("Replace file?", "", System.Windows.MessageBoxButton.YesNo) == System.Windows.MessageBoxResult.No)
+                if (System.Windows.MessageBox.Show(LocalizationManager.Instance.Get("Msg.ReplaceFile"), "", System.Windows.MessageBoxButton.YesNo) == System.Windows.MessageBoxResult.No)
                     return;
             }
 

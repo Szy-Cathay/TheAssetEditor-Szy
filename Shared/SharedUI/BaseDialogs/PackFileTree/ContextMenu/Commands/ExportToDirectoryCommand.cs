@@ -1,12 +1,13 @@
 ﻿using System.IO;
 using System.Windows.Forms;
 using Shared.Core.Misc;
+using Shared.Core.Services;
 
 namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
 {
     public class ExportToDirectoryCommand() : IContextMenuCommand
     {
-        public string GetDisplayName(TreeNode node) => "Export to system folder";
+        public string GetDisplayName(TreeNode node) => LocalizationManager.Instance.Get("ContextMenu.ExportToSystemFolder");
         public bool IsEnabled(TreeNode node) => true;
 
         public void Execute(TreeNode selectedNode)
@@ -18,7 +19,7 @@ namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
                 var nodeStartDir = Path.GetDirectoryName(selectedNode.GetFullPath());
                 var fileCounter = 0;
                 SaveSelfAndChildren(selectedNode, dialog.SelectedPath, nodeStartDir, ref fileCounter);
-                MessageBox.Show($"{fileCounter} files exported!");
+                MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.FilesExported", fileCounter));
             }
         }
 

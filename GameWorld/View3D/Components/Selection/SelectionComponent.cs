@@ -16,6 +16,7 @@ using GameWorld.Core.Services;
 using GameWorld.Core.Utility;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Shared.Core.Services;
 using Keys = Microsoft.Xna.Framework.Input.Keys;
 using MouseButton = GameWorld.Core.Components.Input.MouseButton;
 
@@ -169,12 +170,12 @@ namespace GameWorld.Core.Components.Selection
             {
                 if (boneState.RenderObject == null)
                 {
-                    MessageBox.Show("no object was selected. select an object first then you can select the bone", "no object", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoObjectSelected"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
                 if (boneState.CurrentAnimation == null)
                 {
-                    MessageBox.Show("no animation was played. select a frame by scrubbing the animation using the control below", "no animation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoAnimationPlaying"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
                 var vertexObject = boneState.RenderObject as Rmv2MeshNode;

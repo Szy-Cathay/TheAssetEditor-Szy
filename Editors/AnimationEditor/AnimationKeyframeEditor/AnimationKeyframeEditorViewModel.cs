@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
@@ -201,7 +201,7 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
 
         }
 
-        public string EditorName => "Keyedframing Editor";
+        public string EditorName => LocalizationManager.Instance.Get("DisplayName.KeyFrameTool");
 
         public FilterCollection<AnimationBinEntryGenericFormat> ActiveFragmentSlot { get; private set; }
         public MountLinkViewModel MountLinkController { get; private set; }
@@ -323,7 +323,7 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
         {
             if (_rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -338,14 +338,14 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
         {
             if (_rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             Pause();
             var currentFrame = _rider.Player.CurrentFrame;
 
-            var result = MessageBox.Show($"remove this frame at {currentFrame}? it is NOT recommended to remove a frame as this is a destructive operation", "warn", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            var result = MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.RemoveFrameConfirm", currentFrame), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (result == DialogResult.No) return;
 
             _commandFactory.Create<DeleteFrameBoneCommand>().Configure(x => x.Configure(_rider.AnimationClip, currentFrame)).BuildAndExecute();
@@ -395,14 +395,14 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
             var currentFrame = _rider.Player.CurrentFrame;
             if (_rider.AnimationClip == null || _originalClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             var maximumFramesOriginal = _originalClip.DynamicFrames.Count;
 
             if (currentFrame > maximumFramesOriginal - 1)
             {
-                MessageBox.Show("cannot reset the frame as this is a new frame!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.CannotResetNewFrame"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -529,7 +529,7 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
             var validSeconds = float.TryParse(FramesDurationInSeconds, out var seconds);
             if (!validSeconds)
             {
-                MessageBox.Show("please input proper decimal number in the textbox", "err", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.InvalidDecimalInput"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 FramesDurationInSeconds = _rider.AnimationClip.PlayTimeInSec.ToString();
                 return;
             }
@@ -542,7 +542,7 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
         {
             if (_rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -559,7 +559,7 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
         {
             if (_rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -576,7 +576,7 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
         {
             if (_rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -594,7 +594,7 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
         {
             if (_rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -618,7 +618,7 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
         {
             if (_rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -634,7 +634,7 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
         {
             if (_rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -647,7 +647,7 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
         {
             if (_rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             var frameNr = _rider.Player.CurrentFrame;
@@ -683,27 +683,26 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
 
         public void ApplyInterpolationAcrossFrames()
         {
-            MessageBox.Show("not available yet, in the meantime you can do it manually using the slider");
+            MessageBox.Show(LocalizationManager.Instance.Get("Msg.FeatureNotAvailable"));
         }
 
         public void Save()
         {
             if (_rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             if (!IsDirty.Value)
             {
-                MessageBox.Show("there is nothing to save!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NothingToSave"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             var animFile = _rider.AnimationClip.ConvertToFileFormat(_rider.Skeleton);
             var path = _rider.AnimationName.Value;
-            MessageBox.Show($"this will save with anim version {animFile.Header.Version}\n" +
-                            $"on this path {path}\n", "warn", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.SaveWithVersionAndPath", animFile.Header.Version, path), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Information);
             _packFileSaveService.Save(path, AnimationFile.ConvertToBytes(animFile), true);
             IsDirty.Value = false;
         }
@@ -711,13 +710,13 @@ namespace Editors.AnimationVisualEditors.AnimationKeyframeEditor
         {
             if (_rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             var animFile = _rider.AnimationClip.ConvertToFileFormat(_rider.Skeleton);
 
-            MessageBox.Show($"this will save with anim version {animFile.Header.Version}", "info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.SaveWithVersion", animFile.Header.Version), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Information);
             var bytes = AnimationFile.ConvertToBytes(animFile);
             _packFileSaveService.SaveAs(".anim", bytes);
             IsDirty.Value = false;

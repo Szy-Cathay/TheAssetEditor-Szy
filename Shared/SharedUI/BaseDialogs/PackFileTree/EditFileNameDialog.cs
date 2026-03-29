@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using CommonControls.BaseDialogs;
+using Shared.Core.Services;
 using MessageBox = System.Windows.MessageBox;
 
 namespace Shared.Ui.BaseDialogs.PackFileTree
@@ -50,7 +51,7 @@ namespace Shared.Ui.BaseDialogs.PackFileTree
         {
             if (string.IsNullOrWhiteSpace(value))
             {
-                MessageBox.Show("Folder name can not be empty! Please Try Again.\nPlease Try Again.");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.FolderNameEmpty"));
                 return false;
             }
             return true;
@@ -65,7 +66,7 @@ namespace Shared.Ui.BaseDialogs.PackFileTree
             {
                 if (node.Name == newFileName)
                 {
-                    MessageBox.Show($"Folder with name '{node.Name}' already exists in this folder!\nPlease Try Again.");
+                    MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.FolderNameExists", node.Name));
                     return false;
                 }
             }
@@ -82,7 +83,7 @@ namespace Shared.Ui.BaseDialogs.PackFileTree
                 {
                     if (c == invalidChar)
                     {
-                        MessageBox.Show($"Folder name contains invalid character: {c}. \nPlease Try Again.");
+                        MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.FolderNameInvalidChar", c));
                         return false;
                     }
                 }

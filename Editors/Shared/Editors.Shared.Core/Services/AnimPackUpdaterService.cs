@@ -3,6 +3,7 @@ using System.Windows;
 using Shared.Core.ErrorHandling;
 using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Utility;
+using Shared.Core.Services;
 using Shared.Core.Settings;
 using Shared.GameFormats.AnimationPack;
 using Shared.GameFormats.AnimationPack.AnimPackFileTypes;
@@ -24,7 +25,7 @@ namespace Editors.Shared.Core.Services
             var packFileContainer = _pfs.GetEditablePack();
             if (packFileContainer == null)
             {
-                MessageBox.Show("No editable pack selected");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoEditablePack"));
                 return;
             }
             var errorList = new ErrorList();

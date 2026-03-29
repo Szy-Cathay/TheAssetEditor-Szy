@@ -7,7 +7,8 @@
              xmlns:mathviews="clr-namespace:CommonControls.MathViews;assembly=Shared.Ui" 
              xmlns:s="http://schemas.singulink.com/xaml"
              xmlns:System="clr-namespace:System;assembly=mscorlib"
-             mc:Ignorable="d" 
+             xmlns:loc="clr-namespace:Shared.Ui.Common;assembly=Shared.Ui"
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <System:Double x:Key="labelWidth">120</System:Double>
@@ -16,51 +17,51 @@
     <Expander DockPanel.Dock="Top" IsExpanded="True">
         <Expander.Header>
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Mesh" FontWeight="Bold" Margin="3"/>
+                <TextBlock Text="{loc:Loc Mesh.Header}" FontWeight="Bold" Margin="3"/>
             </StackPanel>
         </Expander.Header>
 
         <DockPanel LastChildFill="False" >
             <DockPanel DockPanel.Dock="Top">
-                <Label Width ="{StaticResource labelWidth}" DockPanel.Dock="Left" Content="Name" />
+                <Label Width ="{StaticResource labelWidth}" DockPanel.Dock="Left" Content="{loc:Loc Mesh.Name}" />
                 <Label DockPanel.Dock="Left">:</Label>
                 <TextBox Text="{Binding Mesh.ModelName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" VerticalAlignment="Center"/>
             </DockPanel>
 
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                <Label Width ="{StaticResource labelWidth}" DockPanel.Dock="Left" Content="Vertex Type"/>
+                <Label Width ="{StaticResource labelWidth}" DockPanel.Dock="Left" Content="{loc:Loc Mesh.VertexType}"/>
                 <Label>:</Label>
                 <ComboBox ItemsSource="{Binding Mesh.PossibleVertexTypes}" SelectedItem="{Binding Mesh.VertexType}" VerticalAlignment="Center"/>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                <Label Width ="{StaticResource labelWidth}" DockPanel.Dock="Left" Content="Size"/>
+                <Label Width ="{StaticResource labelWidth}" DockPanel.Dock="Left" Content="{loc:Loc Mesh.Size}"/>
                 <Label>:</Label>
 
-                <Label DockPanel.Dock="Left" Content="Vertex Count:"/>
+                <Label DockPanel.Dock="Left" Content="{loc:Loc Mesh.VertexCount}"/>
                 <TextBlock Text="{Binding Mesh.VertexCount, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,30,0"/>
 
-                <Label DockPanel.Dock="Left" Content="Index Count:"/>
+                <Label DockPanel.Dock="Left" Content="{loc:Loc Mesh.IndexCount}"/>
                 <TextBlock  Text="{Binding Mesh.IndexCount, UpdateSourceTrigger=PropertyChanged}"  VerticalAlignment="Center" FontWeight="Bold"/>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" >
-                <Label Width ="{StaticResource labelWidth}" DockPanel.Dock="Left" Content="Render Bbox"/>
+                <Label Width ="{StaticResource labelWidth}" DockPanel.Dock="Left" Content="{loc:Loc Mesh.RenderBbox}"/>
                 <Label>:</Label>
                 <CheckBox  HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Mesh.DrawBoundingBox, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
             </StackPanel>
 
             <DockPanel DockPanel.Dock="Top">
-                <Label Width ="{StaticResource labelWidth}" DockPanel.Dock="Left" Content="Pivot"/>
+                <Label Width ="{StaticResource labelWidth}" DockPanel.Dock="Left" Content="{loc:Loc Mesh.Pivot}"/>
                 <Label>:</Label>
                 <CheckBox  HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Mesh.DrawPivotPoint, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
             
-                <Button Content="Copy to all meshes" Margin="3" Command="{Binding Mesh.CopyPivotToAllMeshesCommand}" DockPanel.Dock="Right"/>
+                <Button Content="{loc:Loc Mesh.CopyToAllMeshes}" Margin="3" Command="{Binding Mesh.CopyPivotToAllMeshesCommand}" DockPanel.Dock="Right"/>
                 <mathviews:Vector3View VerticalContentAlignment="Center" Vector3="{Binding Mesh.Pivot, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="2,0,2,0"/>
             </DockPanel>
 
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" >
-                <Label Width ="{StaticResource labelWidth}" DockPanel.Dock="Left" Content="Reduce Lods"/>
+                <Label Width ="{StaticResource labelWidth}" DockPanel.Dock="Left" Content="{loc:Loc Mesh.ReduceLods}"/>
                 <Label>:</Label>
                 <CheckBox  HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Mesh.ReduceMeshOnLodGeneration, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
             </StackPanel>

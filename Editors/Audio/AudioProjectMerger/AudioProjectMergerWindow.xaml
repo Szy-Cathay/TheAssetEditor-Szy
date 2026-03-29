@@ -6,12 +6,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:sys="clr-namespace:System;assembly=netstandard"
     xmlns:AudioProjectMerger="clr-namespace:Editors.Audio.AudioProjectMerger"
+    xmlns:loc="clr-namespace:Shared.Ui.Common;assembly=Shared.Ui"
     d:DataContext="{d:DesignInstance Type=AudioProjectMerger:AudioProjectMergerViewModel}"
     mc:Ignorable="d"
     Width="850"
     SizeToContent="Height"
     Closed="OnClosed"
-    Title="Audio Project Merger" Background="#FF1C1C1C">
+    Title="{loc:Loc AudioProjectMerger.Title}" Background="#FF1C1C1C">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -25,7 +26,7 @@
 
         <TextBlock  
             Grid.Row="0"  
-            Text="The Audio Project Merger is a tool for merging two Audio Projects."  
+            Text="{loc:Loc AudioProjectMerger.Description}"  
             HorizontalAlignment="Left"
             Margin="10, 10, 10, 0"
             TextWrapping="Wrap"/>
@@ -57,8 +58,8 @@
 
                 <Label
                     Grid.Column="0" 
-                    Content="Merged Audio Project Name"
-                    ToolTip="The name of your merged Audio Project."/>
+                    Content="{loc:Loc AudioProjectMerger.MergedName}"
+                    ToolTip="{loc:Loc AudioProjectMerger.MergedName.ToolTip}"/>
 
                 <TextBox 
                     Grid.Column="1"
@@ -82,8 +83,8 @@
 
                 <Label 
                     Grid.Column="0"
-                    Content="Output Directory Path"
-                    ToolTip="The pack directory where the merged Audio Project is output to. There needs to be a file in the directory for it to show."/>
+                    Content="{loc:Loc AudioProjectMerger.OutputDirectory}"
+                    ToolTip="{loc:Loc AudioProjectMerger.OutputDirectory.ToolTip}"/>
 
                 <TextBox 
                     Grid.Column="1"
@@ -115,8 +116,8 @@
 
                 <Label 
                     Grid.Column="0"
-                    Content="Base Audio Project Path"
-                    ToolTip="The path to the Audio Project that you want to merge the Merging Audio Project into."/>
+                    Content="{loc:Loc AudioProjectMerger.BaseAudioProject}"
+                    ToolTip="{loc:Loc AudioProjectMerger.BaseAudioProject.ToolTip}"/>
 
                 <TextBox 
                     Grid.Column="1"
@@ -148,8 +149,8 @@
 
                 <Label 
                     Grid.Column="0"
-                    Content="Merging Audio Project Path"
-                    ToolTip="The path to the Audio Project that you want to merge into the base Audio Project."/>
+                    Content="{loc:Loc AudioProjectMerger.MergingAudioProject}"
+                    ToolTip="{loc:Loc AudioProjectMerger.MergingAudioProject.ToolTip}"/>
 
                 <TextBox 
                     Grid.Column="1"
@@ -174,16 +175,16 @@
             Margin="10, 0, 10, 10">
 
             <Button 
-                Content="OK"
+                Content="{loc:Loc General.Ok}"
                 Width="75"
                 Margin="0, 0, 5, 0"
                 Command="{Binding MergeAudioProjectsCommand}" 
                 IsEnabled="{Binding IsOkButtonEnabled}"/>
 
             <Button 
-                Content="Cancel" 
+                Content="{loc:Loc General.Cancel}"
                 Width="75"
-                Margin="5, 0, 0, 0" 
+                Margin="5, 0, 0, 0"
                 Command="{Binding CloseWindowActionCommand}"/>
         </StackPanel>
     </Grid>

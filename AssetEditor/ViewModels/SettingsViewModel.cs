@@ -92,7 +92,7 @@ namespace AssetEditor.ViewModels
            
             _localizationManager.LoadLanguage(SelectedLanguage);
             _settingsService.Save();
-            MessageBox.Show("Please restart the tool after updating settings!");
+            MessageBox.Show(LocalizationManager.Instance.Get("Msg.RestartAfterSettings"));
         }
 
         [RelayCommand]
@@ -134,7 +134,7 @@ namespace AssetEditor.ViewModels
                 var manifest = files.Count(x => x.Contains("manifest.txt"));
 
                 if (packFiles == 0 && manifest == 0)
-                    System.Windows.MessageBox.Show($"The selected directory contains {packFiles} packfiles and {manifest} manifest files. It is probably not a game directory");
+                    System.Windows.MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.NotGameDirectory", packFiles, manifest));
             }
         }
     }

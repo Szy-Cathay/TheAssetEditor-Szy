@@ -11,6 +11,13 @@ namespace Shared.Core.Services
         private Dictionary<string, string> _strings = [];
         private string _selectedLangauge = "Not set";
 
+        public static LocalizationManager Instance { get; private set; }
+
+        public LocalizationManager()
+        {
+            Instance = this;
+        }
+
         public string SelectedLangauge { get => _selectedLangauge; }
 
         public List<string> GetPossibleLanguages()
@@ -59,13 +66,26 @@ namespace Shared.Core.Services
             }
         }
 
-        public  string Get(string key)
+        public string Get(string key)
         {
             if (_strings.TryGetValue(key, out var value))
                 return value;
 
             _logger.Here().Error($"Failed to load language code {key} for language {_selectedLangauge}");
             return key;
+        }
+
+        public string GetFormat(string key, params object[] args)
+        {
+            try
+            {
+                return string.Format(Get(key), args);
+            }
+            catch (FormatException)
+            {
+                _logger.Here().Error($"Format error for localization key {key}");
+                return Get(key);
+            }
         }
     }
 }

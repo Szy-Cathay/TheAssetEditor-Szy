@@ -1,8 +1,10 @@
-﻿namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
+﻿using Shared.Core.Services;
+
+namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
 {
     public class CollapseNodeCommand() : IContextMenuCommand
     {
-        public string GetDisplayName(TreeNode node) => "Collapse all";
+        public string GetDisplayName(TreeNode node) => LocalizationManager.Instance.Get("ContextMenu.CollapseAll");
         public bool IsEnabled(TreeNode node) => true;
 
         public void Execute(TreeNode _selectedNode) => CollapsAllRecursive(_selectedNode);

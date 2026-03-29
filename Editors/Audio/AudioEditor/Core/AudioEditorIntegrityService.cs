@@ -9,6 +9,7 @@ using Editors.Audio.Shared.GameInformation.Warhammer3;
 using Editors.Audio.Shared.Storage;
 using Editors.Audio.Shared.Wwise;
 using Shared.Core.PackFiles;
+using Shared.Core.Services;
 using Shared.GameFormats.Wwise.Hirc;
 
 namespace Editors.Audio.AudioEditor.Core
@@ -61,7 +62,7 @@ namespace Editors.Audio.AudioEditor.Core
                 audioFile.Id = audioFileIds.Id;
             }
 
-            MessageBox.Show("Delete all your existing WEMs and then recompile the Audio Project as all WEM IDs have now been updated.", "Warning");
+            MessageBox.Show(LocalizationManager.Instance.Get("Msg.DeleteAndRecompileWems"), LocalizationManager.Instance.Get("Msg.GeneralError"));
         }
 
         public void CheckDialogueEventInformationIntegrity(List<Wh3DialogueEventDefinition> information)
@@ -90,7 +91,7 @@ namespace Editors.Audio.AudioEditor.Core
                 if (dialogueEventsOnlyInAudioEditor.Count > 0)
                     message += dialogueEventsOnlyInAudioEditorMessage;
 
-                MessageBox.Show(message, "Error");
+                MessageBox.Show(message, LocalizationManager.Instance.Get("Msg.GeneralError"));
             }
         }
 
@@ -136,7 +137,7 @@ namespace Editors.Audio.AudioEditor.Core
             }
 
             if (hasIntegrityError)
-                MessageBox.Show(message, "Error");
+                MessageBox.Show(message, LocalizationManager.Instance.Get("Msg.GeneralError"));
         }
 
         public void CheckAudioProjectWavFilesIntegrity(AudioProjectFile audioProject)
@@ -164,7 +165,7 @@ namespace Editors.Audio.AudioEditor.Core
                     $"\n - {missingWavFilesText}" +
                     $"\n\nEnsure all wav files are in the correct location or update their usage in the Audio Project to the correct path.";
 
-                MessageBox.Show(message, "Error");
+                MessageBox.Show(message, LocalizationManager.Instance.Get("Msg.GeneralError"));
             }
         }
 
@@ -200,10 +201,8 @@ namespace Editors.Audio.AudioEditor.Core
             if (hircIdConflicts.Count > 0)
             {
                 MessageBox.Show(
-                    "Detected ID conflicts with vanilla for the following Hirc IDs:\n" +
-                    string.Join(", ", hircIdConflicts),
-                    "Error"
-                );
+                    LocalizationManager.Instance.GetFormat("Msg.HircIdConflictsDetected", string.Join(", ", hircIdConflicts)),
+                    LocalizationManager.Instance.Get("Msg.GeneralError"));
             }
 
             // Reset and remove any Source IDs used in vanilla so we can handle them
@@ -225,10 +224,8 @@ namespace Editors.Audio.AudioEditor.Core
             if (sourceIdConflicts.Count > 0)
             {
                 MessageBox.Show(
-                    "Detected Source ID conflicts with vanilla for the following .wem files:\n" +
-                    string.Join(", ", sourceIdConflicts.Select(id => id + ".wem")),
-                    "Error"
-                );
+                    LocalizationManager.Instance.GetFormat("Msg.SourceIdConflictsDetected", string.Join(", ", sourceIdConflicts.Select(id => id + ".wem"))),
+                    LocalizationManager.Instance.Get("Msg.GeneralError"));
             }
 
             usedHircIds.UnionWith(audioProjectGeneratableItemIds);
@@ -669,7 +666,7 @@ namespace Editors.Audio.AudioEditor.Core
             }
 
             if (hasClashes)
-                MessageBox.Show(messageBuilder.ToString(), "Error");
+                MessageBox.Show(messageBuilder.ToString(), LocalizationManager.Instance.Get("Msg.GeneralError"));
         }
     }
 }

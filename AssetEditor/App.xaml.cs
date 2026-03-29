@@ -58,7 +58,7 @@ namespace AssetEditor
 
             var localizationManager = _serviceProvider.GetRequiredService<LocalizationManager>();
             localizationManager.GetPossibleLanguages();
-            localizationManager.LoadLanguage("en");
+            localizationManager.LoadLanguage(settingsService.CurrentSettings.SelectedLangauge);
 
             // Show the settings window if its the first time the tool is ran
             if (settingsService.CurrentSettings.IsFirstTimeStartingApplication)
@@ -102,7 +102,7 @@ namespace AssetEditor
                 await Current.Dispatcher.InvokeAsync(() =>
                 {
                     if (loadRes == null)
-                        MessageBox.Show($"Unable to load all CA packfiles in {gamePath}");
+                        MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.UnableToLoadAllCAPackfiles", gamePath));
                     else
                         packfileService.AddContainer(loadRes);
 
@@ -198,7 +198,7 @@ namespace AssetEditor
             if (exceptionService != null)
                exceptionService.ShowExceptionWindow(args.Exception);   
             else
-                MessageBox.Show(args.Exception.ToString(), "Error");
+                MessageBox.Show(args.Exception.ToString(), LocalizationManager.Instance.Get("Msg.GeneralError"));
 
             args.Handled = true;
         }

@@ -2,6 +2,7 @@
 using System;
 using System.Windows;
 using Shared.Core.PackFiles.Models;
+using Shared.Core.Services;
 using System.IO;
 
 namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
@@ -17,7 +18,7 @@ namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
         {
             if (File.Exists(applicationPath) == false)
             {
-                MessageBox.Show($"Application {applicationPath} does not exist");
+                MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.ApplicationNotFound", applicationPath));
                 return;
             }
 
@@ -34,13 +35,13 @@ namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
 
     public class OpenNodeInNotepadCommand() : OpenNodeInCommand
     {
-        public override string GetDisplayName(TreeNode node) => "Open in Notepad++";
+        public override string GetDisplayName(TreeNode node) => LocalizationManager.Instance.Get("ContextMenu.OpenInNotepadPP");
         public override void Execute(TreeNode _selectedNode) => OpenPackFileUsing(@"C:\Program Files\Notepad++\notepad++.exe", _selectedNode.Item!);
     }
 
     public class OpenNodeInHxDCommand() : OpenNodeInCommand
     {
-        public override string GetDisplayName(TreeNode node) => "Open in Hxd";
+        public override string GetDisplayName(TreeNode node) => LocalizationManager.Instance.Get("ContextMenu.OpenInHxD");
         public override void Execute(TreeNode _selectedNode) => OpenPackFileUsing(@"C:\Program Files\HxD\HxD.exe", _selectedNode.Item!);
     }
 }

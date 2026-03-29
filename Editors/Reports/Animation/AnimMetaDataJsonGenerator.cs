@@ -8,6 +8,7 @@ using Shared.Core.Events;
 using Shared.Core.Misc;
 using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Utility;
+using Shared.Core.Services;
 using Shared.Core.Settings;
 using Shared.GameFormats.Animation;
 using Shared.GameFormats.AnimationMeta.Parsing;
@@ -110,7 +111,7 @@ namespace Editors.Reports.Animation
                 }
             }
 
-            MessageBox.Show($"Done - Created at {gameOutputDir}");
+            MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.ReportCreated", gameOutputDir));
             Process.Start("explorer.exe", gameOutputDir);
         }
     }

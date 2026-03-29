@@ -11,6 +11,7 @@ using Editors.Audio.Shared.GameInformation.Warhammer3;
 using Editors.Audio.Shared.Storage;
 using Editors.Audio.Shared.Utilities;
 using Editors.Audio.Shared.Wwise.HircExploration;
+using Shared.Core.Services;
 using Shared.Core.ToolCreation;
 using Shared.GameFormats.Wwise.Enums;
 using Shared.GameFormats.Wwise.Hirc;
@@ -43,7 +44,7 @@ namespace Editors.Audio.AudioExplorer
         [ObservableProperty] private bool _searchByVOActor = false;
         [ObservableProperty] private bool _isPlayAudioButtonEnabled = false;
 
-        public string DisplayName { get; set; } = "Audio Explorer";
+        public string DisplayName { get; set; } = LocalizationManager.Instance.Get("DisplayName.AudioExplorer");
 
         public AudioExplorerViewModel(IAudioRepository audioRepository, SoundPlayer soundPlayer)
         {

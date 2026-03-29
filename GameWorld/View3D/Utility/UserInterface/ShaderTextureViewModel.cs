@@ -71,7 +71,7 @@ namespace GameWorld.Core.Utility.UserInterface
                 }
                 catch
                 {
-                    MessageBox.Show($"Failed to load texture {result.File}");
+                    MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.TextureLoadFailed", result.File));
                     ShouldRenderTexture = false;
                 }
             }

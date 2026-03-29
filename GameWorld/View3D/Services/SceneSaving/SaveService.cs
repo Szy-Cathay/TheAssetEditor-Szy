@@ -7,6 +7,7 @@ using GameWorld.Core.Services.SceneSaving.Material;
 using Shared.Core.Events;
 using Shared.Core.Events.Scoped;
 using Shared.Core.PackFiles;
+using Shared.Core.Services;
 using Shared.GameFormats.RigidModel;
 
 namespace GameWorld.Core.Services.SceneSaving
@@ -38,7 +39,7 @@ namespace GameWorld.Core.Services.SceneSaving
         {
             if (_packFileService.GetEditablePack() == null)
             {
-                MessageBox.Show("No editable pack selected", "error");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoEditablePack"), LocalizationManager.Instance.Get("Msg.GeneralError"));
                 return new SaveResult(false, null, null, null, null);
             }
 

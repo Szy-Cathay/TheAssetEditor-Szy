@@ -1,6 +1,7 @@
 ﻿using GameWorld.Core.Animation.AnimationChange;
 using Microsoft.Xna.Framework;
 using Shared.Core.Misc;
+using Shared.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -166,7 +167,7 @@ namespace GameWorld.Core.Animation
             }
             catch
             {
-                MessageBox.Show("Error playing animation");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationPlaybackError"));
                 SetAnimation(null, _skeleton);
             }
         }

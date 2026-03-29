@@ -10,7 +10,8 @@
     xmlns:prim="clr-namespace:Xceed.Wpf.Toolkit.Primitives;assembly=Xceed.Wpf.Toolkit"
     xmlns:chrome="clr-namespace:Xceed.Wpf.Toolkit.Chromes;assembly=Xceed.Wpf.Toolkit"
     xmlns:MdXaml="clr-namespace:MdXaml;assembly=MdXaml"
-    xmlns:options="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options">
+    xmlns:options="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+    xmlns:loc="clr-namespace:Shared.Ui.Common;assembly=Shared.Ui">
 
     <!-- Converters for WindowsTitleMenu -->
     <windowstitlemenu:WindowStateToPathConverter x:Key="windowStateToPathConverter"/>
@@ -5592,7 +5593,7 @@
                                     Grid.Column="2"
                                     Width="46"
                                     Style="{StaticResource TitleBarButtonStyle}" 
-                                    ToolTip="Minimise"
+                                    ToolTip="{loc:Loc Chrome.Minimise}"
                                     VerticalAlignment="Stretch"
                                     Height="Auto"
                                     WindowChrome.IsHitTestVisibleInChrome="True" 
@@ -5609,7 +5610,7 @@
                                     Grid.Column="3"
                                     Width="46"
                                     Style="{StaticResource TitleBarButtonStyle}" 
-                                    ToolTip="Maximise"
+                                    ToolTip="{loc:Loc Chrome.Maximise}"
                                     VerticalAlignment="Stretch"
                                     Height="Auto"
                                     WindowChrome.IsHitTestVisibleInChrome="True" 
@@ -5626,7 +5627,7 @@
                                     Grid.Column="4"
                                     Width="46"
                                     Style="{StaticResource TitleBarCloseButtonStyle}" 
-                                    ToolTip="Close"
+                                    ToolTip="{loc:Loc Chrome.Close}"
                                     VerticalAlignment="Stretch"
                                     Height="Auto"
                                     WindowChrome.IsHitTestVisibleInChrome="True" 

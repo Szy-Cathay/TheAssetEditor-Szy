@@ -7,6 +7,7 @@ using Shared.Core.Events;
 using Shared.Core.Misc;
 using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Utility;
+using Shared.Core.Services;
 using Shared.Core.Settings;
 using Shared.GameFormats.RigidModel;
 using Shared.GameFormats.RigidModel.MaterialHeaders;
@@ -104,11 +105,11 @@ namespace Editors.Reports.Geometry
                 Write(versionInfoRecords, outputDir + "VersionAndMaterialInfo.csv");
                 Write(weightedMaterialRecords, outputDir + "WeightedMaterialInfo.csv");
 
-                MessageBox.Show($"Done - Created at {outputDir}");
+                MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.ReportCreated", outputDir));
             }
             catch
             {
-                MessageBox.Show("Unable to write reports to file!");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.UnableToWriteReport"));
             }
         }
 

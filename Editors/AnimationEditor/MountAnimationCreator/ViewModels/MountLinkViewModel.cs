@@ -10,6 +10,7 @@ using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Utility;
 using Shared.GameFormats.AnimationPack;
 using Shared.Ui.Common;
+using Shared.Core.Services;
 
 namespace AnimationEditor.MountAnimationCreator.ViewModels
 {
@@ -107,7 +108,7 @@ namespace AnimationEditor.MountAnimationCreator.ViewModels
             var existingSkeletonName = Path.GetFileNameWithoutExtension(skeletonName);
             if (newSkeletonName != existingSkeletonName)
             {
-                MessageBox.Show("This fragment does not fit the current skeleton");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.FragmentSkeletonMismatch"));
                 return;
             }
 

@@ -3,8 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:loc="clr-namespace:Shared.Ui.Common;assembly=Shared.Ui"
         mc:Ignorable="d"
-        Title="Create MetaData entry" Height="450" Width="400" Background="#FF1C1C1C">
+        Title="{loc:Loc MetaData.NewEntryWindowTitle}" Height="450" Width="400" Background="#FF1C1C1C">
     <Grid>
         <ListView
             ItemsSource="{Binding Items, UpdateSourceTrigger=PropertyChanged}"

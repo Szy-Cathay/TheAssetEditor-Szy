@@ -55,7 +55,7 @@ namespace AnimationEditor.MountAnimationCreator
 
         public AnimationSettingsViewModel AnimationSettings { get; set; } = new AnimationSettingsViewModel();
         public MountLinkViewModel MountLinkController { get; set; }
-        public string EditorName => "Mount Animation Creator";
+        public string EditorName => LocalizationManager.Instance.Get("DisplayName.MountTool");
 
         public FilterCollection<SkeletonBoneNode> SelectedRiderBone { get; set; }
 
@@ -218,7 +218,7 @@ namespace AnimationEditor.MountAnimationCreator
                 SelectedVertexesText.Value = "No vertex selected";
                 _mountVertexes.Clear();
                 _mountVertexOwner = null;
-                MessageBox.Show(SelectedVertexesText.Value);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoVertexSelected"));
             }
             else
             {
@@ -326,7 +326,7 @@ namespace AnimationEditor.MountAnimationCreator
         {
             if (_newAnimation.AnimationClip == null)
             {
-                MessageBox.Show("new animation not generated!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotGenerated"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -338,7 +338,7 @@ namespace AnimationEditor.MountAnimationCreator
             var frames = _newAnimation.AnimationClip;
             var jsonText = JsonConvert.SerializeObject(AnimationCliboardCreator.CreateFrameClipboard(skeleton, frames, currentFrame, endFrame));
             Clipboard.SetText(jsonText);
-            MessageBox.Show($"copied frame {currentFrame} up to {endFrame - 1}", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.CopiedFrames", currentFrame, endFrame - 1), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     }
 }

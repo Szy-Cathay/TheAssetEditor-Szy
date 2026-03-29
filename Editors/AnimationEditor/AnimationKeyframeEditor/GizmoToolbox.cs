@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Editors.AnimationVisualEditors.AnimationKeyframeEditor;
@@ -7,6 +7,7 @@ using GameWorld.Core.Commands.Object;
 using GameWorld.Core.Components.Gizmo;
 using GameWorld.Core.Components.Selection;
 using GameWorld.Core.SceneNodes;
+using Shared.Core.Services;
 
 namespace AnimationEditor.AnimationKeyframeEditor
 {
@@ -84,7 +85,7 @@ namespace AnimationEditor.AnimationKeyframeEditor
                 {
                     if (boneSelectionState.SelectedBones.Count > 1)
                     {
-                        MessageBox.Show("when in IK mode is enabled, pick only only 1 bone. deselected the rest of the bones.", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show(LocalizationManager.Instance.Get("Msg.IKSingleBoneOnly"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         var firstSelection = boneSelectionState.SelectedBones[0];
                         boneSelectionState.SelectedBones.Clear();
                         boneSelectionState.SelectedBones.Add(firstSelection);
@@ -93,7 +94,7 @@ namespace AnimationEditor.AnimationKeyframeEditor
 
                     if (boneSelectionState.SelectedBones.Count == 1 && boneSelectionState.InverseKinematicsEndBoneIndex == boneSelectionState.SelectedBones[0])
                     {
-                        MessageBox.Show("head bone chain == tail bone chain. why even enable IK mode?", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show(LocalizationManager.Instance.Get("Msg.IKSameChain"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         boneSelectionState.SelectedBones.Clear();
                     }
                 }
@@ -163,12 +164,12 @@ namespace AnimationEditor.AnimationKeyframeEditor
         {
             if (_parent.Rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             if (_previousSelectedBones == null)
             {
-                MessageBox.Show("select a bone first!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.SelectBoneFirst"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -219,7 +220,7 @@ namespace AnimationEditor.AnimationKeyframeEditor
         {
             if (_parent.EnableInverseKinematics.Value)
             {
-                MessageBox.Show("cannot use scale mode when IK is enabled!", "error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.ScaleModeIKConflict"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             if (_parent.SelectionManager.GetState().Mode != GeometrySelectionMode.Bone) return;

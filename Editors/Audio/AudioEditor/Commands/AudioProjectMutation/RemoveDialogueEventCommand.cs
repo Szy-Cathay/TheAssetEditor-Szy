@@ -7,6 +7,7 @@ using Editors.Audio.AudioEditor.Presentation.Shared.Models;
 using Editors.Audio.AudioEditor.Presentation.Shared.Table;
 using Editors.Audio.Shared.Storage;
 using Shared.Core.Events;
+using Shared.Core.Services;
 
 namespace Editors.Audio.AudioEditor.Commands.AudioProjectMutation
 {
@@ -33,8 +34,8 @@ namespace Editors.Audio.AudioEditor.Commands.AudioProjectMutation
                 _eventHub.Publish(new ViewerTableRowRemoveRequestedEvent(row));
             else
             {
-                var message = "State Path is incomplete probably due to a change to the Dialogue Event by CA. Add the missing State(s).";
-                MessageBox.Show(message, "Error");
+                var message = LocalizationManager.Instance.Get("Msg.StatePathIncomplete");
+                MessageBox.Show(message, LocalizationManager.Instance.Get("Msg.GeneralError"));
             }
         }
     }

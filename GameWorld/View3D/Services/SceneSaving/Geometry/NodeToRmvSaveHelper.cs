@@ -45,7 +45,7 @@ namespace GameWorld.Core.Services.SceneSaving.Geometry
             catch (Exception e)
             {
                 _logger.Here().Error("Error saving model - " + e.ToString());
-                MessageBox.Show($"Saving failed!\n{e.Message}" );
+                MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.SavingFailed", e.Message));
 
                 return null;
             }

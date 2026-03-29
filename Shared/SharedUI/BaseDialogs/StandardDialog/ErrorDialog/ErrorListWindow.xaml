@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:errorlistdialog="clr-namespace:CommonControls.BaseDialogs.ErrorListDialog"
+        xmlns:loc="clr-namespace:Shared.Ui.Common"
         mc:Ignorable="d"
         Title="{Binding WindowTitle}" Height="450" Width="800" WindowStartupLocation="CenterOwner" Background="#FF1C1C1C">
     <Grid>
@@ -15,8 +16,8 @@
 
         <errorlistdialog:ErrorListView Grid.Row="0" />
         <StackPanel Orientation="Horizontal" Grid.Row="1">
-            <Button Content="Close" Margin="5" Click="Button_Click"/>
-            <Button Content="Save Report" Margin="5" Click="SaveReport_Click"/>
+            <Button Content="{loc:Loc Shared.ErrorList.Close}" Margin="5" Click="Button_Click"/>
+            <Button Content="{loc:Loc Shared.ErrorList.SaveReport}" Margin="5" Click="SaveReport_Click"/>
         </StackPanel>
     </Grid>
 </Window>

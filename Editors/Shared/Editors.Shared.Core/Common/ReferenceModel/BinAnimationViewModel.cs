@@ -8,6 +8,7 @@ using Shared.Core.Events.Global;
 using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Models;
 using Shared.Core.PackFiles.Utility;
+using Shared.Core.Services;
 using Shared.GameFormats.AnimationPack;
 using Shared.Ui.Common;
 
@@ -104,7 +105,7 @@ namespace Editors.Shared.Core.Common.ReferenceModel
             var existingSkeletonName = Path.GetFileNameWithoutExtension(skeletonName);
             if (newSkeletonName != existingSkeletonName)
             {
-                MessageBox.Show("This fragment does not fit the current skeleton");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.FragmentSkeletonMismatch"));
                 return;
             }
 

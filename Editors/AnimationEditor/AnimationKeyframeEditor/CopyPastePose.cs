@@ -1,10 +1,11 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Windows.Forms;
 using Editors.AnimationVisualEditors.AnimationKeyframeEditor;
 using GameWorld.Core.Commands.Bone;
+using Shared.Core.Services;
 
 namespace AnimationEditor.AnimationKeyframeEditor
 {
@@ -21,7 +22,7 @@ namespace AnimationEditor.AnimationKeyframeEditor
         {
             if (_parent.Rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -38,7 +39,7 @@ namespace AnimationEditor.AnimationKeyframeEditor
             var currentFrame = _parent.Rider.Player.CurrentFrame;
             if (_parent.Rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -61,13 +62,13 @@ namespace AnimationEditor.AnimationKeyframeEditor
             var currentFrame = _parent.Rider.Player.CurrentFrame;
             if (_parent.Rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             if (_parent.GetSelectedBones() == null || _parent.GetSelectedBones().Count == 0)
             {
-                MessageBox.Show("no bones were selected", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoBonesSelected"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -90,13 +91,13 @@ namespace AnimationEditor.AnimationKeyframeEditor
             var currentFrame = _parent.Rider.Player.CurrentFrame;
             if (_parent.Rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             if (_parent.GetModifiedBones()  == null || _parent.GetModifiedBones().Count == 0)
             {
-                MessageBox.Show("no bones were modified", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoBonesModified"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 

@@ -4,6 +4,7 @@ using GameWorld.Core.Commands.Object;
 using GameWorld.Core.Components;
 using GameWorld.Core.Components.Selection;
 using GameWorld.Core.SceneNodes;
+using Shared.Core.Services;
 using Shared.Ui.Common.MenuSystem;
 using MessageBox = System.Windows.MessageBox;
 
@@ -37,7 +38,7 @@ namespace Editors.KitbasherEditor.UiCommands
             var frame = mainPlayer.GetCurrentAnimationFrame();
             if (frame == null)
             {
-                MessageBox.Show("An animation must be playing for this tool to work");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationMustBePlaying"));
                 return;
             }
 

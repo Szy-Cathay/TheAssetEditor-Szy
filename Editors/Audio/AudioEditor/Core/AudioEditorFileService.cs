@@ -65,7 +65,7 @@ namespace Editors.Audio.AudioEditor.Core
         {
             if (fileName.Contains(' '))
             {
-                MessageBox.Show("You must rename the Audio Project as its name contains spaces which is not allowed.", "Error");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AudioProjectNameSpaces"), LocalizationManager.Instance.Get("Msg.GeneralError"));
                 return;
             }
 

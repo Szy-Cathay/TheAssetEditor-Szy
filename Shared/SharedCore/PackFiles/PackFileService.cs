@@ -5,6 +5,7 @@ using Shared.Core.Events.Global;
 using Shared.Core.Misc;
 using Shared.Core.PackFiles.Models;
 using Shared.Core.PackFiles.Serialization;
+using Shared.Core.Services;
 using Shared.Core.Settings;
 
 namespace Shared.Core.PackFiles
@@ -36,7 +37,7 @@ namespace Shared.Core.PackFiles
                 var caPacksLoaded = _packFileContainers.Count(x => x.IsCaPackFile);
                 if (caPacksLoaded == 0 && container.IsCaPackFile == false)
                 {
-                    MessageBoxProvider.ShowDialogBox("You are trying to load a pack file before loading CA packfile. Most editors EXPECT the CA packfiles to be loaded and will cause issues if they are not.\nFile not loaded!", "Error");
+                    MessageBoxProvider.ShowDialogBox(LocalizationManager.Instance.Get("Msg.LoadBeforeCaPackfile"), LocalizationManager.Instance.Get("Msg.GeneralError"));
                     return null;
                 }
             }
@@ -46,7 +47,7 @@ namespace Shared.Core.PackFiles
             {
                 if (packFile.SystemFilePath == container.SystemFilePath)
                 {
-                    MessageBoxProvider.ShowDialogBox($"Pack file \"{packFile.SystemFilePath}\" is already loaded.", "Error");
+                    MessageBoxProvider.ShowDialogBox(LocalizationManager.Instance.GetFormat("Msg.PackFileAlreadyLoaded", packFile.SystemFilePath), LocalizationManager.Instance.Get("Msg.GeneralError"));
                     return null;
                 }
             }

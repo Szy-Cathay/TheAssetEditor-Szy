@@ -4,6 +4,7 @@ using CommonControls;
 using System.Windows.Input;
 using CommunityToolkit.Diagnostics;
 using Shared.Core.Misc;
+using Shared.Core.Services;
 
 namespace Editors.AnimationMeta.Presentation.View
 {
@@ -24,7 +25,7 @@ namespace Editors.AnimationMeta.Presentation.View
 
             if (model.SelectedItem == null)
             {
-                System.Windows.MessageBox.Show("Nothing selected");
+                System.Windows.MessageBox.Show(LocalizationManager.Instance.Get("Msg.NothingSelected"));
                 return;
             }
 

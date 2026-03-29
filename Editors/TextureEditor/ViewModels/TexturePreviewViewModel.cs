@@ -4,6 +4,7 @@ using System.Windows.Media;
 using CommonControls.BaseDialogs;
 using GameWorld.Core.Utility;
 using Shared.Core.Misc;
+using Shared.Core.Services;
 using TextureEditor.Views;
 
 namespace Editors.TextureEditor.ViewModels
@@ -59,7 +60,7 @@ namespace Editors.TextureEditor.ViewModels
         {
             // MOve this to a general concept 
             var containingWindow = new ControllerHostWindow(false, ResizeMode.CanResize);
-            containingWindow.Title = "Texture Details";
+            containingWindow.Title = LocalizationManager.Instance.Get("Title.TextureDetails");
             containingWindow.Width = 550;
             containingWindow.Height = 600;
             containingWindow.Content = new TextureInformationView() { DataContext = _information.GetAsText() };

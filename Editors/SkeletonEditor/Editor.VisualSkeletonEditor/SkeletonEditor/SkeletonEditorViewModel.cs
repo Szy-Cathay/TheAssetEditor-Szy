@@ -51,7 +51,7 @@ namespace Editor.VisualSkeletonEditor.SkeletonEditor
             IFileSaveService packFileSaveService)
             : base(editorHostParameters)
         {
-            DisplayName = "Skeleton Editor";
+            DisplayName = LocalizationManager.Instance.Get("DisplayName.SkeletonEditor");
 
             _packFileService = pfs;
             _copyPasteManager = copyPasteManager;
@@ -108,7 +108,7 @@ namespace Editor.VisualSkeletonEditor.SkeletonEditor
             }
             catch (Exception e)
             {
-                MessageBox.Show($"Unable to load skeleton '{skeletonPath}'\n\n" + e.Message);
+                MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.UnableToLoadSkeleton", skeletonPath, e.Message));
             }
         }
 
@@ -238,7 +238,7 @@ namespace Editor.VisualSkeletonEditor.SkeletonEditor
 
             if (_techSkeletonNode.Skeleton.HasBoneScale())
             {
-                MessageBox.Show("Skeleton has scale, this needs to be baked before the skeleton can be saved");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.SkeletonHasScale"));
                 return;
             }
 

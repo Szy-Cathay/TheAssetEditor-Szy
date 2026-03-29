@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using System.Windows;
 using Shared.Core.Misc;
+using Shared.Core.Services;
 using Shared.Ui.Common;
 
 namespace Shared.Ui.Editors.BoneMapping
@@ -63,7 +64,7 @@ namespace Shared.Ui.Editors.BoneMapping
         {
             if (MeshBones.SelectedItem == null)
             {
-                MessageBox.Show("No bone selected - Please select a bone first");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoBoneSelected"));
                 return;
             }
 
@@ -75,7 +76,7 @@ namespace Shared.Ui.Editors.BoneMapping
         {
             if (MeshBones.SelectedItem == null)
             {
-                MessageBox.Show("No bone selected - Please select a bone first");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoBoneSelected"));
                 return;
             }
 
@@ -87,12 +88,12 @@ namespace Shared.Ui.Editors.BoneMapping
         {
             if (MeshBones.SelectedItem == null)
             {
-                MessageBox.Show("No mesh bone selected - Please select a bone first");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoMeshBoneSelected"));
                 return;
             }
             if (ParentModelBones.SelectedItem == null)
             {
-                MessageBox.Show("No parent model bone selected - Please select a bone first");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoParentModelBoneSelected"));
                 return;
             }
 
@@ -104,7 +105,7 @@ namespace Shared.Ui.Editors.BoneMapping
         {
             if (MeshBones.SelectedItem == null)
             {
-                MessageBox.Show("No mesh bone selected - Please select a bone first");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoMeshBoneSelected"));
                 return;
             }
 
@@ -116,7 +117,7 @@ namespace Shared.Ui.Editors.BoneMapping
         {
             if (MeshBones.SelectedItem == null)
             {
-                MessageBox.Show("No mesh bone selected - Please select a bone first");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoMeshBoneSelected"));
                 return;
             }
 
@@ -165,7 +166,7 @@ namespace Shared.Ui.Editors.BoneMapping
             var res = Validate(out var errorText);
             if (res == false)
             {
-                var messageBoxResult = MessageBox.Show("Are you sure you want to do this?\n\n" + errorText + "\n\nContinue?", "Error", MessageBoxButton.OKCancel);
+                var messageBoxResult = MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.BoneMappingError", errorText), "Error", MessageBoxButton.OKCancel);
                 if (messageBoxResult == MessageBoxResult.Cancel)
                     return false;
             }

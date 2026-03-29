@@ -3,6 +3,7 @@ using System.Windows;
 using CommonControls;
 using Microsoft.Xna.Framework.Graphics;
 using Shared.Core.PackFiles.Models;
+using Shared.Core.Services;
 
 namespace Editors.ImportExport.Exporting.Presentation
 {
@@ -30,7 +31,7 @@ namespace Editors.ImportExport.Exporting.Presentation
         {
             if (!PathValidator.IsValid(_viewModel.SystemPath))
             {
-                System.Windows.MessageBox.Show("Invalid or empty path", "Error");
+                System.Windows.MessageBox.Show(LocalizationManager.Instance.Get("Msg.InvalidOrEmptyPath"), LocalizationManager.Instance.Get("Msg.GeneralError"));
                 return;
             }
 

@@ -1,13 +1,14 @@
-﻿using System.Windows.Forms;
+using System.Windows.Forms;
 using Editors.AnimationVisualEditors.AnimationKeyframeEditor;
 using GameWorld.Core.Commands.Bone;
+using Shared.Core.Services;
 
 namespace AnimationEditor.AnimationKeyframeEditor
 {
     internal class InterpolateBetweenPose
     {
         private readonly AnimationKeyframeEditorViewModel _parent;
-        
+
         public int KeyFrameNrA {
             get => _keyframeNrA;
             private set
@@ -27,7 +28,7 @@ namespace AnimationEditor.AnimationKeyframeEditor
         }
         private int _keyframeNrB;
 
-        public InterpolateBetweenPose(AnimationKeyframeEditorViewModel parent) 
+        public InterpolateBetweenPose(AnimationKeyframeEditorViewModel parent)
         {
             _parent = parent;
         }
@@ -46,16 +47,16 @@ namespace AnimationEditor.AnimationKeyframeEditor
 
             if (_keyframeNrA == -1) noKeyframeSelected = true;
             if (_keyframeNrB == -1) noKeyframeSelected = true;
-            
+
             if(noKeyframeSelected)
             {
-                MessageBox.Show("keyframe A and B must be selected to use this tool", "error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.SelectBothKeyframes"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 return false;
             }
 
             if (_parent.Rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
@@ -70,7 +71,7 @@ namespace AnimationEditor.AnimationKeyframeEditor
                 if (_parent.GetSelectedBones() == null || _parent.GetSelectedBones().Count == 0)
                 {
                     _parent.InterpolationOnlyOnSelectedBones = false;
-                    MessageBox.Show("no bones were selected!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoBonesSelected"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
             }
@@ -143,7 +144,7 @@ namespace AnimationEditor.AnimationKeyframeEditor
         {
             if (_parent.Rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -154,12 +155,12 @@ namespace AnimationEditor.AnimationKeyframeEditor
         {
             if (_parent.Rider.AnimationClip == null)
             {
-                MessageBox.Show("animation not loaded!", "warn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.AnimationNotLoaded"), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             _keyframeNrB = frameNrB;
-        }        
+        }
 
 
     }

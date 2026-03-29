@@ -3,6 +3,7 @@ using Editors.Shared.Core.Common.ReferenceModel;
 using GameWorld.Core.Animation;
 using Microsoft.Xna.Framework;
 using Shared.Core.Misc;
+using Shared.Core.Services;
 
 namespace Editor.VisualSkeletonEditor.SkeletonEditor
 {
@@ -50,7 +51,7 @@ namespace Editor.VisualSkeletonEditor.SkeletonEditor
         {
             if (selectedBone == null)
             {
-                MessageBox.Show("No bone selected");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.SelectBoneFirst"));
                 return;
             }
 
@@ -70,7 +71,7 @@ namespace Editor.VisualSkeletonEditor.SkeletonEditor
             var pasteObject = copyPasteManager.GetPasteObject<BoneCopyPasteItem>();
             if (pasteObject == null)
             {
-                MessageBox.Show("No valid object found to paste");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoValidObjectToPaste"));
                 return;
             }
 

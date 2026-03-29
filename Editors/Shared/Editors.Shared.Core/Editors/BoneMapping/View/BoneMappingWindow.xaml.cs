@@ -5,6 +5,7 @@
 using System;
 using CommonControls;
 using System.Windows;
+using Shared.Core.Services;
 using Shared.Ui.Editors.BoneMapping;
 
 namespace CommonControls.Editors.BoneMapping.View
@@ -40,7 +41,7 @@ namespace CommonControls.Editors.BoneMapping.View
             var res = viewModel.Validate(out string errorText);
             if (res == false)
             {
-                var messageBoxResult = System.Windows.MessageBox.Show("Are you sure you want to do this?\n\n" + errorText + "\n\nContinue?", "Error", System.Windows.MessageBoxButton.OKCancel);
+                var messageBoxResult = System.Windows.MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.BoneMappingError", errorText), "Error", System.Windows.MessageBoxButton.OKCancel);
                 if (messageBoxResult == System.Windows.MessageBoxResult.Cancel)
                     return;
             }

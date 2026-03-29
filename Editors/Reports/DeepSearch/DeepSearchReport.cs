@@ -7,6 +7,7 @@ using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Models;
 using Shared.Core.PackFiles.Serialization;
 using Shared.Core.PackFiles.Utility;
+using Shared.Core.Services;
 
 namespace Editors.Reports.DeepSearch
 {
@@ -20,7 +21,7 @@ namespace Editors.Reports.DeepSearch
             {
                 if (string.IsNullOrWhiteSpace(window.TextValue))
                 {
-                    System.Windows.MessageBox.Show("Invalid input");
+                    System.Windows.MessageBox.Show(LocalizationManager.Instance.Get("Msg.InvalidInput"));
                     return;
                 }
                 deepSearchReport.DeepSearch(window.TextValue, false);

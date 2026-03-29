@@ -6,7 +6,7 @@ namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
 {
     public class OnRenameNodeCommand(IPackFileService packFileService, IStandardDialogs standardDialogs) : IContextMenuCommand
     {
-        public string GetDisplayName(TreeNode node) => "Rename";
+        public string GetDisplayName(TreeNode node) => LocalizationManager.Instance.Get("ContextMenu.Rename");
         public bool IsEnabled(TreeNode node) => true;
 
         public void Execute(TreeNode _selectedNode)
@@ -14,7 +14,7 @@ namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
             var FileOwner = _selectedNode.FileOwner;
             if (FileOwner.IsCaPackFile)
             {
-                standardDialogs.ShowDialogBox("Unable to edit CA packfile", "Error");
+                standardDialogs.ShowDialogBox(LocalizationManager.Instance.Get("Msg.UnableToEditPackfile"), LocalizationManager.Instance.Get("Msg.GeneralError"));
                 return;
             }
 

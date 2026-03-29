@@ -122,7 +122,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Text="Game Files" Margin="5, 10, 0, 0" FontSize="15"/>
+            <TextBlock Grid.Row="0" Text="{loc:Loc SettingsWindow.GameFiles}" Margin="5, 10, 0, 0" FontSize="15"/>
             <Separator Grid.Row="1" Height="1" Margin="5, 5, 10, 10"/>
 
             <ItemsControl Grid.Row="5" ItemsSource="{Binding GameDirectores}" >
@@ -172,7 +172,7 @@
             <TextBlock Grid.Row="0" Text="{loc:Loc SettingsWindow.AudioModding}" Margin="5, 5, 0, 0" FontSize="15"/>
             <Separator Grid.Row="1" Grid.ColumnSpan="3" Height="1" Margin="5, 5, 10, 10"/>
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Wwise CLI" Margin="5, 0, 0, 0"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:Loc SettingsWindow.WwiseCli}" Margin="5, 0, 0, 0"/>
             <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource HintedTextBox}" Text="{Binding WwisePath}" 
                      Tag='e.g. "C:\Program Files (x86)\Audiokinetic\Wwise2019.2.15.7667\Authoring\x64\Release\bin\WwiseCLI.exe"' IsReadOnly="True" Margin="0, 0, 5, 5" Padding="2.5, 0, 0, 0"/>
             <Button Grid.Row="2" Grid.Column="2" Content="..." Command="{Binding BrowseCommand}" Margin="0, 0, 10, 5"/>

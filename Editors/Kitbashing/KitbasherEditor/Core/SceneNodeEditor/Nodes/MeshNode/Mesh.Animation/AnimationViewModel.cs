@@ -4,6 +4,7 @@ using Editors.KitbasherEditor.Core;
 using GameWorld.Core.SceneNodes;
 using GameWorld.Core.Services;
 using GameWorld.Core.Utility;
+using Shared.Core.Services;
 using Shared.Ui.Common;
 using Shared.Ui.Editors.BoneMapping;
 
@@ -48,7 +49,7 @@ namespace Editors.KitbasherEditor.ViewModels.SceneExplorer.Nodes.Rmv2
 
                 var hasValidBoneMapping = activeBonesMin >= 0 && skeletonBonesMax >= activeBonesMax;
                 if (!hasValidBoneMapping)
-                    MessageBox.Show("Mesh an invalid bones, this might cause issues. Its a result of an invalid re-rigging");
+                    MessageBox.Show(LocalizationManager.Instance.Get("Msg.InvalidBonesInMesh"));
 
                 var boneList = AnimatedBoneHelper.CreateFlatSkeletonList(skeletonFile);
 

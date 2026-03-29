@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework;
 using Shared.Core.Events;
 using Shared.Core.Events.Scoped;
 using Shared.Core.PackFiles;
+using Shared.Core.Services;
 using Shared.Core.ToolCreation;
 using Shared.GameFormats.AnimationMeta.Parsing;
 
@@ -54,7 +55,7 @@ namespace Editors.AnimationMeta.SuperView
             IMetaDataBuilder metaDataFactory)
             : base(editorHostParameters)
         {
-            DisplayName = "Super view";
+            DisplayName = LocalizationManager.Instance.Get("DisplayName.SuperView");
             _packFileService = packFileService;
             _eventHub = eventHub;
             _uiCommandFactory = uiCommandFactory;

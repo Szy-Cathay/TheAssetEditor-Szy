@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using Shared.Core.Events;
 using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Utility;
+using Shared.Core.Services;
 using Shared.Core.Settings;
 using Shared.Ui.Common;
 namespace AssetEditor.UiCommands
@@ -28,7 +29,7 @@ namespace AssetEditor.UiCommands
 
             if (gamePath == null || string.IsNullOrWhiteSpace(gamePath.Path))
             {
-                System.Windows.MessageBox.Show("No path provided for game");
+                System.Windows.MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoGamePath"));
                 return;
             }
 
@@ -37,7 +38,7 @@ namespace AssetEditor.UiCommands
             {
                 if (packFile.SystemFilePath == gamePath.Path)
                 {
-                    MessageBox.Show($"Pack files for \"{GameInformationDatabase.GetGameById(game).DisplayName}\" are already loaded.", "Error");
+                    MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.PackFilesAlreadyLoaded", GameInformationDatabase.GetGameById(game).DisplayName), LocalizationManager.Instance.Get("Msg.GeneralError"));
                     return;
                 }
             }

@@ -15,6 +15,7 @@ using Editors.ImportExport.Exporting.Presentation;
 using Editors.ImportExport.Importing.Presentation;
 using Editors.ImportExport.Misc;
 using Shared.Core.PackFiles.Models;
+using Shared.Core.Services;
 
 namespace Editors.ImportExport.Importing.Presentation
 {
@@ -39,7 +40,7 @@ namespace Editors.ImportExport.Importing.Presentation
         {
             if (!PathValidator.IsValid(_viewModel.SystemPath))
             {
-                System.Windows.MessageBox.Show("Invalid or empty path", "Error");
+                System.Windows.MessageBox.Show(LocalizationManager.Instance.Get("Msg.InvalidOrEmptyPath"), LocalizationManager.Instance.Get("Msg.GeneralError"));
                 return;
             }
 

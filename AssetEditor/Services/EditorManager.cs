@@ -11,6 +11,7 @@ using Shared.Core.Events;
 using Shared.Core.Events.Global;
 using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Models;
+using Shared.Core.Services;
 using Shared.Core.ToolCreation;
 
 namespace AssetEditor.Services
@@ -142,7 +143,7 @@ namespace AssetEditor.Services
 
             if (openFiles.Any())
             {
-                if (MessageBox.Show($"Closing pack file '{container.Name}' with open files ({openFiles.First().DisplayName}), are you sure?", "", MessageBoxButton.YesNo) == MessageBoxResult.No)
+                if (MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.ClosePackWithOpenFiles", container.Name, openFiles.First().DisplayName), LocalizationManager.Instance.Get("Msg.AreYouSure"), MessageBoxButton.YesNo) == MessageBoxResult.No)
                 {
                     e.AllowClose = false;
                 }
@@ -165,7 +166,7 @@ namespace AssetEditor.Services
         {
             if (tool is ISaveableEditor saveableEditor && saveableEditor.HasUnsavedChanges)
             {
-                if (MessageBox.Show("Unsaved changes - Are you sure?", "Close", MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)
+                if (MessageBox.Show(LocalizationManager.Instance.Get("Msg.UnsavedChangesOnClose"), LocalizationManager.Instance.Get("Msg.CloseTitle"), MessageBoxButton.OKCancel) == MessageBoxResult.Cancel)
                     return;
             }
 

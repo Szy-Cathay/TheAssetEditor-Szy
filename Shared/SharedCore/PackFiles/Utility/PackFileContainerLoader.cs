@@ -4,6 +4,7 @@ using System.Text;
 using Shared.Core.ErrorHandling;
 using Shared.Core.PackFiles.Models;
 using Shared.Core.PackFiles.Serialization;
+using Shared.Core.Services;
 using Shared.Core.Settings;
 
 namespace Shared.Core.PackFiles.Utility
@@ -68,7 +69,7 @@ namespace Shared.Core.PackFiles.Utility
                 if (!File.Exists(packFileSystemPath))
                 {
                     _logger.Here().Error($"Trying to load file {packFileSystemPath}, which can not be located.", "Error");
-                    System.Windows.MessageBox.Show($"Unable to locate pack file \"{packFileSystemPath}\"");
+                    System.Windows.MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.PackFileNotFound", packFileSystemPath));
                     return null;
                 }
 

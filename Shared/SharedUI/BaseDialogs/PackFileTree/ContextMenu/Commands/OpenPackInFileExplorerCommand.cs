@@ -1,12 +1,13 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using Shared.Core.PackFiles;
+using Shared.Core.Services;
 
 namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
 {
     public class OpenPackInFileExplorerCommand(IPackFileService packFileService) : IContextMenuCommand
     {
-        public string GetDisplayName(TreeNode node) => "Open In File Explorer";
+        public string GetDisplayName(TreeNode node) => LocalizationManager.Instance.Get("ContextMenu.OpenInFileExplorer");
         public bool IsEnabled(TreeNode node) => true;
 
         public void Execute(TreeNode _selectedNode)

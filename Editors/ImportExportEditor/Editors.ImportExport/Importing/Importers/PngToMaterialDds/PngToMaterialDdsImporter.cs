@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Windows;
 using Shared.Core.PackFiles;
+using Shared.Core.Services;
 
 namespace Editors.ImportExport.Importing.Importers.PngToMaterialDds
 {
@@ -24,7 +25,7 @@ namespace Editors.ImportExport.Importing.Importers.PngToMaterialDds
             }
             catch (NullReferenceException exception)
             {
-                MessageBox.Show(exception.Message + importFilePath);
+                MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.ImportFailed", exception.Message, importFilePath));
             }
         }
 

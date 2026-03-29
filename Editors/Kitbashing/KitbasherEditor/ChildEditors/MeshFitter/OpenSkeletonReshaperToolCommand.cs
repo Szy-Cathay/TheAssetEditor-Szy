@@ -5,6 +5,7 @@ using GameWorld.Core.Components.Selection;
 using GameWorld.Core.SceneNodes;
 using GameWorld.Core.Services;
 using Shared.Core.Misc;
+using Shared.Core.Services;
 using Shared.Ui.Common.MenuSystem;
 using Shared.Ui.Editors.BoneMapping;
 
@@ -57,7 +58,7 @@ namespace Editors.KitbasherEditor.ChildEditors.MeshFitter
             if (allSkeltonNames.Count() != 1)
             {
                 var commaList = string.Join(",", allSkeltonNames);
-                MessageBox.Show($"Unexpected number of skeletons - {commaList}. This tool only works for one skeleton");
+                MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.UnexpectedSkeletonCount", commaList));
                 return;
             }
 

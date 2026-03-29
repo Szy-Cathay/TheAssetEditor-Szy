@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Shared.Core.Events;
 using Shared.Core.Events.Global;
+using Shared.Core.Services;
 using Shared.Core.ToolCreation;
 
 namespace AssetEditor.ViewModels
@@ -17,7 +18,7 @@ namespace AssetEditor.ViewModels
         {
             _uiCommandFactory = commandFactory;
             _editor = editorInfo.EditorEnum;
-            DisplayName = editorInfo.ToolbarName;
+            DisplayName = LocalizationManager.Instance.Get(editorInfo.ToolbarName);
             IsEnabled = editorInfo.IsToolbarButtonEnabled;
         }
 

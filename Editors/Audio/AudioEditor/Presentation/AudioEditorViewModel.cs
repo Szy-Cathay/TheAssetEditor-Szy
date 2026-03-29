@@ -13,6 +13,7 @@ using Editors.Audio.AudioEditor.Presentation.Settings;
 using Editors.Audio.AudioEditor.Presentation.WaveformVisualiser;
 using Editors.Audio.Shared.AudioProject.Compiler;
 using Shared.Core.Events;
+using Shared.Core.Services;
 using Shared.Core.ToolCreation;
 
 namespace Editors.Audio.AudioEditor.Presentation
@@ -71,7 +72,7 @@ namespace Editors.Audio.AudioEditor.Presentation
         public SettingsViewModel SettingsViewModel { get; }
         public WaveformVisualiserViewModel WaveformVisualiserViewModel { get; }
 
-        public string DisplayName { get; set; } = "Audio Editor";
+        public string DisplayName { get; set; } = LocalizationManager.Instance.Get("DisplayName.AudioEditor");
 
         private void OnAudioProjectLoaded(AudioProjectLoadedEvent e) => IsAudioProjectLoaded = true;
 

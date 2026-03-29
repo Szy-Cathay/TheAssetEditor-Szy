@@ -15,7 +15,7 @@ namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
         ApplicationSettingsService applicationSettingsService) : IContextMenuCommand
     {
         private readonly ILogger _logger = Logging.Create<SavePackFileContainerCommand>();
-        public string GetDisplayName(TreeNode node) => "Save";
+        public string GetDisplayName(TreeNode node) => LocalizationManager.Instance.Get("ContextMenu.Save");
         public bool IsEnabled(TreeNode node) => true;
 
         public void Execute(TreeNode _selectedNode)
@@ -42,7 +42,7 @@ namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
                 catch (Exception e)
                 {
                     _logger.Here().Error(e, "Exception while saving");
-                    System.Windows.MessageBox.Show("Error saving:\n\n" + e.Message, "Error");
+                    System.Windows.MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.ErrorSavingPack", e.Message), LocalizationManager.Instance.Get("Msg.GeneralError"));
                 }
             }
         }
@@ -52,7 +52,7 @@ namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
             var pack = packFileService.GetEditablePack();
             if (pack == null)
             {
-                standardDialogs.ShowDialogBox("No editable pack selected, cant save", "Error");
+                standardDialogs.ShowDialogBox(LocalizationManager.Instance.Get("Msg.NoEditablePack"), LocalizationManager.Instance.Get("Msg.GeneralError"));
                 return;
             }
 
@@ -78,7 +78,7 @@ namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
                 catch (Exception e)
                 {
                     _logger.Here().Error(e, "Exception while saving");
-                    System.Windows.MessageBox.Show("Error saving:\n\n" + e.Message, "Error");
+                    System.Windows.MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.ErrorSavingPack", e.Message), LocalizationManager.Instance.Get("Msg.GeneralError"));
                 }
             }
         }

@@ -8,6 +8,7 @@
         xmlns:datatemplates="clr-namespace:Shared.Ui.Common.DataTemplates;assembly=Shared.Ui"
         xmlns:behaviors="clr-namespace:Shared.Ui.Common.Behaviors;assembly=Shared.Ui"
         xmlns:common="clr-namespace:Shared.Ui.Common;assembly=Shared.Ui"
+        xmlns:loc="clr-namespace:Shared.Ui.Common;assembly=Shared.Ui"
         xmlns:local="clr-namespace:AssetEditor"
         xmlns:materialIcons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
         xmlns:viewmodels="clr-namespace:AssetEditor.ViewModels"
@@ -120,12 +121,12 @@
 
                                 <Grid.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Close" Command="{Binding Source={StaticResource Proxy}, Path=Data.CloseToolCommand}" CommandParameter="{Binding Source={StaticResource GridProxy}, Path=Data}" />
-                                        <MenuItem Header="Close Multiple">
-                                            <MenuItem Header="Close Other Tabs" Command="{Binding Source={StaticResource Proxy}, Path=Data.CloseOtherToolsCommand}" CommandParameter="{Binding Source={StaticResource GridProxy}, Path=Data}"/>
-                                            <MenuItem Header="Close All Tabs" Command="{Binding Source={StaticResource Proxy}, Path=Data.CloseAllToolsCommand}" CommandParameter="{Binding Source={StaticResource GridProxy}, Path=Data}"/>
-                                            <MenuItem Header="Close Tabs To Left" Command="{Binding Source={StaticResource Proxy}, Path=Data.CloseToolsToLeftCommand}" CommandParameter="{Binding Source={StaticResource GridProxy}, Path=Data}"/>
-                                            <MenuItem Header="Close Tabs To Right" Command="{Binding Source={StaticResource Proxy}, Path=Data.CloseToolsToRightCommand}" CommandParameter="{Binding Source={StaticResource GridProxy}, Path=Data}"/>
+                                        <MenuItem Header="{loc:Loc MainWindow.TabContextMenu.Close}" Command="{Binding Source={StaticResource Proxy}, Path=Data.CloseToolCommand}" CommandParameter="{Binding Source={StaticResource GridProxy}, Path=Data}" />
+                                        <MenuItem Header="{loc:Loc MainWindow.TabContextMenu.CloseMultiple}">
+                                            <MenuItem Header="{loc:Loc MainWindow.TabContextMenu.CloseOtherTabs}" Command="{Binding Source={StaticResource Proxy}, Path=Data.CloseOtherToolsCommand}" CommandParameter="{Binding Source={StaticResource GridProxy}, Path=Data}"/>
+                                            <MenuItem Header="{loc:Loc MainWindow.TabContextMenu.CloseAllTabs}" Command="{Binding Source={StaticResource Proxy}, Path=Data.CloseAllToolsCommand}" CommandParameter="{Binding Source={StaticResource GridProxy}, Path=Data}"/>
+                                            <MenuItem Header="{loc:Loc MainWindow.TabContextMenu.CloseTabsToLeft}" Command="{Binding Source={StaticResource Proxy}, Path=Data.CloseToolsToLeftCommand}" CommandParameter="{Binding Source={StaticResource GridProxy}, Path=Data}"/>
+                                            <MenuItem Header="{loc:Loc MainWindow.TabContextMenu.CloseTabsToRight}" Command="{Binding Source={StaticResource Proxy}, Path=Data.CloseToolsToRightCommand}" CommandParameter="{Binding Source={StaticResource GridProxy}, Path=Data}"/>
                                         </MenuItem>
                                     </ContextMenu>
                                 </Grid.ContextMenu>
@@ -178,7 +179,7 @@
 
             <StatusBarItem Grid.Column="3" Visibility="{Binding IsLoadingPacks, Converter={StaticResource BoolToVisibilityConverter}}">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Loading game packs..." Margin="5, 0, 5, 5" Foreground="#FFAAAAAA"/>
+                    <TextBlock Text="{loc:Loc MainWindow.StatusBar.LoadingGamePacks}" Margin="5, 0, 5, 5" Foreground="#FFAAAAAA"/>
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>

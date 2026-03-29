@@ -87,12 +87,12 @@ namespace Shared.Ui.Editors.TextEditor
 
                 if (_converter.CanSaveOnError())
                 {
-                    if (MessageBox.Show(error.Text + "\n\nThis means that the file might not work!\nSave anyway?", "Error", MessageBoxButton.YesNo) == MessageBoxResult.No)
+                    if (MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.SaveWithErrors", error.Text), LocalizationManager.Instance.Get("Msg.GeneralError"), MessageBoxButton.YesNo) == MessageBoxResult.No)
                         return false;
                 }
                 else
                 {
-                    MessageBox.Show(error.Text, "Error");
+                    MessageBox.Show(error.Text, LocalizationManager.Instance.Get("Msg.GeneralError"));
                     return false;
                 }
             }

@@ -30,17 +30,17 @@ namespace Editors.AnimationVisualEditors
         {
             EditorInfoBuilder
                 .Create<EditorHost<MountAnimationCreatorViewModel>, EditorHostView>(EditorEnums.MountTool_Editor)
-                .AddToToolbar("Mount Tool", false)
+                .AddToToolbar("DisplayName.MountTool", false)
                 .Build(database);
       
             EditorInfoBuilder
               .Create<EditorHost<CampaignAnimationCreatorViewModel>, EditorHostView>(EditorEnums.CampaginAnimation_Editor)
-              .AddToToolbar("Campagin Aanimation Tool", false)
+              .AddToToolbar("DisplayName.CampaignAnimationTool", false)
               .Build(database);
         
             EditorInfoBuilder
               .Create<EditorHost<AnimationKeyframeEditorViewModel>, EditorHostView>(EditorEnums.AnimationKeyFrame_Editor)
-              .AddToToolbar("KeyFrame Tool", false)
+              .AddToToolbar("DisplayName.KeyFrameTool", false)
               .Build(database);
         }
     }

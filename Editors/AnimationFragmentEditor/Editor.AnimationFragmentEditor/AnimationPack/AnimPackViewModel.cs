@@ -72,7 +72,7 @@ namespace CommonControls.Editors.AnimationPack
         {
             if (SelectedItemViewModel != null && SelectedItemViewModel.HasUnsavedChanges())
             {
-                if (MessageBox.Show("Editor has unsaved changes that will be lost.\nContinue?", "", MessageBoxButton.YesNo) == MessageBoxResult.No)
+                if (MessageBox.Show(LocalizationManager.Instance.Get("Msg.UnsavedChangesLost"), "", MessageBoxButton.YesNo) == MessageBoxResult.No)
                     return false;
             }
 
@@ -119,17 +119,17 @@ namespace CommonControls.Editors.AnimationPack
         {
             if (_packFile == null)
             {
-                MessageBox.Show("Can not save in this mode - Open the file normally");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.CannotSaveInThisMode"));
                 return false;
             }
-      
+
             var fileName = AnimationPackItems.SelectedItem.FileName;
             var bytes = _activeConverter.ToBytes(SelectedItemViewModel.Text, fileName, _pfs, out var error);
 
             if (bytes == null || error != null)
             {
                 SelectedItemViewModel.TextEditor.HightLightText(error.ErrorLineNumber, error.ErrorPosition, error.ErrorLength);
-                MessageBox.Show(error.Text, "Error");
+                MessageBox.Show(error.Text, LocalizationManager.Instance.Get("Msg.GeneralError"));
                 return false;
             }
 
@@ -148,13 +148,13 @@ namespace CommonControls.Editors.AnimationPack
         {
             if (_packFile == null)
             {
-                MessageBox.Show("Can not save in this mode - Open the file normally");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.CannotSaveInThisMode"));
                 return false;
             }
 
             if (SelectedItemViewModel != null && SelectedItemViewModel.HasUnsavedChanges())
             {
-                if (MessageBox.Show("Editor has unsaved changes.\nSave anyway?", "", MessageBoxButton.YesNo) == MessageBoxResult.No)
+                if (MessageBox.Show(LocalizationManager.Instance.Get("Msg.SaveAnyway"), "", MessageBoxButton.YesNo) == MessageBoxResult.No)
                     return false;
             }
 

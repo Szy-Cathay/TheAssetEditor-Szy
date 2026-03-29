@@ -5,6 +5,7 @@
 using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
+using Shared.Core.Services;
 using static CommonControls.FilterDialog.FilterUserControl;
 
 namespace CommonControls.FilterDialog
@@ -28,8 +29,7 @@ namespace CommonControls.FilterDialog
         {
             HandleOnItemSelected();
             FilterBox.Visibility = Visibility.Collapsed;
-            BrowseButton.Content = "Browse";
-        }
+            BrowseButton.Content = LocalizationManager.Instance.Get("General.Browse");        }
 
         void HandleOnItemSelected()
         {
@@ -52,7 +52,7 @@ namespace CommonControls.FilterDialog
 
         void ClearSelection()
         {
-            if (MessageBox.Show("Are you sure?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            if (MessageBox.Show(LocalizationManager.Instance.Get("Msg.AreYouSure"), "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 FilterBox.SelectedItem = null;
                 HandleOnItemSelected();
@@ -64,11 +64,10 @@ namespace CommonControls.FilterDialog
             if (FilterBox.Visibility == Visibility.Visible)
             {
                 FilterBox.Visibility = Visibility.Collapsed;
-                BrowseButton.Content = "Browse";
-            }
+                BrowseButton.Content = LocalizationManager.Instance.Get("General.Browse");            }
             else
             {
-                BrowseButton.Content = "Hide";
+                BrowseButton.Content = LocalizationManager.Instance.Get("General.Hide");
                 FilterBox.Visibility = Visibility.Visible;
             }
         }

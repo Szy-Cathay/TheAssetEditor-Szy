@@ -4,6 +4,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using Shared.Core.ErrorHandling.Exceptions;
 using Shared.Core.PackFiles;
+using Shared.Core.Services;
 using Shared.Ui.Editors.TextEditor;
 
 namespace Editors.Shared.Core.Editors.TextEditor
@@ -39,7 +40,7 @@ namespace Editors.Shared.Core.Editors.TextEditor
             }
             catch (Exception e)
             {
-                MessageBox.Show("Unable to open file\n" + e.Message);
+                MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.UnableToOpenFile", e.Message));
                 return "";
             }
         }

@@ -35,7 +35,7 @@ namespace GameWorld.Core.Services.SceneSaving.Material
             {
                 if (_packFileService.GetEditablePack() == null)
                 {
-                    MessageBox.Show("No editable pack selected", "error");
+                    MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoEditablePack"), LocalizationManager.Instance.Get("Msg.GeneralError"));
                     return new WsMaterialResult(false, null, null); 
                 }
                
@@ -50,7 +50,7 @@ namespace GameWorld.Core.Services.SceneSaving.Material
             catch (Exception e)
             {
                 _logger.Here().Error("Error generating ws model - " + e.Message);
-                MessageBox.Show("Generation failed!");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.GenerationFailed"));
                 return new WsMaterialResult(false, null, null);
             }
         }

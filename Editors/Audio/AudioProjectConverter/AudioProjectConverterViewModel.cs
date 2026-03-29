@@ -674,7 +674,7 @@ namespace Editors.Audio.AudioProjectConverter
         [RelayCommand] public void SetSoundbanksInfoXmlPath()
         {
             using var openFileDialog = new OpenFileDialog();
-            openFileDialog.Title = "Select SoundbanksInfo.xml file";
+            openFileDialog.Title = LocalizationManager.Instance.Get("Title.SelectSoundbanksInfo");
             openFileDialog.Filter = "SoundbanksInfo.xml|SoundbanksInfo.xml";
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)

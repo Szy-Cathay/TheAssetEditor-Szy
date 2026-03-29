@@ -9,6 +9,7 @@ using Shared.Core.Misc;
 using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Models;
 using Shared.Core.PackFiles.Utility;
+using Shared.Core.Services;
 using Shared.Core.ToolCreation;
 using Shared.GameFormats.Animation;
 using Shared.Ui.Common;
@@ -26,7 +27,7 @@ namespace CommonControls.Editors.AnimationBatchExporter
         public NotifyAttr<uint> SelectedOutputFormat { get; set; } = new NotifyAttr<uint>(7);
 
 
-        public string DisplayName { get; set; } = "Animation Batch Exporter";
+        public string DisplayName { get; set; } = LocalizationManager.Instance.Get("DisplayName.AnimationBatchExporter");
 
      
 
@@ -49,11 +50,11 @@ namespace CommonControls.Editors.AnimationBatchExporter
             var outputPack = _pfs.GetEditablePack();
             if (outputPack == null)
             {
-                MessageBox.Show("No output packfile selectd. Please set Editable pack before running the converter", "Error");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.NoNameProvided"), LocalizationManager.Instance.Get("Msg.GeneralError"));
                 return;
             }
 
-            if (MessageBox.Show("The converter will preplace any file with overlapping names in the output folder. Are you sure?", "", MessageBoxButton.YesNo) == MessageBoxResult.No)
+            if (MessageBox.Show(LocalizationManager.Instance.Get("Msg.AreYouSure"), "", MessageBoxButton.YesNo) == MessageBoxResult.No)
                 return;
 
             var errorList = new ErrorList();

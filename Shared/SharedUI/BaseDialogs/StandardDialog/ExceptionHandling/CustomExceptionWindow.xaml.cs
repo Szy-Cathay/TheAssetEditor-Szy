@@ -78,7 +78,7 @@ namespace Shared.Ui.Common.Exceptions
             };
             var text = JsonSerializer.Serialize(_extendedExceptionInformation, options);
             Clipboard.SetText(text);
-            System.Windows.MessageBox.Show("Error message copied to clipboard!");
+            System.Windows.MessageBox.Show(LocalizationManager.Instance.Get("Msg.ErrorCopiedToClipboard"));
         }
 
         private void CloseButtonPressed(object sender, RoutedEventArgs e) => Close();

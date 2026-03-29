@@ -57,8 +57,8 @@ namespace AssetEditor.ViewModels
 
             ToolsFactory = toolFactory;
 
-            ApplicationTitle = $"AssetEditor v{VersionChecker.GetCurrentVersion()}";
-            CurrentGame = $"Current Game: {GameInformationDatabase.GetGameById(applicationSettingsService.CurrentSettings.CurrentGame).DisplayName}";
+            ApplicationTitle = LocalizationManager.Instance.GetFormat("Title.AppTitle", VersionChecker.GetCurrentVersion());
+            CurrentGame = LocalizationManager.Instance.GetFormat("Title.CurrentGame", GameInformationDatabase.GetGameById(applicationSettingsService.CurrentSettings.CurrentGame).DisplayName);
         }
 
         void OpenFile(PackFile file) => _uiCommandFactory.Create<OpenEditorCommand>().Execute(file);
@@ -73,8 +73,8 @@ namespace AssetEditor.ViewModels
             }
 
             IsClosingWithoutPrompt = MessageBox.Show(
-                "You have unsaved changes. Do you want to quit without saving?",
-                "Quit Without Saving",
+                LocalizationManager.Instance.Get("Msg.UnsavedChangesOnQuit"),
+                LocalizationManager.Instance.Get("Msg.UnsavedChangesOnQuitTitle"),
                 MessageBoxButton.YesNo) == MessageBoxResult.Yes;
         }
 
@@ -90,7 +90,7 @@ namespace AssetEditor.ViewModels
 
         private void SetStatusBarEditablePackFile(PackFileContainerSetAsMainEditableEvent e)
         {
-            EditablePackFile = e.Container != null ? $"Editable Pack: {e.Container.Name}" : "Editable Pack: None Set";
+            EditablePackFile = e.Container != null ? LocalizationManager.Instance.GetFormat("Title.EditablePack", e.Container.Name) : LocalizationManager.Instance.Get("Title.EditablePackNone");
         }
     }
 }

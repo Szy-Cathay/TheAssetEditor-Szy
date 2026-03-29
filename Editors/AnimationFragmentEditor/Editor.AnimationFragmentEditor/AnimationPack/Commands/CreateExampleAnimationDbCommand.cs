@@ -42,7 +42,7 @@ namespace Editors.AnimationFragmentEditor.AnimationPack.Commands
 
             if (!SaveUtility.IsFilenameUnique(_pfs, filePath))
             {
-                MessageBox.Show("Filename is not unique");
+                MessageBox.Show(LocalizationManager.Instance.Get("Msg.FilenameNotUnique"));
                 return null;
             }
 
@@ -59,7 +59,7 @@ namespace Editors.AnimationFragmentEditor.AnimationPack.Commands
                 var filePath = @"animations/database/battle/bin/" + fileName;
                 if (!SaveUtility.IsFilenameUnique(_pfs, filePath))
                 {
-                    MessageBox.Show("Filename is not unique");
+                    MessageBox.Show(LocalizationManager.Instance.Get("Msg.FilenameNotUnique"));
                     return;
                 }
 

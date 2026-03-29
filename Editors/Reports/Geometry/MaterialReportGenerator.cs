@@ -4,6 +4,7 @@ using Shared.Core.Events;
 using Shared.Core.Misc;
 using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Utility;
+using Shared.Core.Services;
 using Shared.GameFormats.WsModel;
 
 namespace Editors.Reports.Geometry
@@ -139,7 +140,7 @@ namespace Editors.Reports.Geometry
             }
 
             File.WriteAllText(dirPath + "\\Summary.csv", summarySb.ToString());
-            MessageBox.Show("Report completed");
+            MessageBox.Show(LocalizationManager.Instance.Get("Msg.ReportCompleted"));
 
         }
     }

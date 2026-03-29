@@ -31,7 +31,7 @@ namespace Editors.AnimatioReTarget
         {
             EditorInfoBuilder
               .Create<AnimationRetargetEditor, EditorHostView>(EditorEnums.AnimationRetarget_Editor)
-              .AddToToolbar("Animation ReTarget Tool", true)
+              .AddToToolbar("DisplayName.AnimationTransferTool", true)
               .Build(database);
         }
     }

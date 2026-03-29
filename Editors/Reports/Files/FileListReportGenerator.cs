@@ -9,6 +9,7 @@ using Shared.Core.Events;
 using Shared.Core.Misc;
 using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Models;
+using Shared.Core.Services;
 using Shared.Core.Settings;
 
 namespace Editors.Reports.Files
@@ -80,7 +81,7 @@ namespace Editors.Reports.Files
                 }
             }
 
-            MessageBox.Show($"Done - Created at {outputFilePath}");
+            MessageBox.Show(LocalizationManager.Instance.GetFormat("Msg.ReportCreated", outputFilePath));
             Process.Start("explorer.exe", outputFilePath);
             return outputFilePath;
         }

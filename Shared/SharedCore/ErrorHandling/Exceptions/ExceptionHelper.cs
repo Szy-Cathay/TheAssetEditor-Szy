@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Windows;
+using Shared.Core.Services;
 
 namespace Shared.Core.ErrorHandling.Exceptions
 {
@@ -8,7 +9,7 @@ namespace Shared.Core.ErrorHandling.Exceptions
         public static void ShowErrorBox(Exception e)
         {
             var errorStr = GetErrorString(e);
-            MessageBox.Show(errorStr, "Error");
+            MessageBox.Show(errorStr, LocalizationManager.Instance.Get("Msg.GeneralError"));
         }
 
         public static string GetErrorString(Exception e, string seperator = "\n")

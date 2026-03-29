@@ -27,7 +27,7 @@ namespace AnimationEditor.CampaignAnimationCreator
         private readonly IFileSaveService _packFileSaveService;
 
         public FilterCollection<SkeletonBoneNode> ModelBoneList { get; set; } = new FilterCollection<SkeletonBoneNode>(null);
-        public string EditorName => "Campaign Animation Creator";
+        public string EditorName => LocalizationManager.Instance.Get("DisplayName.CampaignAnimationTool");
 
         public CampaignAnimationCreatorViewModel(
             SceneObjectEditor assetViewModelEditor, 

@@ -2,19 +2,20 @@
 using System.Windows.Forms;
 using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Models;
+using Shared.Core.Services;
 
 namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
 {
     public class ImportFileCommand(IPackFileService packFileService) : IContextMenuCommand
     {
-        public string GetDisplayName(TreeNode node) => "Import File";
+        public string GetDisplayName(TreeNode node) => LocalizationManager.Instance.Get("ContextMenu.ImportFile");
         public bool IsEnabled(TreeNode node) => true;
 
         public void Execute(TreeNode _selectedNode)
         {
             if (_selectedNode.FileOwner.IsCaPackFile)
             {
-                System.Windows.MessageBox.Show("Unable to edit CA packfile");
+                System.Windows.MessageBox.Show(LocalizationManager.Instance.Get("Msg.UnableToEditPackfile"));
                 return;
             }
 

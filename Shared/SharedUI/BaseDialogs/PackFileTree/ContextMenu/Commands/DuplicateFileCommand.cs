@@ -1,12 +1,13 @@
 ﻿using System.IO;
 using Shared.Core.PackFiles;
 using Shared.Core.PackFiles.Models;
+using Shared.Core.Services;
 
 namespace Shared.Ui.BaseDialogs.PackFileTree.ContextMenu.Commands
 {
     public class DuplicateFileCommand(IPackFileService packFileService) : IContextMenuCommand
     {
-        public string GetDisplayName(TreeNode node) => "Duplicate";
+        public string GetDisplayName(TreeNode node) => LocalizationManager.Instance.Get("ContextMenu.Duplicate");
         public bool IsEnabled(TreeNode node) => true;
 
         public void Execute(TreeNode _selectedNode) => Execute(_selectedNode.Item);
