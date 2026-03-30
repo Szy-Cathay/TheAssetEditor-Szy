@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Editors.AnimationMeta.MetaEditor.Commands;
 using Shared.Core.Events;
 using Shared.Core.PackFiles.Models;
+using Shared.Core.Services;
 using Shared.Core.ToolCreation;
 using Shared.GameFormats.AnimationMeta.Parsing;
 
@@ -106,12 +107,12 @@ namespace Editors.AnimationMeta.Presentation
             {
                 if (metadataEntry is ParsedUnknownMetadataAttribute uknMeta)
                 {
-                    var desc = _metaDataFileParser.GetDatabase().GetDescriptionSafe(uknMeta.DisplayName);
+                    var desc = LocalizeTagDescription(uknMeta.Name, _metaDataFileParser.GetDatabase().GetDescriptionSafe(uknMeta.Name));
                     Tags.Add(new MetaDataEntry(uknMeta, desc, _eventHub, false));
                 }
                 else if (metadataEntry is ParsedMetadataAttribute parsedKnownAttribute)
                 {
-                    var desc = _metaDataFileParser.GetDatabase().GetDescriptionSafe(parsedKnownAttribute.DisplayName);
+                    var desc = LocalizeTagDescription(parsedKnownAttribute.Name, _metaDataFileParser.GetDatabase().GetDescriptionSafe(parsedKnownAttribute.Name));
                     Tags.Add(new MetaDataEntry(parsedKnownAttribute, desc, _eventHub, true));
                 }
                 else
@@ -126,6 +127,22 @@ namespace Editors.AnimationMeta.Presentation
         [RelayCommand] void PasteAction() => _uiCommandFactory.Create<CopyPastCommand>().ExecutePaste(this);
         [RelayCommand] void CopyAction() => _uiCommandFactory.Create<CopyPastCommand>().ExecuteCopy(this);
         [RelayCommand] void SaveAction() => _uiCommandFactory.Create<SaveCommand>().Execute(this);
+
+        static string LocalizeTagDescription(string tagName, string fallbackDescription)
+        {
+            try
+            {
+                if (LocalizationManager.Instance != null)
+                {
+                    var localized = LocalizationManager.Instance.Get($"MetaData.TagDesc.{tagName}");
+                    if (localized != $"MetaData.TagDesc.{tagName}")
+                        return localized;
+                }
+            }
+            catch { }
+
+            return fallbackDescription;
+        }
     }
 }
 
