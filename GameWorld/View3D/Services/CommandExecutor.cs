@@ -31,7 +31,10 @@ namespace GameWorld.Core.Services
         {
             if (command == null)
                 throw new ArgumentNullException("Command is null");
-            if (isUndoable)
+
+            // Only push mutation commands to the undo stack.
+            // Selection and mode-switch commands (IsMutation=false) are transient UI state.
+            if (isUndoable && command.IsMutation)
                 _commands.Push(command);
 
             _logger.Here().Information($"Executing {command.GetType().Name}");

@@ -112,7 +112,7 @@ namespace GameWorld.Core.WpfWindow.Input
             var pos = e.GetPosition(_focusElement);
             if (_focusElement.IsMouseDirectlyOver && System.Windows.Input.Keyboard.FocusedElement != _focusElement)
             {
-                if (e.LeftButton == MouseButtonState.Pressed)
+                if (e.LeftButton == MouseButtonState.Pressed || e.MiddleButton == MouseButtonState.Pressed)
                 {
                     var res = LogicalTreeHelperEx.FindParent<Grid>(_focusElement);
                     if (res != null)
@@ -161,7 +161,7 @@ namespace GameWorld.Core.WpfWindow.Input
 
             if (!_focusElement.IsMouseCaptured)
             {
-                if (e.LeftButton == MouseButtonState.Pressed)
+                if (e.LeftButton == MouseButtonState.Pressed || e.MiddleButton == MouseButtonState.Pressed)
                 {
                     _focusElement.CaptureMouse();
                 }

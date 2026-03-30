@@ -20,6 +20,8 @@ namespace AssetEditor.ViewModels
         public ObservableCollection<string> AvailableLangauges { get; set; } = [];
         public ObservableCollection<ThemeType> AvailableThemes { get; set; } = [];
         public ObservableCollection<BackgroundColour> RenderEngineBackgroundColours { get; set; } = [];
+        public ObservableCollection<AppFontFamily> AvailableFonts { get; set; } = [];
+        public ObservableCollection<string> AvailableFontWeights { get; set; } = [];
         public ObservableCollection<GameTypeEnum> Games { get; set; } = [];
         public ObservableCollection<GamePathItem> GameDirectores { get; set; } = [];
 
@@ -31,6 +33,31 @@ namespace AssetEditor.ViewModels
         }
 
         [ObservableProperty] private BackgroundColour _currentRenderEngineBackgroundColour;
+        partial void OnCurrentRenderEngineBackgroundColourChanged(BackgroundColour value)
+        {
+            IsCustomBackgroundVisible = value == BackgroundColour.Custom;
+        }
+        [ObservableProperty] private bool _isCustomBackgroundVisible;
+        [ObservableProperty] private string _customBackgroundR;
+        [ObservableProperty] private string _customBackgroundG;
+        [ObservableProperty] private string _customBackgroundB;
+        [ObservableProperty] private AppFontFamily _selectedFont;
+        partial void OnSelectedFontChanged(AppFontFamily value)
+        {
+            // Update available weights for the new font
+            var weights = FontSettingsHelper.GetAvailableWeights(value);
+            AvailableFontWeights.Clear();
+            foreach (var w in weights)
+                AvailableFontWeights.Add(w);
+
+            // Select default weight if current is not available
+            if (weights.Length > 0 && !weights.Contains(_selectedFontWeight))
+                SelectedFontWeight = FontSettingsHelper.GetDefaultWeight(value);
+            else if (weights.Length == 0)
+                SelectedFontWeight = null;
+        }
+
+        [ObservableProperty] private string _selectedFontWeight;
         [ObservableProperty] private int _visualEditorsGridSize;
         [ObservableProperty] private bool _startMaximised;
         [ObservableProperty] private GameTypeEnum _currentGame;
@@ -51,7 +78,25 @@ namespace AssetEditor.ViewModels
             CurrentTheme = _settingsService.CurrentSettings.Theme;
             RenderEngineBackgroundColours = new ObservableCollection<BackgroundColour>((BackgroundColour[])Enum.GetValues(typeof(BackgroundColour)));
             CurrentRenderEngineBackgroundColour = _settingsService.CurrentSettings.RenderEngineBackgroundColour;
+
+            // Custom background colour (R,G,B string)
+            var customRgb = _settingsService.CurrentSettings.CustomBackgroundColour ?? "50,50,50";
+            var rgbParts = customRgb.Split(',');
+            CustomBackgroundR = rgbParts.Length > 0 ? rgbParts[0].Trim() : "50";
+            CustomBackgroundG = rgbParts.Length > 1 ? rgbParts[1].Trim() : "50";
+            CustomBackgroundB = rgbParts.Length > 2 ? rgbParts[2].Trim() : "50";
+            IsCustomBackgroundVisible = CurrentRenderEngineBackgroundColour == BackgroundColour.Custom;
+
             VisualEditorsGridSize = _settingsService.CurrentSettings.VisualEditorsGridSize;
+
+            // Font settings
+            AvailableFonts = new ObservableCollection<AppFontFamily>((AppFontFamily[])Enum.GetValues(typeof(AppFontFamily)));
+            SelectedFont = _settingsService.CurrentSettings.AppFont;
+            AvailableFontWeights = new ObservableCollection<string>(FontSettingsHelper.GetAvailableWeights(SelectedFont));
+            SelectedFontWeight = _settingsService.CurrentSettings.AppFontWeight;
+            // Ensure weight is valid for the selected font
+            if (!AvailableFontWeights.Contains(SelectedFontWeight) && AvailableFontWeights.Count > 0)
+                SelectedFontWeight = FontSettingsHelper.GetDefaultWeight(SelectedFont);
 
             StartMaximised = _settingsService.CurrentSettings.StartMaximised;
             Games = new ObservableCollection<GameTypeEnum>(GameInformationDatabase.Games.Values.OrderBy(game => game.DisplayName).Select(game => game.Type));
@@ -85,11 +130,14 @@ namespace AssetEditor.ViewModels
             _settingsService.CurrentSettings.ShowCAWemFiles = ShowCAWemFiles;
             _settingsService.CurrentSettings.SelectedLangauge = SelectedLanguage;
             _settingsService.CurrentSettings.OnlyLoadLod0ForReferenceMeshes = OnlyLoadLod0ForReferenceMeshes;
+            _settingsService.CurrentSettings.AppFont = SelectedFont;
+            _settingsService.CurrentSettings.AppFontWeight = SelectedFontWeight;
+            _settingsService.CurrentSettings.CustomBackgroundColour = $"{CustomBackgroundR},{CustomBackgroundG},{CustomBackgroundB}";
             _settingsService.CurrentSettings.GameDirectories.Clear();
             foreach (var item in GameDirectores)
                 _settingsService.CurrentSettings.GameDirectories.Add(new ApplicationSettings.GamePathPair() { Game = item.GameType, Path = item.Path });
             _settingsService.CurrentSettings.WwisePath = WwisePath;
-           
+
             _localizationManager.LoadLanguage(SelectedLanguage);
             _settingsService.Save();
             MessageBox.Show(LocalizationManager.Instance.Get("Msg.RestartAfterSettings"));

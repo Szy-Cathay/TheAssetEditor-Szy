@@ -6,7 +6,7 @@
         xmlns:packfiletree="clr-namespace:Shared.Ui.BaseDialogs.PackFileTree"
         xmlns:loc="clr-namespace:Shared.Ui.Common"
         mc:Ignorable="d"
-        Title="{loc:Loc Shared.SavePackFile.Title}" Height="450" Width="800" Background="#FF1C1C1C">
+        Title="{loc:Loc Shared.SavePackFile.Title}" Height="450" Width="800" FontFamily="{DynamicResource AppFontFamily}" Background="{DynamicResource WindowBackground}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>

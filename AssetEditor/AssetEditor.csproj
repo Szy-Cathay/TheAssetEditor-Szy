@@ -62,6 +62,7 @@
 
     <ItemGroup>
       <Resource Include="AssetEditorIcon.png" />
+      <Resource Include="Fonts\*.ttf" />
     </ItemGroup>
 
     <ItemGroup>

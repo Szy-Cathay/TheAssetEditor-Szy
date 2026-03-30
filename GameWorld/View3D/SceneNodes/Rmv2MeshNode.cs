@@ -21,7 +21,20 @@ namespace GameWorld.Core.SceneNodes
         private Vector3 _scale = Vector3.One;
 
         public IRmvMaterial RmvMaterial { get; set; }
-        public MeshObject Geometry { get; set; }
+
+        private MeshObject _geometry;
+        public MeshObject Geometry
+        {
+            get => _geometry;
+            set
+            {
+                if (_geometry != value)
+                {
+                    _geometry = value;
+                    _pooledRenderItem = null; // Invalidate pooled render item so next frame rebuilds with new geometry
+                }
+            }
+        }
         public RmvCommonHeader CommonHeader { get; set; }
 
  

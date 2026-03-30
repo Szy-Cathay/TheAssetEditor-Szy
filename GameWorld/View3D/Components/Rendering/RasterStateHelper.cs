@@ -42,6 +42,15 @@ namespace GameWorld.Core.Components.Rendering
                 DepthClipEnable = true,
                 MultiSampleAntiAlias = true
             };
+
+            renderState[RasterizerStateEnum.Outline] = new RasterizerState
+            {
+                FillMode = FillMode.Solid,
+                CullMode = CullMode.CullClockwiseFace,
+                DepthBias = bias,
+                DepthClipEnable = true,
+                MultiSampleAntiAlias = true
+            };
         }
     }
 }

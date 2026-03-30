@@ -5,6 +5,7 @@ namespace GameWorld.Core.Components.Rendering
 {
     public enum RenderBuckedId
     {
+        Outline,
         Normal,
         Wireframe,
         Selection,
@@ -22,6 +23,7 @@ namespace GameWorld.Core.Components.Rendering
         Normal,
         Wireframe,
         SelectedFaces,
+        Outline,
     }
 
     public interface IRenderItem

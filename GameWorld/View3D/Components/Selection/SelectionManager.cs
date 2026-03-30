@@ -23,6 +23,7 @@ namespace GameWorld.Core.Components.Selection
         private readonly RenderEngineComponent _renderEngine;
         BasicShader _wireframeEffect;
         BasicShader _selectedFacesEffect;
+        BasicShader _outlineEffect;
 
         VertexInstanceMesh _vertexRenderer;
         float _vertexSelectionFalloff = 0;
@@ -44,12 +45,15 @@ namespace GameWorld.Core.Components.Selection
             _vertexRenderer = new VertexInstanceMesh(_deviceResolverComponent, _resourceLib);
 
             _wireframeEffect = new BasicShader(_deviceResolverComponent.Device);
-            _wireframeEffect.DiffuseColour = Vector3.Zero;
+            _wireframeEffect.DiffuseColour = new Vector3(1.0f, 0.5f, 0.0f); // Orange wireframe/outline
 
             _selectedFacesEffect = new BasicShader(_deviceResolverComponent.Device);
             _selectedFacesEffect.DiffuseColour = new Vector3(1, 0, 0);
             _selectedFacesEffect.SpecularColour = new Vector3(1, 0, 0);
             _selectedFacesEffect.EnableDefaultLighting();
+
+            _outlineEffect = new BasicShader(_deviceResolverComponent.Device);
+            _outlineEffect.DiffuseColour = new Vector3(1.0f, 1.0f, 1.0f); // White for selection mask
 
             base.Initialize();
         }
@@ -121,7 +125,10 @@ namespace GameWorld.Core.Components.Selection
                 foreach (var item in objectSelectionState.CurrentSelection())
                 {
                     if (item is Rmv2MeshNode mesh)
-                        _renderEngine.AddRenderLines(LineHelper.AddBoundingBox(item.Geometry.BoundingBox, Color.Black, mesh.PivotPoint));
+                    {
+                        // Render selected mesh to outline mask (white, screen-space outline post-process handles the rest)
+                        _renderEngine.AddRenderItem(RenderBuckedId.Outline, new GeometryRenderItem(mesh.Geometry, _outlineEffect, mesh.RenderMatrix));
+                    }
                 }
             }
 
@@ -182,6 +189,12 @@ namespace GameWorld.Core.Components.Selection
             {
                 _selectedFacesEffect.Dispose();
                 _selectedFacesEffect = null;
+            }
+
+            if (_outlineEffect != null)
+            {
+                _outlineEffect.Dispose();
+                _outlineEffect = null;
             }
 
             if (_vertexRenderer != null)

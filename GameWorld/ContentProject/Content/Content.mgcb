@@ -62,6 +62,12 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/TexturePreview.fx
 
+#begin Shaders/OutlinePostProcess.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/OutlinePostProcess.fx
+
 #begin Textures/Phazer/Brdf_rgba32f_raw.DDS
 /importer:TextureImporter
 /processor:PassThroughProcessor

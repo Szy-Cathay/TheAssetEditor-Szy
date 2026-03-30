@@ -21,6 +21,7 @@
         Height="1080"
         ResizeMode="CanResize"
         Title="{Binding ApplicationTitle, UpdateSourceTrigger=PropertyChanged}"
+        FontFamily="{DynamicResource AppFontFamily}"
         Background="{DynamicResource WindowBackground}">
 
     <Window.Resources>

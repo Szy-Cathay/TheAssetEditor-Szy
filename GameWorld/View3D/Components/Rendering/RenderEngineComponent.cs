@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using CommunityToolkit.Diagnostics;
 using GameWorld.Core.Components.Selection;
 using GameWorld.Core.Rendering;
@@ -32,10 +32,13 @@ namespace GameWorld.Core.Components.Rendering
         bool _drawGlow = true;
 
         private BloomFilter _bloomFilter;
+        private OutlineFilter _outlineFilter;
+        private QuadRenderer _quadRenderer;
         Texture2D _whiteTexture;
 
         RenderTarget2D _defaultRenderTarget;
         RenderTarget2D _glowRenderTarget;
+        RenderTarget2D _selectionMaskTarget;
 
         public SpriteBatch CommonSpriteBatch { get; private set; }
         public SpriteFont DefaultFont { get; private set; }
@@ -45,7 +48,11 @@ namespace GameWorld.Core.Components.Rendering
             UpdateOrder = (int)ComponentUpdateOrderEnum.RenderEngine;
             DrawOrder = (int)ComponentDrawOrderEnum.RenderEngine;
 
-            _backgroundColour = ApplicationSettingsHelper.GetEnumAsColour(applicationSettingsService.CurrentSettings.RenderEngineBackgroundColour);
+            var settings = applicationSettingsService.CurrentSettings;
+            if (settings.RenderEngineBackgroundColour == BackgroundColour.Custom)
+                _backgroundColour = ApplicationSettingsHelper.ParseCustomBackgroundColour(settings.CustomBackgroundColour);
+            else
+                _backgroundColour = ApplicationSettingsHelper.GetEnumAsColour(settings.RenderEngineBackgroundColour);
             _wpfGame = wpfGame;
             _resourceLibrary = resourceLibrary;
             _camera = camera;
@@ -76,9 +83,14 @@ namespace GameWorld.Core.Components.Rendering
 
             var device = _deviceResolverComponent.Device;
 
+            _quadRenderer = new QuadRenderer(device);
+
             _bloomFilter = new BloomFilter();
             _bloomFilter.Load(device, _resourceLibrary, device.Viewport.Width, device.Viewport.Height);
             _bloomFilter.BloomPreset = BloomFilter.BloomPresets.SuperWide;
+
+            _outlineFilter = new OutlineFilter();
+            _outlineFilter.Load(device, _resourceLibrary, _quadRenderer);
 
             _whiteTexture = new Texture2D(_deviceResolverComponent.Device, 1, 1);
             _whiteTexture.SetData(new[] { Color.White });
@@ -157,10 +169,36 @@ namespace GameWorld.Core.Components.Rendering
                 Render3DObjects(commonShaderParameters, RenderingTechnique.Emissive);
             }
 
-            device.SetRenderTarget(backBufferRenderTarget);
-            spriteBatch.Begin();
-            spriteBatch.Draw(_defaultRenderTarget, new Rectangle(0, 0, screenWidth, screenHeight), Color.White);
-            spriteBatch.End();
+            // Screen-space selection outline
+            var outlineItems = _renderItems[RenderBuckedId.Outline];
+            if (outlineItems.Count > 0)
+            {
+                RenderSelectionMask(device, commonShaderParameters, screenWidth, screenHeight);
+                _outlineFilter.Draw(_selectionMaskTarget, screenWidth, screenHeight);
+
+                // Composite scene
+                device.SetRenderTarget(backBufferRenderTarget);
+                spriteBatch.Begin();
+                spriteBatch.Draw(_defaultRenderTarget, new Rectangle(0, 0, screenWidth, screenHeight), Color.White);
+                spriteBatch.End();
+
+                // Draw outline on top
+                var outlineTarget = _outlineFilter.GetOutlineTarget();
+                if (outlineTarget != null)
+                {
+                    spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+                    spriteBatch.Draw(outlineTarget, new Rectangle(0, 0, screenWidth, screenHeight), Color.White);
+                    spriteBatch.End();
+                }
+            }
+            else
+            {
+                // No outline - just composite scene
+                device.SetRenderTarget(backBufferRenderTarget);
+                spriteBatch.Begin();
+                spriteBatch.Draw(_defaultRenderTarget, new Rectangle(0, 0, screenWidth, screenHeight), Color.White);
+                spriteBatch.End();
+            }
 
             if (_drawGlow && hasEmissiveItems)
             {
@@ -225,6 +263,24 @@ namespace GameWorld.Core.Components.Rendering
                 item.Draw(device, commonShaderParameters, renderingTechnique);
         }
 
+        void RenderSelectionMask(GraphicsDevice device, CommonShaderParameters commonShaderParameters, int screenWidth, int screenHeight)
+        {
+            // Ensure mask target matches screen size
+            if (_selectionMaskTarget == null || _selectionMaskTarget.Width != screenWidth || _selectionMaskTarget.Height != screenHeight)
+            {
+                _selectionMaskTarget?.Dispose();
+                _selectionMaskTarget = new RenderTarget2D(device, screenWidth, screenHeight, false, SurfaceFormat.Color, DepthFormat.Depth24);
+            }
+
+            device.SetRenderTarget(_selectionMaskTarget);
+            device.Clear(Color.Transparent);
+            device.DepthStencilState = DepthStencilState.Default;
+            device.RasterizerState = _rasterStates[RasterizerStateEnum.Normal];
+
+            foreach (var item in _renderItems[RenderBuckedId.Outline])
+                item.Draw(device, commonShaderParameters, RenderingTechnique.Normal);
+        }
+
         public void Dispose()
         {
             _eventHub.UnRegister(this);
@@ -233,8 +289,11 @@ namespace GameWorld.Core.Components.Rendering
             CommonSpriteBatch = null;
 
             _bloomFilter.Dispose();
+            _outlineFilter.Dispose();
             _defaultRenderTarget.Dispose();
             _glowRenderTarget.Dispose();
+            _selectionMaskTarget?.Dispose();
+            _selectionMaskTarget = null;
             _whiteTexture.Dispose();
 
             _renderLines.Clear();

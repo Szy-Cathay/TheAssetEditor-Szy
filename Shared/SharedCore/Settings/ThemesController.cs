@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Media;
+using Shared.Core.Services;
 
 namespace Shared.Core.Settings
 {
@@ -90,6 +91,9 @@ namespace Shared.Core.Settings
             ControlColours = new ResourceDictionary() { Source = new Uri("Themes/ControlColours.xaml", UriKind.Relative) };
             RefreshControls();
 
+            // Re-apply custom font since ControlColours.xaml was recreated
+            ReApplyCustomFont();
+
             // Notify external theme system (WPF-UI)
             ExternalThemeApplier?.Invoke(theme);
         }
@@ -106,20 +110,34 @@ namespace Shared.Core.Settings
 
         public static string GetEnumAsString(ThemeType theme)
         {
-            return theme switch
+            var key = "Theme." + theme;
+            if (LocalizationManager.Instance != null)
+                return LocalizationManager.Instance.Get(key);
+            return theme.ToString();
+        }
+
+        /// <summary>
+        /// Apply a custom font to the AppFontFamily resource.
+        /// Call after SetTheme() and on startup to persist font across theme switches.
+        /// </summary>
+        public static string CurrentFontUri { get; private set; }
+
+        public static void ApplyCustomFont(string fontPackUri)
+        {
+            CurrentFontUri = fontPackUri;
+            var colours = FindDictionary("ControlColours.xaml");
+            if (colours != null && !string.IsNullOrEmpty(fontPackUri))
+                colours["AppFontFamily"] = new FontFamily(fontPackUri);
+        }
+
+        internal static void ReApplyCustomFont()
+        {
+            if (!string.IsNullOrEmpty(CurrentFontUri))
             {
-                ThemeType.DarkTheme => "Dark",
-                ThemeType.LightTheme => "Light",
-                ThemeType.ChromeDark => "Chrome Dark",
-                ThemeType.VSCodeDark => "VS Code Dark",
-                ThemeType.HighContrastDark => "High Contrast Dark",
-                ThemeType.WarmDark => "Warm Dark",
-                ThemeType.CoolDark => "Cool Dark",
-                ThemeType.ChromeLight => "Chrome Light",
-                ThemeType.VSCodeLight => "VS Code Light",
-                ThemeType.HighContrastLight => "High Contrast Light",
-                _ => theme.ToString()
-            };
+                var colours = FindDictionary("ControlColours.xaml");
+                if (colours != null)
+                    colours["AppFontFamily"] = new FontFamily(CurrentFontUri);
+            }
         }
     }
 }

@@ -19,8 +19,12 @@
         </ObjectDataProvider>
 
         <local:SettingsEnumConverter x:Key="SettingsEnumConverter"/>
+        <local:FontWeightNameConverter x:Key="FontWeightNameConverter"/>
         <DataTemplate x:Key="SettingsEnumConverterTemplate">
             <TextBlock Text="{Binding Converter={StaticResource SettingsEnumConverter}}"/>
+        </DataTemplate>
+        <DataTemplate x:Key="FontWeightTemplate">
+            <TextBlock Text="{Binding Converter={StaticResource FontWeightNameConverter}}"/>
         </DataTemplate>
     </UserControl.Resources>
 
@@ -51,31 +55,41 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Text="{loc:Loc SettingsWindow.Application}" Margin="5, 10, 0, 0" FontSize="15"/>
             <Separator Grid.Row="1" Grid.ColumnSpan="3" Height="1" Margin="5, 5, 10, 10"/>
 
             <TextBlock Grid.Row="2" Text="{loc:Loc SettingsWindow.SelectedLanguage}" Margin="5, 0, 0, 0"/>
-            <ComboBox Grid.Row="2" Grid.Column="1" Margin="0, 0, 0, 5" SelectedItem="{Binding SelectedLanguage, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                      ItemsSource="{Binding AvailableLangauges}"/>
+            <ComboBox Grid.Row="2" Grid.Column="1" Margin="0, 0, 0, 5" SelectedItem="{Binding SelectedLanguage, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                      ItemsSource="{Binding AvailableLangauges}" ItemTemplate="{StaticResource SettingsEnumConverterTemplate}"/>
 
             <TextBlock Grid.Row="3" Text="{loc:Loc SettingsWindow.Theme}" Margin="5, 0, 0, 0"/>
-            <ComboBox Grid.Row="3" Grid.Column="1" Margin="0, 0, 0, 5" SelectedItem="{Binding CurrentTheme, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+            <ComboBox Grid.Row="3" Grid.Column="1" Margin="0, 0, 0, 5" SelectedItem="{Binding CurrentTheme, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                       ItemsSource="{Binding AvailableThemes}" ItemTemplate="{StaticResource SettingsEnumConverterTemplate}"/>
 
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:Loc SettingsWindow.StartMaximised}" Margin="5, 0, 0, 0"/>
-            <CheckBox Grid.Row="4" Grid.Column="1" Margin="-1, 0, 0, 5" IsChecked="{Binding StartMaximised, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+            <TextBlock Grid.Row="4" Text="{loc:Loc SettingsWindow.Font}" Margin="5, 0, 0, 0"/>
+            <ComboBox Grid.Row="4" Grid.Column="1" Margin="0, 0, 0, 5" SelectedItem="{Binding SelectedFont, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                      ItemsSource="{Binding AvailableFonts}" ItemTemplate="{StaticResource SettingsEnumConverterTemplate}"/>
 
-            <TextBlock Grid.Row="5" Grid.Column="0"  Text="{loc:Loc SettingsWindow.SelectedGame}" Margin="5, 0, 0, 0"/>
-            <ComboBox Grid.Row="5" Grid.Column="1" Width="150" Margin="0, 0, 0, 5" SelectedItem="{Binding CurrentGame, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+            <TextBlock Grid.Row="5" Text="{loc:Loc SettingsWindow.FontWeight}" Margin="5, 0, 0, 0"/>
+            <ComboBox Grid.Row="5" Grid.Column="1" Margin="0, 0, 0, 5" SelectedItem="{Binding SelectedFontWeight, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                      ItemsSource="{Binding AvailableFontWeights}" ItemTemplate="{StaticResource FontWeightTemplate}"/>
+
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="{loc:Loc SettingsWindow.StartMaximised}" Margin="5, 0, 0, 0"/>
+            <CheckBox Grid.Row="6" Grid.Column="1" Margin="-1, 0, 0, 5" IsChecked="{Binding StartMaximised, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="7" Grid.Column="0"  Text="{loc:Loc SettingsWindow.SelectedGame}" Margin="5, 0, 0, 0"/>
+            <ComboBox Grid.Row="7" Grid.Column="1" Width="150" Margin="0, 0, 0, 5" SelectedItem="{Binding CurrentGame, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                       ItemsSource="{Binding Games}" ItemTemplate="{StaticResource SettingsEnumConverterTemplate}"/>
 
-            <TextBlock Grid.Row="6" Grid.Column="0" Text="{loc:Loc SettingsWindow.LoadGameFileOnStartup}" Margin="5, 0, 0, 0"/>
-            <CheckBox Grid.Row="6" Grid.Column="1" Margin="-1, 0, 0, 5" IsChecked="{Binding LoadCaPacksByDefault, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+            <TextBlock Grid.Row="8" Grid.Column="0" Text="{loc:Loc SettingsWindow.LoadGameFileOnStartup}" Margin="5, 0, 0, 0"/>
+            <CheckBox Grid.Row="8" Grid.Column="1" Margin="-1, 0, 0, 5" IsChecked="{Binding LoadCaPacksByDefault, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
 
-            <TextBlock Grid.Row="7" Grid.Column="0" Text="{loc:Loc SettingsWindow.ShowCaWems}" Margin="5, 0, 0, 0"/>
-            <CheckBox Grid.Row="7" Grid.Column="1" Margin="-1, 0, 0, 5" IsChecked="{Binding ShowCAWemFiles, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+            <TextBlock Grid.Row="9" Grid.Column="0" Text="{loc:Loc SettingsWindow.ShowCaWems}" Margin="5, 0, 0, 0"/>
+            <CheckBox Grid.Row="9" Grid.Column="1" Margin="-1, 0, 0, 5" IsChecked="{Binding ShowCAWemFiles, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
         </Grid>
 
 
@@ -93,20 +107,30 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Text="{loc:Loc SettingsWindow.Rendering}" Margin="5, 10, 0, 0" FontSize="15"/>
             <Separator Grid.Row="1" Grid.ColumnSpan="3" Height="1" Margin="5, 5, 10, 10"/>
 
             <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:Loc SettingsWindow.RenderBackground}" Margin="5, 0, 0, 0"/>
-            <ComboBox Grid.Row="2" Grid.Column="1" Margin="0, 0, 0, 5" SelectedItem="{Binding CurrentRenderEngineBackgroundColour, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+            <ComboBox Grid.Row="2" Grid.Column="1" Margin="0, 0, 0, 5" SelectedItem="{Binding CurrentRenderEngineBackgroundColour, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                       ItemsSource="{Binding RenderEngineBackgroundColours}" ItemTemplate="{StaticResource SettingsEnumConverterTemplate}"/>
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:Loc SettingsWindow.OnlyLoadLod0}" Margin="5, 0, 0, 0" ToolTip="When importing a reference mesh in the Kitbash tool, only import Lod0 in order to save memory."/>
-            <CheckBox Grid.Row="3" Grid.Column="1" Margin="-1, 0, 0, 5" IsChecked="{Binding OnlyLoadLod0ForReferenceMeshes, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+            <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="5,0,0,5">
+                <TextBlock Text="R:" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                <TextBox Text="{Binding CustomBackgroundR, UpdateSourceTrigger=PropertyChanged}" Width="40" VerticalContentAlignment="Center" Margin="0,0,8,0"/>
+                <TextBlock Text="G:" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                <TextBox Text="{Binding CustomBackgroundG, UpdateSourceTrigger=PropertyChanged}" Width="40" VerticalContentAlignment="Center" Margin="0,0,8,0"/>
+                <TextBlock Text="B:" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                <TextBox Text="{Binding CustomBackgroundB, UpdateSourceTrigger=PropertyChanged}" Width="40" VerticalContentAlignment="Center" Margin="0,0,8,0"/>
+            </StackPanel>
 
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:Loc SettingsWindow.GridSize}" Margin="5, 0, 0, 0" ToolTip="Size of the grid in visual editors"/>
-            <TextBox  Grid.Row="4" Grid.Column="1" Text="{Binding VisualEditorsGridSize, UpdateSourceTrigger=LostFocus}" MaxLength="4" Width="150" Margin="0, 0, 0, 5" HorizontalAlignment="Left" HorizontalContentAlignment="Right"/>
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:Loc SettingsWindow.OnlyLoadLod0}" Margin="5, 0, 0, 0" ToolTip="When importing a reference mesh in the Kitbash tool, only import Lod0 in order to save memory."/>
+            <CheckBox Grid.Row="4" Grid.Column="1" Margin="-1, 0, 0, 5" IsChecked="{Binding OnlyLoadLod0ForReferenceMeshes, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="{loc:Loc SettingsWindow.GridSize}" Margin="5, 0, 0, 0" ToolTip="Size of the grid in visual editors"/>
+            <TextBox  Grid.Row="5" Grid.Column="1" Text="{Binding VisualEditorsGridSize, UpdateSourceTrigger=LostFocus}" MaxLength="4" Width="150" Margin="0, 0, 0, 5" HorizontalAlignment="Left" HorizontalContentAlignment="Right"/>
 
 
 

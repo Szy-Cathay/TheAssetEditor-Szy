@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:loc="clr-namespace:Shared.Ui.Common;assembly=Shared.Ui"
         mc:Ignorable="d"
-        Title="{loc:Loc MetaData.NewEntryWindowTitle}" Height="450" Width="400" Background="#FF1C1C1C">
+        Title="{loc:Loc MetaData.NewEntryWindowTitle}" Height="450" Width="400" Background="{DynamicResource WindowBackground}" FontFamily="{DynamicResource AppFontFamily}">
     <Grid>
         <ListView
             ItemsSource="{Binding Items, UpdateSourceTrigger=PropertyChanged}"

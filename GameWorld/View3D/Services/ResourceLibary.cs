@@ -19,7 +19,8 @@ namespace GameWorld.Core.Services
         BasicEffect,
         GeometryInstance,
         Glow,
-        BloomFilter
+        BloomFilter,
+        OutlinePostProcess
     }
 
     public class ResourceLibrary

@@ -15,7 +15,7 @@
     WindowStartupLocation="CenterScreen"
     SizeToContent="Height"
     Width="1000"
-    Title="{Localisation:Loc UpdaterWindow.Title}" Background="#FF1C1C1C">
+    Title="{Localisation:Loc UpdaterWindow.Title}" FontFamily="{DynamicResource AppFontFamily}" Background="{DynamicResource WindowBackground}">
 
     <Grid
         Margin="15, 15, 15, 15">

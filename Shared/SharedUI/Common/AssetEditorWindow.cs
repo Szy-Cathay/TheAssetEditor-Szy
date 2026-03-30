@@ -17,7 +17,8 @@ namespace WindowHandling
         {
             Owner = Application.Current.MainWindow;
             Deactivated += AssetEdWindow_Deactivated;
-            Background = new SolidColorBrush(Color.FromRgb(28, 28, 28));
+            SetResourceReference(BackgroundProperty, "WindowBackground");
+            SetResourceReference(FontFamilyProperty, "AppFontFamily");
             DarkTitleBarHelper.Enable(this);
         }
 

@@ -929,5 +929,40 @@
   "AudioProjectConverter.ConvertingFromWwise.ToolTip": "如果需要从 Wwise 项目获取 Soundbank 中使用的状态数据，请勾选此项。",
   "AudioProjectConverter.SoundbanksInfoXml.ToolTip": "SoundbanksInfo.xml 的路径。",
 
-  "AudioSettings.AlwaysResetContainer.ToolTip": "始终重置容器决定了容器在播放过程中被停止后重新播放时，是继续播放还是返回播放列表开头。"
+  "AudioSettings.AlwaysResetContainer.ToolTip": "始终重置容器决定了容器在播放过程中被停止后重新播放时，是继续播放还是返回播放列表开头。",
+
+  "Theme.DarkTheme": "深色",
+  "Theme.LightTheme": "浅色",
+  "Theme.ChromeDark": "Chrome 深色",
+  "Theme.VSCodeDark": "VS Code 深色",
+  "Theme.HighContrastDark": "高对比度 深色",
+  "Theme.WarmDark": "暖色 深色",
+  "Theme.CoolDark": "冷色 深色",
+  "Theme.ChromeLight": "Chrome 浅色",
+  "Theme.VSCodeLight": "VS Code 浅色",
+  "Theme.HighContrastLight": "高对比度 浅色",
+
+  "BackgroundColour.DarkGrey": "深灰",
+  "BackgroundColour.LegacyBlue": "经典蓝",
+  "BackgroundColour.Green": "绿色",
+  "BackgroundColour.Custom": "自定义",
+
+  "Language.CN": "中文",
+  "Language.EN": "English",
+  "Language.FR": "Français",
+
+  "SettingsWindow.Font": "字体",
+  "SettingsWindow.FontWeight": "字体粗细",
+
+  "Font.Default": "默认（系统字体）",
+  "Font.AlibabaPuHuiTi": "阿里巴巴普惠体 3.0",
+  "Font.HarmonyOS": "鸿蒙OS字体",
+
+  "FontWeight.Thin": "极细",
+  "FontWeight.Light": "细",
+  "FontWeight.Regular": "常规",
+  "FontWeight.Medium": "中等",
+  "FontWeight.Bold": "粗体",
+  "FontWeight.ExtraBold": "特粗",
+  "FontWeight.Black": "黑体"
 }

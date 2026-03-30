@@ -291,4 +291,6 @@
     <SolidColorBrush x:Key="App.Border"                               Color="{DynamicResource AColour.Tone5.Border.Static}"/>
 
     <SolidColorBrush x:Key="WindowBackground"                         Color="{DynamicResource AColour.Tone2.Background.Static}"/>
+
+    <FontFamily x:Key="AppFontFamily">pack://application:,,,/Fonts/#阿里巴巴普惠体 3.0 55 Regular</FontFamily>
 </ResourceDictionary>

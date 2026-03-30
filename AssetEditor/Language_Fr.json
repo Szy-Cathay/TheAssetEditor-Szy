@@ -930,5 +930,40 @@
   "AudioProjectConverter.ConvertingFromWwise.ToolTip": "Tick this box if you need to get the States used in the soundbank from the Wwise project.",
   "AudioProjectConverter.SoundbanksInfoXml.ToolTip": "The path to the SoundbanksInfo.xml.",
 
-  "AudioSettings.AlwaysResetContainer.ToolTip": "Always Reset Container determines whether playback continues or returns to the start of the playlist when a container is replayed after being stopped during playback."
+  "AudioSettings.AlwaysResetContainer.ToolTip": "Always Reset Container determines whether playback continues or returns to the start of the playlist when a container is replayed after being stopped during playback.",
+
+  "Theme.DarkTheme": "Dark",
+  "Theme.LightTheme": "Light",
+  "Theme.ChromeDark": "Chrome Dark",
+  "Theme.VSCodeDark": "VS Code Dark",
+  "Theme.HighContrastDark": "High Contrast Dark",
+  "Theme.WarmDark": "Warm Dark",
+  "Theme.CoolDark": "Cool Dark",
+  "Theme.ChromeLight": "Chrome Light",
+  "Theme.VSCodeLight": "VS Code Light",
+  "Theme.HighContrastLight": "High Contrast Light",
+
+  "BackgroundColour.DarkGrey": "Dark Grey",
+  "BackgroundColour.LegacyBlue": "Legacy Blue",
+  "BackgroundColour.Green": "Green",
+  "BackgroundColour.Custom": "Custom",
+
+  "Language.CN": "中文",
+  "Language.EN": "English",
+  "Language.FR": "Français",
+
+  "SettingsWindow.Font": "Font",
+  "SettingsWindow.FontWeight": "Font Weight",
+
+  "Font.Default": "Default (System)",
+  "Font.AlibabaPuHuiTi": "Alibaba PuHuiTi 3.0",
+  "Font.HarmonyOS": "HarmonyOS Sans SC",
+
+  "FontWeight.Thin": "Thin",
+  "FontWeight.Light": "Light",
+  "FontWeight.Regular": "Regular",
+  "FontWeight.Medium": "Medium",
+  "FontWeight.Bold": "Bold",
+  "FontWeight.ExtraBold": "Extra Bold",
+  "FontWeight.Black": "Black"
 }

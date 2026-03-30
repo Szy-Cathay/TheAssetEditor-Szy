@@ -42,7 +42,19 @@ namespace GameWorld.Core.Commands.Face
 
         public void Undo()
         {
-            _originalSelectionState.RenderObject.Geometry = _originalGeometry;
+            // Restore geometry data in-place on the SAME MeshObject instance.
+            // Replacing the reference (Geometry = clone) would orphan the original
+            // MeshObject, breaking other commands on the undo stack (e.g.
+            // TransformVertexCommand) that hold direct references to it.
+            var currentGeo = _originalSelectionState.RenderObject.Geometry;
+            currentGeo.VertexArray = _originalGeometry.VertexArray;
+            currentGeo.IndexArray = _originalGeometry.IndexArray;
+            currentGeo.RebuildIndexBuffer();
+            currentGeo.RebuildVertexBuffer();
+
+            // Release the clone's GPU buffers (no longer needed)
+            _originalGeometry.Dispose();
+
             _selectionManager.SetState(_originalSelectionState);
         }
     }

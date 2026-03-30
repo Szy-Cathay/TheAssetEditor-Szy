@@ -42,11 +42,10 @@ namespace GameWorld.Core.Rendering.RenderItems
         {
             device.Indices = geometry.IndexBuffer;
             device.SetVertexBuffer(geometry.VertexBuffer);
-            //foreach (var pass in effect.GetEffect().CurrentTechnique.Passes)
-            {
-              //  pass.Apply();
-                device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, geometry.IndexBuffer.IndexCount);
-            }
+            // Use actual index count from CPU-side data, not GPU buffer capacity.
+            // GraphicsCardGeometry may reuse a larger buffer via SetData() after face deletion,
+            // in which case IndexBuffer.IndexCount returns the old capacity, not the current data size.
+            device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _geometry.GetIndexCount() / 3);
         }
     }
 }
