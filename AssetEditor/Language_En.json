@@ -1064,7 +1064,7 @@
   "Msg.SourceIdConflictsDetected": "Detected Source ID conflicts with vanilla for the following .wem files:\n{0}",
   "Msg.StatePathIncomplete": "State Path is incomplete probably due to a change to the Dialogue Event by CA. Add the missing State(s).",
 
-  "Title.AppTitle": "AssetEditor v{0}",
+  "Title.AppTitle": "AssetEditor 国区特供 v{0}",
   "Title.CurrentGame": "Current Game: {0}",
   "Title.EditablePack": "Editable Pack: {0}",
   "Title.EditablePackNone": "Editable Pack: None Set",

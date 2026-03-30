@@ -1063,7 +1063,7 @@
   "Msg.SourceIdConflictsDetected": "检测到以下 .wem 文件的 Source ID 与原版冲突：\n{0}",
   "Msg.StatePathIncomplete": "State Path 不完整，可能是 CA 修改了 Dialogue Event。请添加缺失的 State。",
 
-  "Title.AppTitle": "AssetEditor v{0}",
+  "Title.AppTitle": "AssetEditor 国区特供 v{0}",
   "Title.CurrentGame": "当前游戏：{0}",
   "Title.EditablePack": "可编辑 Pack：{0}",
   "Title.EditablePackNone": "可编辑 Pack：未设置",
