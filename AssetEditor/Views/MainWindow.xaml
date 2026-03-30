@@ -49,14 +49,14 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <views:FileTreeView  
-                    Grid.Row="1" 
-                    Grid.Column="0" 
-                    DataContext="{Binding FileTree}" 
-                    Padding="10, 0, 10, 5" 
-                    BorderBrush="{DynamicResource App.Border}" 
-                    BorderThickness="0, 1, 1, 0" 
-                    Visibility="{Binding IsPackFileExplorerVisible, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <views:FileTreeView
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    DataContext="{Binding FileTree}"
+                    Padding="10, 0, 10, 5"
+                    BorderBrush="{DynamicResource App.Border}"
+                    BorderThickness="0, 1, 1, 0"
+                    Visibility="{Binding DataContext.IsPackFileExplorerVisible, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
                 <GridSplitter Grid.Row="1" Grid.RowSpan="1" Grid.Column="1" Width="2.9" HorizontalAlignment="Stretch" Background="{DynamicResource App.Border}" 
                               Visibility="{Binding IsPackFileExplorerVisible, Converter={StaticResource BoolToVisibilityConverter}}"/>
@@ -136,7 +136,7 @@
                                     <TextBlock.Style>
                                         <Style TargetType="{x:Type TextBlock}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding HasUnsavedChanges}" Value="True">
+                                                <DataTrigger Binding="{Binding HasUnsavedChanges, FallbackValue=False}" Value="True">
                                                     <Setter Property="Foreground" Value="Red"/>
                                                 </DataTrigger>
                                             </Style.Triggers>

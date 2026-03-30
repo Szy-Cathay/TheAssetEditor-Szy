@@ -26,6 +26,27 @@ namespace Editors.AnimatioReTarget.Editor.BoneHandling
 
         [ObservableProperty] SkeletonBoneNode_new? _selectedBone;
         [ObservableProperty] ObservableCollection<SkeletonBoneNode_new> _bones = [];
+        [ObservableProperty] ObservableCollection<SkeletonBoneNode_new> _flatBoneList = [];
+
+        partial void OnBonesChanged(ObservableCollection<SkeletonBoneNode_new> value)
+        {
+            FlatBoneList = FlattenBones(value);
+        }
+
+        static ObservableCollection<SkeletonBoneNode_new> FlattenBones(ObservableCollection<SkeletonBoneNode_new> bones)
+        {
+            var result = new ObservableCollection<SkeletonBoneNode_new>();
+            foreach (var bone in bones)
+                FlattenBoneRecursive(bone, result);
+            return result;
+        }
+
+        static void FlattenBoneRecursive(SkeletonBoneNode_new bone, ObservableCollection<SkeletonBoneNode_new> result)
+        {
+            result.Add(bone);
+            foreach (var child in bone.Children)
+                FlattenBoneRecursive(child, result);
+        }
 
         public BoneManager(
             IStandardDialogs standardDialogs, 
@@ -159,6 +180,12 @@ namespace Editors.AnimatioReTarget.Editor.BoneHandling
         [RelayCommand] void ResetSelectedBone()
         {
             _standardDialogs.ShowDialogBox("Button pressed");
+        }
+
+        [RelayCommand] void ClearRelativeSelectedBone()
+        {
+            if (SelectedBone != null)
+                SelectedBone.SelectedRelativeBone = null;
         }
 
 

@@ -24,5 +24,14 @@ namespace Shared.Ui.BaseDialogs.MathViews
         {
             InitializeComponent();
         }
+
+        public int NumbersMaxLength
+        {
+            get { return (int)GetValue(NumbersMaxLengthProperty); }
+            set { SetValue(NumbersMaxLengthProperty, value); }
+        }
+
+        public static readonly DependencyProperty NumbersMaxLengthProperty =
+            DependencyProperty.Register("NumbersMaxLength", typeof(int), typeof(Vector2View), new PropertyMetadata(60, null));
     }
 }

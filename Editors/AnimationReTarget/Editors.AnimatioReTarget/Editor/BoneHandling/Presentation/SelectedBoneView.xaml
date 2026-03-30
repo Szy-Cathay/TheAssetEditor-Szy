@@ -93,8 +93,8 @@
             <DockPanel>
                 <Label     Width ="{StaticResource labelWidth}" Content="{loc:Loc AnimReTarget.IsRelativeTo}"/>
                 <Label       Content=":"/>
-                <Button DockPanel.Dock="Right" Content="{loc:Loc AnimReTarget.Clear}" Width="60" Command="{Binding ClearRelativeSelectedBoneAction}" Margin="3,0,0,0"/>
-                <ComboBox ItemsSource="{Binding FlatBoneList}" SelectedItem="{Binding SelectedBone.SelectedRelativeBone, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="BoneName.Value"/>
+                <Button DockPanel.Dock="Right" Content="{loc:Loc AnimReTarget.Clear}" Width="60" Command="{Binding BoneManager.ClearRelativeSelectedBoneCommand}" Margin="3,0,0,0"/>
+                <ComboBox ItemsSource="{Binding BoneManager.FlatBoneList}" SelectedItem="{Binding BoneManager.SelectedBone.SelectedRelativeBone, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" DisplayMemberPath="BoneName.Value"/>
             </DockPanel>
 
             <Button Grid.Row="4"  Content="{loc:Loc AnimReTarget.ClearSelectedBoneSettings}" Command="{Binding BoneManager.ResetSelectedBoneCommand}" Margin="2" />

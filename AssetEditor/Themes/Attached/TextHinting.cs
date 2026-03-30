@@ -19,8 +19,8 @@ namespace AssetEditor.Themes.Attached
         public static void SetShowWhenFocused(Control control, bool value) {
             if (control is TextBoxBase || control is PasswordBox) {
                 control.SetValue(ShowWhenFocusedProperty, value);
+                return;
             }
-
             throw new ArgumentException("Control was not a textbox", nameof(control));
         }
 
@@ -28,7 +28,6 @@ namespace AssetEditor.Themes.Attached
             if (control is TextBoxBase || control is PasswordBox) {
                 return (bool) control.GetValue(ShowWhenFocusedProperty);
             }
-
             throw new ArgumentException("Control was not a textbox", nameof(control));
         }
     }

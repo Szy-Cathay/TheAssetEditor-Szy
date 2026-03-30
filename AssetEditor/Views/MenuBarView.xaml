@@ -45,7 +45,7 @@
                         </Style>
                     </MenuItem.ItemContainerStyle>
                     <MenuItem.ItemTemplate>
-                        <HierarchicalDataTemplate DataType="{x:Type viewModels:RecentPackFileItem}" ItemsSource="{Binding Path=MenuItems}">
+                        <HierarchicalDataTemplate DataType="{x:Type viewModels:RecentPackFileItem}">
                             <TextBlock Text="{Binding Header}"/>
                         </HierarchicalDataTemplate>
                     </MenuItem.ItemTemplate>
@@ -87,7 +87,7 @@
                 </MenuItem.ItemContainerStyle>
 
                 <MenuItem.ItemTemplate>
-                    <HierarchicalDataTemplate DataType="{x:Type viewModels:EditorShortcutViewModel}" ItemsSource="{Binding Path=MenuItems}">
+                    <HierarchicalDataTemplate DataType="{x:Type viewModels:EditorShortcutViewModel}">
                         <TextBlock Text="{Binding DisplayName}"/>
                     </HierarchicalDataTemplate>
                 </MenuItem.ItemTemplate>
