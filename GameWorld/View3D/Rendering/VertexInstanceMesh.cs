@@ -1,4 +1,4 @@
-﻿using GameWorld.Core.Components.Selection;
+using GameWorld.Core.Components.Selection;
 using GameWorld.Core.Rendering.Geometry;
 using GameWorld.Core.Services;
 using GameWorld.Core.Utility;
@@ -147,14 +147,11 @@ namespace GameWorld.Core.Rendering
         public void Update(MeshObject geo, Matrix modelMatrix, Quaternion objectRotation, Vector3 cameraPos, VertexSelectionState selectedVertexes)
         {
             _currentInstanceCount = geo.VertexCount();
-            var vertexArray = geo.VertexArray;  // Direct access, avoid GetVertexById() allocation
-            var vertexWeights = selectedVertexes.VertexWeights;
             for (var i = 0; i < _currentInstanceCount && i < _maxInstanceCount; i++)
             {
-                var pos = vertexArray[i].Position;
-                var vertPos = Vector3.Transform(new Vector3(pos.X, pos.Y, pos.Z), modelMatrix);
-                var diff = cameraPos - vertPos;
-                var distanceScale = MathF.Sqrt(diff.X * diff.X + diff.Y * diff.Y + diff.Z * diff.Z) * 1.5f;
+                var vertPos = Vector3.Transform(geo.GetVertexById(i), modelMatrix);
+                var distance = (cameraPos - vertPos).Length();
+                var distanceScale = distance * 1.5f;
 
                 var world = Matrix.CreateScale(0.0025f * distanceScale) * Matrix.CreateFromQuaternion(objectRotation) * Matrix.CreateTranslation(vertPos);
 
@@ -162,10 +159,10 @@ namespace GameWorld.Core.Rendering
                 _instanceTransform[i].World1 = new Vector3(world[1, 0], world[1, 1], world[1, 2]);
                 _instanceTransform[i].World2 = new Vector3(world[2, 0], world[2, 1], world[2, 2]);
                 _instanceTransform[i].World3 = new Vector3(world[3, 0], world[3, 1], world[3, 2]);
-                _instanceTransform[i].Colour = Vector3.Lerp(_deselectedColour, _selectedColour, vertexWeights[i]);
+                _instanceTransform[i].Colour = Vector3.Lerp(_deselectedColour, _selectedColour, selectedVertexes.VertexWeights[i]);
 
             }
-            _instanceBuffer.SetData(_instanceTransform, 0, Math.Min(_currentInstanceCount, _maxInstanceCount), SetDataOptions.Discard);
+            _instanceBuffer.SetData(_instanceTransform, 0, Math.Min(_currentInstanceCount, _maxInstanceCount), SetDataOptions.None);
         }
 
         private void GenerateInstanceInformation(int count)

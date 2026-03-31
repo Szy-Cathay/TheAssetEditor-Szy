@@ -25,7 +25,7 @@ namespace Editors.AnimationMeta.Presentation
 
         public bool HasUnsavedChanges
         {
-            get 
+            get
             {
                 foreach (var tag in Tags)
                 {
@@ -33,19 +33,20 @@ namespace Editors.AnimationMeta.Presentation
                     {
                         if (variable.IsModified)
                             return true;
-                       
+
                     }
                 }
                 return false;
-                    
+
             }
-            set 
+            set
             {
                 foreach (var tag in Tags)
                 {
                     foreach (var variable in tag.Variables)
                         variable.IsModified = false;
                 }
+                OnPropertyChanged();
             }
 
         }

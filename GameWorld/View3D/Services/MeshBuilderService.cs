@@ -26,6 +26,9 @@ namespace GameWorld.Core.Services
             mesh.VertexArray = new VertexPositionNormalTextureCustom[rmvModel.Mesh.VertexList.Length];
             mesh.IndexArray = (ushort[])rmvModel.Mesh.IndexList.Clone();
 
+            var min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            var max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+
             for (var i = 0; i < rmvModel.Mesh.VertexList.Length; i++)
             {
                 var vertex = rmvModel.Mesh.VertexList[i];
@@ -35,6 +38,15 @@ namespace GameWorld.Core.Services
                 mesh.VertexArray[i].Tangent = vertex.Tangent;
                 mesh.VertexArray[i].TextureCoordinate = vertex.Uv;
                 mesh.VertexArray[i].TextureCoordinate1 = vertex.Uv1;
+
+                // Inline bounding box computation
+                var pos = vertex.Position;
+                if (pos.X < min.X) min.X = pos.X;
+                if (pos.Y < min.Y) min.Y = pos.Y;
+                if (pos.Z < min.Z) min.Z = pos.Z;
+                if (pos.X > max.X) max.X = pos.X;
+                if (pos.Y > max.Y) max.Y = pos.Y;
+                if (pos.Z > max.Z) max.Z = pos.Z;
 
                 if (mesh.VertexFormat == UiVertexFormat.Static)
                 {
@@ -55,9 +67,11 @@ namespace GameWorld.Core.Services
                     throw new Exception("Unknown vertex format");
             }
 
+            mesh.DeferBoundingBoxRebuild = true;
             mesh.RebuildVertexBuffer();
             mesh.RebuildIndexBuffer();
-            mesh.BuildBoundingBox();
+            mesh.SetBoundingBox(new BoundingBox(min, max));
+            mesh.DeferBoundingBoxRebuild = false;
             return mesh;
         }
 

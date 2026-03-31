@@ -191,6 +191,7 @@
   "AudioProjectExplorer.ShowDialogueEvents": "Show Dialogue Events",
   "AudioProjectExplorer.ShowDialogueEvents.ToolTip": "Filters the Audio Project Explorer Tree to show or hide Dialogue Events.",
   "AudioProjectExplorer.ToggleCollapseExpand": "Toggle Collapse / Expand Tree",
+  "AudioProjectExplorer.ToggleCollapseExpand.ToolTip": "Collapse or expand the tree.",
   "AudioProjectExplorer.ResetFilters": "Reset Filters",
   "AudioProjectExplorer.SearchHint": "Search Audio Project Explorer",
 
@@ -226,6 +227,7 @@
   "AudioSettings.AlwaysResetContainer": "Always Reset Container",
   "AudioSettings.LoopingType": "Looping Type",
   "AudioSettings.NumberOfLoops": "Number of Loops",
+  "AudioSettings.NumberOfLoops.ToolTip": "Number of times the audio will loop.",
   "AudioSettings.TransitionType": "Transition Type",
   "AudioSettings.TransitionDuration": "Transition Duration",
 
@@ -955,7 +957,7 @@
   "RenderSettings.GridColour": "Grid colour",
   "RenderSettings.FactionColours": "Faction colours",
   "RenderSettings.LightIntensity": "Light intensity",
-  "RenderSettings.EnvLightRotationX": "Env light rotation X",
+  "RenderSettings.EnvLightRotationY": "Env light rotation Y",
   "RenderSettings.DirectLightRotationX": "Direct light rotation X",
   "RenderSettings.DirectLightRotationY": "Direct light rotation Y",
 

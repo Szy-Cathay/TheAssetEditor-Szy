@@ -17,7 +17,7 @@ namespace Editors.Twui.Editor
 
         [ObservableProperty] string _displayName = "Twui Editor";
 
-        public bool HasUnsavedChanges { get; set; } = false;
+        [ObservableProperty] private bool _hasUnsavedChanges = false;
         public PackFile CurrentFile { get; set; }
 
         [ObservableProperty] public partial TwuiContext? ParsedTwuiFile { get; set; }

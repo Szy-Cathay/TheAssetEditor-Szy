@@ -110,7 +110,8 @@ namespace CommonControls.Editors.AnimationPack
 
         }
         public void Close() { }
-        public bool HasUnsavedChanges { get; set; }
+        private bool _hasUnsavedChanges;
+        public bool HasUnsavedChanges { get => _hasUnsavedChanges; set => SetAndNotify(ref _hasUnsavedChanges, value); }
 
         public PackFile CurrentFile => _packFile;
 

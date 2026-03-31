@@ -43,7 +43,7 @@
             <TextBox Margin="2" Text="{Binding LightIntensity, UpdateSourceTrigger=LostFocus}" MaxLength="8"  VerticalContentAlignment="Center" Width="100" HorizontalAlignment="Left" HorizontalContentAlignment="Right"/>
         </basedialogs:AeAttribute>
 
-        <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="{loc:Loc RenderSettings.EnvLightRotationX}" LabelWidth="150">
+        <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="{loc:Loc RenderSettings.EnvLightRotationY}" LabelWidth="150">
             <TextBox Margin="2" Text="{Binding EnvLightRotationY, UpdateSourceTrigger=LostFocus}" MaxLength="8"  VerticalContentAlignment="Center" Width="100" HorizontalAlignment="Left" HorizontalContentAlignment="Right"/>
         </basedialogs:AeAttribute>
 

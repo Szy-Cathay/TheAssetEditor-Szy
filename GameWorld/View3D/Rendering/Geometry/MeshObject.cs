@@ -396,6 +396,16 @@ namespace GameWorld.Core.Rendering.Geometry
             MeshCenter = MeshCenter / corners.Length;
         }
 
+        public void SetBoundingBox(BoundingBox boundingBox)
+        {
+            BoundingBox = boundingBox;
+            var corners = boundingBox.GetCorners();
+            MeshCenter = Vector3.Zero;
+            for (var i = 0; i < corners.Length; i++)
+                MeshCenter += corners[i];
+            MeshCenter = MeshCenter / corners.Length;
+        }
+
         public void Dispose()
         {
             Context.Dispose();

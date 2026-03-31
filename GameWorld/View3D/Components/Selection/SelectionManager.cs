@@ -45,7 +45,7 @@ namespace GameWorld.Core.Components.Selection
             _vertexRenderer = new VertexInstanceMesh(_deviceResolverComponent, _resourceLib);
 
             _wireframeEffect = new BasicShader(_deviceResolverComponent.Device);
-            _wireframeEffect.DiffuseColour = new Vector3(1.0f, 0.5f, 0.0f); // Orange wireframe/outline
+            _wireframeEffect.DiffuseColour = new Vector3(0.15f, 0.15f, 0.18f); // Dim wireframe overlay for face/vertex topology
 
             _selectedFacesEffect = new BasicShader(_deviceResolverComponent.Device);
             _selectedFacesEffect.DiffuseColour = new Vector3(1, 0, 0);

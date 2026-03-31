@@ -190,6 +190,7 @@
   "AudioProjectExplorer.ShowDialogueEvents": "显示对话事件",
   "AudioProjectExplorer.ShowDialogueEvents.ToolTip": "筛选音频项目浏览器树，显示或隐藏对话事件。",
   "AudioProjectExplorer.ToggleCollapseExpand": "折叠/展开树",
+  "AudioProjectExplorer.ToggleCollapseExpand.ToolTip": "折叠或展开目录树。",
   "AudioProjectExplorer.ResetFilters": "重置筛选",
   "AudioProjectExplorer.SearchHint": "搜索音频项目浏览器",
 
@@ -225,6 +226,7 @@
   "AudioSettings.AlwaysResetContainer": "始终重置容器",
   "AudioSettings.LoopingType": "循环类型",
   "AudioSettings.NumberOfLoops": "循环次数",
+  "AudioSettings.NumberOfLoops.ToolTip": "音频循环播放的次数。",
   "AudioSettings.TransitionType": "过渡类型",
   "AudioSettings.TransitionDuration": "过渡时长",
 
@@ -954,7 +956,7 @@
   "RenderSettings.GridColour": "网格颜色",
   "RenderSettings.FactionColours": "阵营颜色",
   "RenderSettings.LightIntensity": "光照强度",
-  "RenderSettings.EnvLightRotationX": "环境光旋转 X",
+  "RenderSettings.EnvLightRotationY": "环境光旋转 Y",
   "RenderSettings.DirectLightRotationX": "直射光旋转 X",
   "RenderSettings.DirectLightRotationY": "直射光旋转 Y",
 

@@ -41,7 +41,7 @@
                 </ListView.ItemContainerStyle>
 
                 <ListView.Resources>
-                    <DataTemplate DataType="{ x:Type tags:AttributeViewModel}">
+                    <DataTemplate DataType="{x:Type tags:AttributeViewModel}">
                         <ContentControl>
                             <ContentControl.ToolTip>
                                 <Viewbox StretchDirection="DownOnly" Stretch="Fill" HorizontalAlignment="Left">
@@ -62,7 +62,7 @@
                         </ContentControl>
                     </DataTemplate>
 
-                    <DataTemplate DataType="{ x:Type tags:VectorAttributeViewModel}">
+                    <DataTemplate DataType="{x:Type tags:VectorAttributeViewModel}">
                         <ContentControl>
                             <ContentControl.ToolTip>
                                 <Viewbox StretchDirection="DownOnly" Stretch="Fill" HorizontalAlignment="Left">
@@ -82,7 +82,7 @@
                         </ContentControl>
                     </DataTemplate>
 
-                    <DataTemplate DataType="{ x:Type tags:OrientationAttributeViewModel}">
+                    <DataTemplate DataType="{x:Type tags:OrientationAttributeViewModel}">
                         <ContentControl>
                             <ContentControl.ToolTip>
                                 <Viewbox StretchDirection="DownOnly" Stretch="Fill" HorizontalAlignment="Left">

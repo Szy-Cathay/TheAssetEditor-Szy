@@ -78,8 +78,6 @@ namespace Editors.Audio.AudioEditor.Presentation.AudioFilesExplorer
 
             AudioFilesTree = _audioFilesTreeBuilder.BuildTree(editablePack);
             SetupIsExpandedHandlers(AudioFilesTree);
-
-            CacheRootWaveformVisualisations();
         }
 
         private void SetupIsExpandedHandlers(ObservableCollection<AudioFilesTreeNode> nodes)
