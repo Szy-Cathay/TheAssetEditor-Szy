@@ -1183,6 +1183,12 @@
 
   "SettingsWindow.Font": "Font",
   "SettingsWindow.FontWeight": "Font Weight",
+  "SettingsWindow.AutoSaveAndBackup": "Auto Save & Backup",
+  "SettingsWindow.EnableAutoSave": "Enable auto save",
+  "SettingsWindow.AutoSaveInterval": "Auto save interval",
+  "SettingsWindow.Minutes": "minutes",
+  "SettingsWindow.BackupPath": "Backup path",
+  "SettingsWindow.MaxBackupCount": "Max backup count",
 
   "Font.Default": "Default (System)",
   "Font.AlibabaPuHuiTi": "Alibaba PuHuiTi 3.0",

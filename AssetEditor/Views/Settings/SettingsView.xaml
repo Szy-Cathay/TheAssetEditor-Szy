@@ -201,5 +201,42 @@
                      Tag='e.g. "C:\Program Files (x86)\Audiokinetic\Wwise2019.2.15.7667\Authoring\x64\Release\bin\WwiseCLI.exe"' IsReadOnly="True" Margin="0, 0, 5, 5" Padding="2.5, 0, 0, 0"/>
             <Button Grid.Row="2" Grid.Column="2" Content="..." Command="{Binding BrowseCommand}" Margin="0, 0, 10, 5"/>
         </Grid>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="230"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="{loc:Loc SettingsWindow.AutoSaveAndBackup}" Margin="5, 5, 0, 0" FontSize="15"/>
+            <Separator Grid.Row="1" Grid.ColumnSpan="3" Height="1" Margin="5, 5, 10, 10"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:Loc SettingsWindow.EnableAutoSave}" Margin="5, 0, 0, 0"/>
+            <CheckBox Grid.Row="2" Grid.Column="1" Margin="-1, 0, 0, 5" IsChecked="{Binding EnableAutoSave, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:Loc SettingsWindow.AutoSaveInterval}" Margin="5, 0, 0, 0"/>
+            <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
+                <TextBox Text="{Binding AutoSaveIntervalMinutes, UpdateSourceTrigger=LostFocus}" MaxLength="3" Width="60" VerticalContentAlignment="Center" HorizontalAlignment="Left" HorizontalContentAlignment="Right" Margin="0, 0, 0, 5"/>
+                <TextBlock Text="{loc:Loc SettingsWindow.Minutes}" VerticalAlignment="Center" Margin="5, 0, 0, 0"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:Loc SettingsWindow.BackupPath}" Margin="5, 0, 0, 0"/>
+            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding BackupPath, UpdateSourceTrigger=PropertyChanged}" Width="400" VerticalContentAlignment="Center" IsReadOnly="True" HorizontalAlignment="Left" Margin="0, 0, 5, 5" Padding="2.5, 0, 0, 0"/>
+            <Button Grid.Row="4" Grid.Column="2" Content="..." Command="{Binding BrowseBackupPathCommand}" Margin="0, 0, 10, 5"/>
+
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="{loc:Loc SettingsWindow.MaxBackupCount}" Margin="5, 0, 0, 0"/>
+            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding MaxBackupCount, UpdateSourceTrigger=LostFocus}" MaxLength="3" Width="60" VerticalContentAlignment="Center" HorizontalAlignment="Left" HorizontalContentAlignment="Right" Margin="0, 0, 0, 5"/>
+        </Grid>
     </Grid>
 </UserControl>

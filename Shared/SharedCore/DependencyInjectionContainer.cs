@@ -23,7 +23,12 @@ namespace Shared.Core
             services.AddSingleton<ApplicationSettingsService>();
             services.AddSingleton<IEditorDatabase, EditorDatabase>();
             services.AddSingleton<CopyPasteManager>();
-            services.AddSingleton<IPackFileService, PackFileService>();
+            services.AddSingleton<IPackFileService, PackFileService>(sp =>
+            {
+                var pfs = new PackFileService(sp.GetService<IGlobalEventHub>());
+                pfs.SettingsService = sp.GetService<ApplicationSettingsService>();
+                return pfs;
+            });
             services.AddScoped<IFileSaveService, FileSaveService>();
             services.AddScoped<ScopeToken>();
             services.AddSingleton<IScopeRepository, ScopeRepository>();
@@ -38,6 +43,7 @@ namespace Shared.Core
 
             services.AddSingleton<LocalizationManager>();
             services.AddSingleton<IPackFileContainerLoader, PackFileContainerLoader>();
+            services.AddSingleton<PackAutoSaveService>();
         }
     }
 

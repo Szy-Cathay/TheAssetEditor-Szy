@@ -1182,6 +1182,12 @@
 
   "SettingsWindow.Font": "字体",
   "SettingsWindow.FontWeight": "字体粗细",
+  "SettingsWindow.AutoSaveAndBackup": "自动保存与备份",
+  "SettingsWindow.EnableAutoSave": "启用自动保存",
+  "SettingsWindow.AutoSaveInterval": "自动保存间隔",
+  "SettingsWindow.Minutes": "分钟",
+  "SettingsWindow.BackupPath": "备份路径",
+  "SettingsWindow.MaxBackupCount": "最大备份数量",
 
   "Font.Default": "默认（系统字体）",
   "Font.AlibabaPuHuiTi": "阿里巴巴普惠体 3.0",

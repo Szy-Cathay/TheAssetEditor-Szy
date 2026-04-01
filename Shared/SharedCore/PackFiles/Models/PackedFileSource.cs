@@ -29,6 +29,19 @@ namespace Shared.Core.PackFiles.Models
                 return data;
             }
         }
+
+        /// <summary>
+        /// Close the cached FileStream so the file can be deleted/overwritten.
+        /// The stream will be lazily reopened on next read.
+        /// </summary>
+        internal void CloseStream()
+        {
+            lock (_streamLock)
+            {
+                _sharedStream?.Dispose();
+                _sharedStream = null;
+            }
+        }
     }
 
     public record PackedFileSource : IDataSource

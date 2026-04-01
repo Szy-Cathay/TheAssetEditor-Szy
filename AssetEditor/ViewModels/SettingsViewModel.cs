@@ -66,6 +66,12 @@ namespace AssetEditor.ViewModels
         [ObservableProperty] private string _wwisePath;
         [ObservableProperty] private bool _onlyLoadLod0ForReferenceMeshes;
 
+        // Auto-save & backup settings
+        [ObservableProperty] private bool _enableAutoSave;
+        [ObservableProperty] private int _autoSaveIntervalMinutes;
+        [ObservableProperty] private string _backupPath;
+        [ObservableProperty] private int _maxBackupCount;
+
         public SettingsViewModel(ApplicationSettingsService settingsService, LocalizationManager localizationManager)
         {
             _settingsService = settingsService;
@@ -115,6 +121,12 @@ namespace AssetEditor.ViewModels
                     });
             }
             WwisePath = _settingsService.CurrentSettings.WwisePath;
+
+            // Auto-save & backup settings
+            EnableAutoSave = _settingsService.CurrentSettings.EnableAutoSave;
+            AutoSaveIntervalMinutes = _settingsService.CurrentSettings.AutoSaveIntervalMinutes;
+            BackupPath = _settingsService.CurrentSettings.BackupPath ?? "";
+            MaxBackupCount = _settingsService.CurrentSettings.MaxBackupCount;
         }
 
 
@@ -138,6 +150,12 @@ namespace AssetEditor.ViewModels
                 _settingsService.CurrentSettings.GameDirectories.Add(new ApplicationSettings.GamePathPair() { Game = item.GameType, Path = item.Path });
             _settingsService.CurrentSettings.WwisePath = WwisePath;
 
+            // Auto-save & backup settings
+            _settingsService.CurrentSettings.EnableAutoSave = EnableAutoSave;
+            _settingsService.CurrentSettings.AutoSaveIntervalMinutes = AutoSaveIntervalMinutes;
+            _settingsService.CurrentSettings.BackupPath = BackupPath;
+            _settingsService.CurrentSettings.MaxBackupCount = MaxBackupCount;
+
             _localizationManager.LoadLanguage(SelectedLanguage);
             _settingsService.Save();
             MessageBox.Show(LocalizationManager.Instance.Get("Msg.RestartAfterSettings"));
@@ -151,6 +169,15 @@ namespace AssetEditor.ViewModels
             dialog.Multiselect = false;
             if (dialog.ShowDialog() == DialogResult.OK)
                 WwisePath = dialog.FileName;
+        }
+
+        [RelayCommand]
+        private void BrowseBackupPath()
+        {
+            var dialog = new FolderBrowserDialog();
+            dialog.Description = LocalizationManager.Instance.Get("SettingsWindow.BackupPath");
+            if (dialog.ShowDialog() == DialogResult.OK)
+                BackupPath = dialog.SelectedPath;
         }
     }
 

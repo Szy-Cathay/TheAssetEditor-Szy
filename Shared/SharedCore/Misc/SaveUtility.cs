@@ -43,6 +43,46 @@ namespace Shared.Core.Misc
             }
         }
 
+        /// <summary>
+        /// Create a timestamped backup of the original file and rotate old backups.
+        /// Backup naming: {filename}_{yyyyMMdd_HHmmss}.pack
+        /// Only backups matching the same source filename are counted for rotation.
+        /// </summary>
+        public static void CreateBackupWithRotation(string originalFileName, string backupDirectory, int maxBackupCount)
+        {
+            if (!File.Exists(originalFileName))
+                return;
+
+            var fileName = Path.GetFileNameWithoutExtension(originalFileName);
+            var extension = Path.GetExtension(originalFileName);
+
+            // Determine backup directory
+            var backupDir = string.IsNullOrWhiteSpace(backupDirectory)
+                ? Path.Combine(Path.GetDirectoryName(originalFileName), s_backupFolderPath)
+                : backupDirectory;
+
+            Directory.CreateDirectory(backupDir);
+
+            // Create timestamped backup
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var backupFileName = $"{fileName}_{timestamp}{extension}";
+            var backupFilePath = Path.Combine(backupDir, backupFileName);
+            File.Copy(originalFileName, backupFilePath);
+
+            // Rotate: delete oldest backups if count exceeds max
+            var prefix = $"{fileName}_";
+            var backups = Directory.GetFiles(backupDir, $"{prefix}*{extension}")
+                .Where(f => Path.GetFileName(f).StartsWith(prefix) && Path.GetFileName(f).EndsWith(extension))
+                .OrderBy(f => File.GetCreationTime(f))
+                .ToList();
+
+            while (backups.Count > maxBackupCount)
+            {
+                File.Delete(backups[0]);
+                backups.RemoveAt(0);
+            }
+        }
+
         static string IndexedFilename(string stub, string extension)
         {
             var ix = 0;

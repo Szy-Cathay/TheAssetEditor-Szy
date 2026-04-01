@@ -23,6 +23,9 @@ namespace Shared.Core.PackFiles
         public bool EnableFileLookUpEvents { get; set; } = false;
         public bool EnforceGameFilesMustBeLoaded { get; set; } = true;
 
+        // Injected via DI after construction
+        public ApplicationSettingsService? SettingsService { get; set; }
+
         public PackFileService(IGlobalEventHub? globalEventHub)
         {
             _globalEventHub = globalEventHub;
@@ -277,10 +280,38 @@ namespace Shared.Core.PackFiles
                     throw new Exception("File has been changed outside of AssetEditor. Can not save the file as it will cause corruptions");
             }
 
+            // Capture old parent references BEFORE serialization,
+            // because SerializeFileBlob replaces all DataSources with new PackedFileSource objects.
+            var oldParents = pf.FileList.Values
+                .Where(f => f.DataSource is PackedFileSource)
+                .Select(f => ((PackedFileSource)f.DataSource).Parent)
+                .Distinct()
+                .ToList();
+
             using (var memoryStream = new FileStream(path + "_temp", FileMode.Create))
             {
                 using var writer = new BinaryWriter(memoryStream);
                 PackFileSerializerWriter.SaveToByteArray(path, pf, writer, gameInformation);
+            }
+
+            // Close the OLD parent streams (no longer referenced after SerializeFileBlob replaced DataSources)
+            foreach (var parent in oldParents)
+                parent.CloseStream();
+
+            // Auto-backup the original file before overwriting (only for non-CA packs with existing file)
+            if (!pf.IsCaPackFile && File.Exists(path))
+            {
+                try
+                {
+                    var settings = SettingsService?.CurrentSettings;
+                    var backupDir = settings?.BackupPath ?? "";
+                    var maxCount = settings?.MaxBackupCount ?? 10;
+                    SaveUtility.CreateBackupWithRotation(path, backupDir, maxCount);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Here().Error(ex, "Failed to create backup, proceeding with save");
+                }
             }
 
             File.Delete(path);
@@ -356,6 +387,19 @@ namespace Shared.Core.PackFiles
             }
 
             throw new Exception("Unknown path for " + file.Name);
+        }
+
+        /// <summary>
+        /// Close all PackedFileSourceParent streams for files in a container,
+        /// releasing file handles so the pack file can be deleted/overwritten.
+        /// </summary>
+        private static void ClosePackedFileStreams(PackFileContainer container)
+        {
+            foreach (var kvp in container.FileList)
+            {
+                if (kvp.Value.DataSource is PackedFileSource packedSource)
+                    packedSource.Parent.CloseStream();
+            }
         }
     }
 

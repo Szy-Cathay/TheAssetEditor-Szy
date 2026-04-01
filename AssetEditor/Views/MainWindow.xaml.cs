@@ -6,6 +6,7 @@ using System.Windows.Media;
 using AssetEditor.ViewModels;
 using CommonControls;
 using Microsoft.Extensions.DependencyInjection;
+using Shared.Core.Services;
 using Shared.Core.Settings;
 using Shared.Core.ToolCreation;
 using Shared.Ui.BaseDialogs.PackFileTree;
@@ -20,6 +21,7 @@ namespace AssetEditor.Views
 
         private readonly ApplicationSettingsService _applicationSettingsService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly PackAutoSaveService _autoSaveService;
 
         public MainWindow(ApplicationSettingsService applicationSettingsService, IServiceProvider serviceProvider)
         {
@@ -30,6 +32,17 @@ namespace AssetEditor.Views
 
             DarkTitleBarHelper.Enable(this);
             KeyDown += MainWindow_KeyDown;
+
+            // Start auto-save service
+            _autoSaveService = serviceProvider.GetRequiredService<PackAutoSaveService>();
+            _autoSaveService.Start();
+
+            Closed += OnWindowClosed;
+        }
+
+        private void OnWindowClosed(object sender, EventArgs e)
+        {
+            _autoSaveService?.Stop();
         }
 
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
