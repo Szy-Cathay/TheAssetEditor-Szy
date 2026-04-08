@@ -1189,6 +1189,7 @@
   "SettingsWindow.Minutes": "minutes",
   "SettingsWindow.BackupPath": "Backup path",
   "SettingsWindow.MaxBackupCount": "Max backup count",
+  "SettingsWindow.UseZstdCompression": "Use ZSTD compression",
 
   "Font.Default": "Default (System)",
   "Font.AlibabaPuHuiTi": "Alibaba PuHuiTi 3.0",

@@ -291,7 +291,9 @@ namespace Shared.Core.PackFiles
             using (var memoryStream = new FileStream(path + "_temp", FileMode.Create))
             {
                 using var writer = new BinaryWriter(memoryStream);
-                PackFileSerializerWriter.SaveToByteArray(path, pf, writer, gameInformation);
+                var useCompression = SettingsService?.CurrentSettings.UseZstdCompression ?? true;
+                _logger.Here().Information($"Saving pack with compression={useCompression}");
+                PackFileSerializerWriter.SaveToByteArray(path, pf, writer, gameInformation, useCompression);
             }
 
             // Close the OLD parent streams (no longer referenced after SerializeFileBlob replaced DataSources)

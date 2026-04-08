@@ -72,6 +72,9 @@ namespace AssetEditor.ViewModels
         [ObservableProperty] private string _backupPath;
         [ObservableProperty] private int _maxBackupCount;
 
+        // Compression settings
+        [ObservableProperty] private bool _useZstdCompression;
+
         public SettingsViewModel(ApplicationSettingsService settingsService, LocalizationManager localizationManager)
         {
             _settingsService = settingsService;
@@ -127,6 +130,9 @@ namespace AssetEditor.ViewModels
             AutoSaveIntervalMinutes = _settingsService.CurrentSettings.AutoSaveIntervalMinutes;
             BackupPath = _settingsService.CurrentSettings.BackupPath ?? "";
             MaxBackupCount = _settingsService.CurrentSettings.MaxBackupCount;
+
+            // Compression settings
+            UseZstdCompression = _settingsService.CurrentSettings.UseZstdCompression;
         }
 
 
@@ -155,6 +161,9 @@ namespace AssetEditor.ViewModels
             _settingsService.CurrentSettings.AutoSaveIntervalMinutes = AutoSaveIntervalMinutes;
             _settingsService.CurrentSettings.BackupPath = BackupPath;
             _settingsService.CurrentSettings.MaxBackupCount = MaxBackupCount;
+
+            // Compression settings
+            _settingsService.CurrentSettings.UseZstdCompression = UseZstdCompression;
 
             _localizationManager.LoadLanguage(SelectedLanguage);
             _settingsService.Save();

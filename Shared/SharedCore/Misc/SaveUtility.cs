@@ -4,7 +4,7 @@ namespace Shared.Core.Misc
 {
     public static class SaveUtility
     {
-        private static readonly string s_backupFolderPath = "Backup";
+        private static readonly string s_backupFolderPath = "AssetEditor-BackUp";
 
         public static bool IsFilenameUnique(IPackFileService pfs, string path)
         {
@@ -65,7 +65,7 @@ namespace Shared.Core.Misc
 
             // Create timestamped backup
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            var backupFileName = $"{fileName}_{timestamp}{extension}";
+            var backupFileName = $"{fileName}_{timestamp}_backup{extension}";
             var backupFilePath = Path.Combine(backupDir, backupFileName);
             File.Copy(originalFileName, backupFilePath);
 

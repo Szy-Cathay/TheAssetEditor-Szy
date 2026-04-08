@@ -17,7 +17,7 @@ namespace Shared.Core.PackFiles.Serialization
 
     static class PackFileSerializerWriter
     {
-        public static void SaveToByteArray(string outputFileName, PackFileContainer container, BinaryWriter writer, GameInformation currentGameInformation)
+        public static void SaveToByteArray(string outputFileName, PackFileContainer container, BinaryWriter writer, GameInformation currentGameInformation, bool enableCompression = true)
         {
             if (container.Header.HasEncryptedData || container.Header.HasEncryptedIndex)
                 throw new InvalidOperationException("Saving encrypted packs is not supported.");
@@ -31,9 +31,9 @@ namespace Shared.Core.PackFiles.Serialization
             WriteHeader(container.Header, (uint)fileNamesOffset, writer);
 
             // Write the core of the file
-            var fileMetaDataTable = BuildMetaDataTable(sortedFiles, container, currentGameInformation);
+            var fileMetaDataTable = BuildMetaDataTable(sortedFiles, container, currentGameInformation, enableCompression);
             SerializeFileTable(fileMetaDataTable, container, writer);
-            SerializeFileBlob(outputFileName, fileMetaDataTable, container, writer);    
+            SerializeFileBlob(outputFileName, fileMetaDataTable, container, writer);
         }
 
         public static void WriteHeader(PFHeader header, uint fileContentSize, BinaryWriter writer)
@@ -107,10 +107,10 @@ namespace Shared.Core.PackFiles.Serialization
             return fileNamesOffset;
         }
          
-        public static FileCompressionInfo DetermineFileCompression(PackFileVersion outputPackFileVersion, GameInformation currentGameInformation, string fullFileName, CompressionFormat currentFileCompressionFormat)
+        public static FileCompressionInfo DetermineFileCompression(PackFileVersion outputPackFileVersion, GameInformation currentGameInformation, string fullFileName, CompressionFormat currentFileCompressionFormat, bool enableCompression = true)
         {
             var doesGameSupportCompression = FileCompression.DoesGameSupportCompression(currentGameInformation);
-            var compressIfPossible = doesGameSupportCompression && outputPackFileVersion == PackFileVersion.PFH5;
+            var compressIfPossible = enableCompression && doesGameSupportCompression && outputPackFileVersion == PackFileVersion.PFH5;
 
             var targetFileCompressionFormat = FileCompression.GetCompressionFormat(currentGameInformation, fullFileName);
             var isFileCompressed = currentFileCompressionFormat != CompressionFormat.None;
@@ -147,13 +147,13 @@ namespace Shared.Core.PackFiles.Serialization
             }
         }
 
-        public static List<PackFileWriteInformation> BuildMetaDataTable(IList<KeyValuePair<string, PackFile>> sortedFiles, PackFileContainer container, GameInformation currentGameInformation)
+        public static List<PackFileWriteInformation> BuildMetaDataTable(IList<KeyValuePair<string, PackFile>> sortedFiles, PackFileContainer container, GameInformation currentGameInformation, bool enableCompression = true)
         {
             var filesToWrite = new List<PackFileWriteInformation>();
             foreach (var file in sortedFiles)
             {
                 var packFile = file.Value;
-                var fileCompressionInfo = DetermineFileCompression(container.Header.Version, currentGameInformation, file.Key, packFile.DataSource.CompressionFormat);
+                var fileCompressionInfo = DetermineFileCompression(container.Header.Version, currentGameInformation, file.Key, packFile.DataSource.CompressionFormat, enableCompression);
                 filesToWrite.Add(new PackFileWriteInformation(packFile, file.Key, 0, fileCompressionInfo));
             }
 

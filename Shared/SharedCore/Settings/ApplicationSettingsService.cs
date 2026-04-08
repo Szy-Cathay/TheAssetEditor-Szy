@@ -37,6 +37,9 @@ namespace Shared.Core.Settings
         public string BackupPath { get; set; } = "";
         public int MaxBackupCount { get; set; } = 10;
 
+        // Compression settings
+        public bool UseZstdCompression { get; set; } = true;
+
         public ApplicationSettings()
         {
 
