@@ -9,7 +9,7 @@
         xmlns:loc="clr-namespace:Shared.Ui.Common;assembly=Shared.Ui"
         mc:Ignorable="d"
         ResizeMode="NoResize"
-        Title="{loc:Loc RenderSettings.Title}" Height="300" Width="347" Background="#FF1C1C1C">
+        Title="{loc:Loc RenderSettings.Title}" Height="300" Width="347" Style="{StaticResource CustomWindowStyle}">
 
     <DockPanel LastChildFill="False">
         <basedialogs:AeAttribute DockPanel.Dock="Top" LabelText="{loc:Loc RenderSettings.UseBackfaceCulling}" LabelWidth="150">

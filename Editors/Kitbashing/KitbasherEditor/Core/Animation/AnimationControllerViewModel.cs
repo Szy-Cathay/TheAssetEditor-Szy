@@ -190,18 +190,20 @@ namespace Editors.KitbasherEditor.ViewModels
         private void OnEnableChanged(bool isEnabled)
         {
             var skeleton = _kitbasherRootScene.Skeleton;
-            var isAnimationDataPresent = Animation != null && skeleton != null;
-            if (isEnabled && isAnimationDataPresent)
+            if (isEnabled && skeleton != null)
             {
                 AnimationControllerVisability.Value = Visibility.Visible;
 
-                var animFile = AnimationFile.Create(Animation);
-                var animClip = new AnimationClip(animFile, skeleton);
+                if (Animation != null)
+                {
+                    var animFile = AnimationFile.Create(Animation);
+                    var animClip = new AnimationClip(animFile, skeleton);
 
-                MaxFrames = animClip.DynamicFrames.Count;
-                CurrentFrame = 0;
+                    MaxFrames = animClip.DynamicFrames.Count;
+                    CurrentFrame = 0;
 
-                _player.SetAnimation(animClip, skeleton, true);
+                    _player.SetAnimation(animClip, skeleton, true);
+                }
             }
             else
             {

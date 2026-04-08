@@ -21,14 +21,14 @@ namespace GameWorld.Core.Utility
 
         public Matrix GetWorldTransformIfAnimating()
         {
-            if (_animationProvider.Skeleton != null && _animationProvider.Skeleton.AnimationPlayer.IsEnabled && _animationProvider.Skeleton.AnimationPlayer.IsPlaying && _boneIndex != -1)
+            if (_animationProvider.Skeleton != null && _animationProvider.Skeleton.AnimationPlayer.IsEnabled && _boneIndex != -1)
                 return _animationProvider.Skeleton.GetAnimatedWorldTranform(_boneIndex);
             return Matrix.Identity;
         }
 
         public Matrix GetTransformIfAnimating()
         {
-            if (_animationProvider.Skeleton != null && _animationProvider.Skeleton.AnimationPlayer.IsEnabled && _animationProvider.Skeleton.AnimationPlayer.IsPlaying && _boneIndex != -1)
+            if (_animationProvider.Skeleton != null && _animationProvider.Skeleton.AnimationPlayer.IsEnabled && _boneIndex != -1)
                 return _animationProvider.Skeleton.GetAnimatedTranform(_boneIndex);
             return Matrix.Identity;
         }

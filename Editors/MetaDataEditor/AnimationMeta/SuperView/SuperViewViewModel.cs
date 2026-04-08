@@ -4,6 +4,7 @@ using Editors.AnimationMeta.SuperView.Visualisation;
 using Editors.Shared.Core.Common;
 using Editors.Shared.Core.Common.BaseControl;
 using Editors.Shared.Core.Common.ReferenceModel;
+using GameWorld.Core.SceneNodes;
 using Microsoft.Xna.Framework;
 using Shared.Core.Events;
 using Shared.Core.Events.Scoped;
@@ -116,6 +117,9 @@ namespace Editors.AnimationMeta.SuperView
 
             _asset.Data.MetaDataItems = _metaDataFactory.Create(persist, meta, MetaEditor.SelectedAttribute, _asset.Data.MainNode, _asset.Data, _asset.Data.Player, _asset.FragAndSlotSelection.FragmentList.SelectedItem);
             _asset.Data.Player.Refresh();
+
+            // Re-disable selection after metadata creates new nodes
+            DisableSelectionOnAllNodes();
         }
 
         private void OnSceneObjectUpdated(SceneObjectUpdateEvent e)
@@ -124,6 +128,7 @@ namespace Editors.AnimationMeta.SuperView
             MetaEditor.LoadFile(e.Owner.MetaData);
 
             RecreateMetaDataInformation();
+            DisableSelectionOnAllNodes();
         }
 
         public void Load(AnimationToolInput debugDataToLoad)
@@ -139,10 +144,22 @@ namespace Editors.AnimationMeta.SuperView
                 var slot = _asset.FragAndSlotSelection.FragmentSlotList.PossibleValues.First(x => x.SlotName == debugDataToLoad.AnimationSlot.Value);
                 _asset.FragAndSlotSelection.FragmentSlotList.SelectedItem = slot;
             }
+
+            // Disable selection on all nodes - SuperView is read-only visualization
+            DisableSelectionOnAllNodes();
         }
 
 
         public void RefreshAction() => _asset.Data.TriggerMeshChanged();
+
+        private void DisableSelectionOnAllNodes()
+        {
+            _asset.Data.MainNode.ForeachNodeRecursive((node) =>
+            {
+                if (node is ISelectable selectable)
+                    selectable.IsSelectable = false;
+            });
+        }
 
         public override void Close()
         {

@@ -124,7 +124,7 @@ namespace GameWorld.Core.Services
                             break;
                     }
 
-                    LoadVariantMesh(childMesh, slotNode, player, attachmentPointName, onlyLoadRootNode, onlyLoadFirstMesh);
+                    LoadVariantMesh(childMesh, slotNode, player, slot.AttachmentPoint, onlyLoadRootNode, onlyLoadFirstMesh);
                 }
 
                 foreach (var meshReference in slot.ChildReferences)
