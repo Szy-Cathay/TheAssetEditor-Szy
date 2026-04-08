@@ -47,7 +47,7 @@
         <PackageProjectUrl>https://github.com/donkeyProgramming/TheAssetEditor</PackageProjectUrl>
         <RepositoryUrl>https://github.com/donkeyProgramming/TheAssetEditor</RepositoryUrl>
         <PackageId>AssetEditor</PackageId>
-        <Version>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\version.txt').Trim())</Version>
+        <Version>1.0.2</Version>
         <AssemblyVersion>$(Version)</AssemblyVersion>
         <AnalysisLevel>6.0</AnalysisLevel>
     </PropertyGroup>
@@ -99,11 +99,4 @@
         <MSBuild Projects="$(UpdaterProject)" Targets="Restore;Publish" Properties="PublishDir=$(AbsolutePublishDir);Configuration=$(Configuration);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained);PublishSingleFile=$(PublishSingleFile);PublishReadyToRun=$(PublishReadyToRun)" />
     </Target>
 
-    <!-- Auto-increment patch version after publish -->
-    <Target Name="IncrementVersionAfterPublish" AfterTargets="Publish">
-        <PropertyGroup>
-            <VersionFile>$(MSBuildProjectDirectory)\version.txt</VersionFile>
-        </PropertyGroup>
-        <Exec Command="powershell -NoProfile -Command &quot;$v=[version](Get-Content '$(VersionFile)');$nv='{0}.{1}.{2}' -f $v.Major,$v.Minor,($v.Build+1);Set-Content '$(VersionFile)' $nv&quot;" />
-    </Target>
 </Project>

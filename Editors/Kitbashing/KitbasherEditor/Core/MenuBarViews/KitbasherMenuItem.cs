@@ -1,4 +1,5 @@
 ﻿using Shared.Core.Events;
+using Shared.Core.Services;
 using Shared.Ui.Common.MenuSystem;
 
 namespace Editors.KitbasherEditor.Core.MenuBarViews
@@ -32,8 +33,20 @@ namespace Editors.KitbasherEditor.Core.MenuBarViews
             _instance = _uiCommandFactory.Create(function);
 
             Hotkey = _instance.HotKey;
-            ToolTip = _instance.ToolTip;
+            ToolTip = GetLocalizedToolTip();
             EnableRule = _instance.EnabledRule;
+        }
+
+        string GetLocalizedToolTip()
+        {
+            var loc = LocalizationManager.Instance;
+            if (loc == null)
+                return _instance.ToolTip;
+
+            var key = $"Kitbash.ToolTip.{typeof(T).Name}";
+            var value = loc.Get(key);
+            // If key not found, Get() returns the key itself - fall back to original tooltip
+            return value == key ? _instance.ToolTip : value;
         }
 
         public override void TriggerInternal()

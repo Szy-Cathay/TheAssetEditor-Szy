@@ -11,6 +11,7 @@ using GameWorld.Core.Components.Selection;
 using GameWorld.Core.Services;
 using KitbasherEditor.ViewModels.MenuBarViews.Helpers;
 using Shared.Core.Events;
+using Shared.Core.Services;
 using Shared.EmbeddedResources;
 using Shared.Ui.Common.MenuSystem;
 
@@ -103,26 +104,26 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
         {
             var builder = new ToolbarBuilder(_uiCommands);
 
-            var fileToolbar = builder.CreateRootToolBar("File");
-            builder.CreateToolBarItem<SaveCommand>(fileToolbar, "Save");
-            builder.CreateToolBarItem<SaveAsCommand>(fileToolbar, "Save As");
+            var fileToolbar = builder.CreateRootToolBar(LocalizationManager.Instance.Get("Kitbash.Menu.File"));
+            builder.CreateToolBarItem<SaveCommand>(fileToolbar, LocalizationManager.Instance.Get("Kitbash.Menu.File.Save"));
+            builder.CreateToolBarItem<SaveAsCommand>(fileToolbar, LocalizationManager.Instance.Get("Kitbash.Menu.File.SaveAs"));
             builder.CreateToolBarSeparator(fileToolbar);
-            builder.CreateToolBarItem<BrowseForReferenceCommand>(fileToolbar, "Import Reference model");
+            builder.CreateToolBarItem<BrowseForReferenceCommand>(fileToolbar, LocalizationManager.Instance.Get("Kitbash.Menu.File.ImportReference"));
 
-            var debugToolbar = builder.CreateRootToolBar("Debug");
-            builder.CreateToolBarItem<ImportGeneralReferenceCommand>(debugToolbar, "Import General");
-            builder.CreateToolBarItem<ImportKarlHammerReferenceCommand>(debugToolbar, "Import Hammer");
-            builder.CreateToolBarItem<DeleteLodsCommand>(debugToolbar, "Delete lods");
+            var debugToolbar = builder.CreateRootToolBar(LocalizationManager.Instance.Get("Kitbash.Menu.Debug"));
+            builder.CreateToolBarItem<ImportGeneralReferenceCommand>(debugToolbar, LocalizationManager.Instance.Get("Kitbash.Menu.Debug.ImportGeneral"));
+            builder.CreateToolBarItem<ImportKarlHammerReferenceCommand>(debugToolbar, LocalizationManager.Instance.Get("Kitbash.Menu.Debug.ImportHammer"));
+            builder.CreateToolBarItem<DeleteLodsCommand>(debugToolbar, LocalizationManager.Instance.Get("Kitbash.Menu.Debug.DeleteLods"));
 
-            var toolsToolbar = builder.CreateRootToolBar("Tools");
-            builder.CreateToolBarItem<GroupItemsCommand>(toolsToolbar, "(Un)Group selection");
-            builder.CreateToolBarItem<ReduceMeshCommand>(toolsToolbar, "\"Reduce mesh by 10%\"");
-            builder.CreateToolBarItem<SortMeshesCommand>(toolsToolbar, "Sort models by name");
+            var toolsToolbar = builder.CreateRootToolBar(LocalizationManager.Instance.Get("Kitbash.Menu.Tools"));
+            builder.CreateToolBarItem<GroupItemsCommand>(toolsToolbar, LocalizationManager.Instance.Get("Kitbash.Menu.Tools.GroupSelection"));
+            builder.CreateToolBarItem<ReduceMeshCommand>(toolsToolbar, LocalizationManager.Instance.Get("Kitbash.Menu.Tools.ReduceMesh"));
+            builder.CreateToolBarItem<SortMeshesCommand>(toolsToolbar, LocalizationManager.Instance.Get("Kitbash.Menu.Tools.SortModels"));
 
-            var renderingToolbar = builder.CreateRootToolBar("Rendering");
-            builder.CreateToolBarItem<FocusCameraCommand>(renderingToolbar, "Focus camera");
-            builder.CreateToolBarItem<ResetCameraCommand>(renderingToolbar, "Reset camera");
-            builder.CreateToolBarItem<OpenRenderSettingsWindowCommand>(renderingToolbar, "Open render settings");
+            var renderingToolbar = builder.CreateRootToolBar(LocalizationManager.Instance.Get("Kitbash.Menu.Rendering"));
+            builder.CreateToolBarItem<FocusCameraCommand>(renderingToolbar, LocalizationManager.Instance.Get("Kitbash.Menu.Rendering.FocusCamera"));
+            builder.CreateToolBarItem<ResetCameraCommand>(renderingToolbar, LocalizationManager.Instance.Get("Kitbash.Menu.Rendering.ResetCamera"));
+            builder.CreateToolBarItem<OpenRenderSettingsWindowCommand>(renderingToolbar, LocalizationManager.Instance.Get("Kitbash.Menu.Rendering.OpenRenderSettings"));
 
 
             return builder.Build();
