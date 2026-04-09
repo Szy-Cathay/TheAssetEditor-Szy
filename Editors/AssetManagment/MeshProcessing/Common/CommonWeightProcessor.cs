@@ -116,7 +116,7 @@ namespace AssetManagement.MeshProcessing.Common
             for (var weightIndex = 0; weightIndex < vertex.WeightCount; weightIndex++)
             {
                 vertex.BoneIndex[weightIndex] = (byte)influences[weightIndex].BoneIndex;
-                vertex.BoneWeight[weightIndex] = influences[weightIndex].BoneIndex;
+                vertex.BoneWeight[weightIndex] = influences[weightIndex].Weight;
             }
         }
     }

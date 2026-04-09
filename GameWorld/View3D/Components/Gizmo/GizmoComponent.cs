@@ -132,12 +132,12 @@ namespace GameWorld.Core.Components.Gizmo
 
         private void GizmoTranslateEvent(ITransformable transformable, TransformationEventArgs e)
         {
-            _activeTransformation.GizmoTranslateEvent((Vector3)e.Value, e.Pivot);
+            _activeTransformation?.GizmoTranslateEvent((Vector3)e.Value, e.Pivot);
         }
 
         private void GizmoRotateEvent(ITransformable transformable, TransformationEventArgs e)
         {
-            _activeTransformation.GizmoRotateEvent((Matrix)e.Value, e.Pivot);
+            _activeTransformation?.GizmoRotateEvent((Matrix)e.Value, e.Pivot);
         }
 
         private void GizmoScaleEvent(ITransformable transformable, TransformationEventArgs e)
@@ -153,7 +153,7 @@ namespace GameWorld.Core.Components.Gizmo
                     value = new Vector3(value.Z);
             }
 
-            _activeTransformation.GizmoScaleEvent(value, e.Pivot);
+            _activeTransformation?.GizmoScaleEvent(value, e.Pivot);
         }
 
         public override void Update(GameTime gameTime)

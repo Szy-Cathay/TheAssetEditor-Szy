@@ -28,8 +28,8 @@ namespace AssetManagement.Strategies.Fbx.ImportDialog.ViewModels
             }
 
             set
-            {                
-                Name = value;
+            {
+                // Name is read-only (computed from SkeletonPackFile), setter exists for data binding compatibility
             }
         }                
 

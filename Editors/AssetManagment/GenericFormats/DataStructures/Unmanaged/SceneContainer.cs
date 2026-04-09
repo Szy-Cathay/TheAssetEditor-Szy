@@ -41,7 +41,7 @@ namespace AssetManagement.GenericFormats.DataStructures.Unmanaged
             value.Decompose(out var scale, out var rotation, out var translation);
             Scale = scale;
             Rotation = rotation;
-            Scale = translation;
+            Translation = translation;
         }
 
         private Matrix CalculateMatrix()

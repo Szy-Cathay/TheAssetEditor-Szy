@@ -55,7 +55,7 @@ namespace AssetEditor.Views
                     {
                         var packFileBrowserView = FindChild<PackFileBrowserView>(this);
 
-                        if (packFileBrowserView != null) { }
+                        if (packFileBrowserView != null)
                             packFileBrowserView.TriggerPreviewKeyDown();
                     }
                 }

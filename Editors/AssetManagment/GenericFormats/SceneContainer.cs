@@ -58,7 +58,7 @@ namespace AssetManagement.GenericFormats
             get { return _framesPerSecond; }
             set
             {
-                FramesPerSecond = value;                
+                _framesPerSecond = value;                
             }
         }
     }

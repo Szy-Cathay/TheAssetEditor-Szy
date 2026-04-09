@@ -48,7 +48,7 @@ namespace Editors.ImportExport.Exporting.Presentation
                     SelectedExporter = viewModel;
             }
 
-            if (SelectedExporter == null)
+            if (SelectedExporter == null && PossibleExporters.Count > 0)
                 SelectedExporter = PossibleExporters.First();
         }
 

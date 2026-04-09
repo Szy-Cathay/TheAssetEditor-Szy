@@ -50,7 +50,7 @@ namespace AssetManagement.Strategies.Fbx.ViewModels
             FbxSettingsModel outSettingsModel = new FbxSettingsModel();
 
             outSettingsModel.SkeletonFileName = SkeletonFileName.Value;
-            outSettingsModel.SkeletonName = SkeletonFileName.Value;
+            outSettingsModel.SkeletonName = SkeletonName.Value;
             outSettingsModel.UseAutoRigging = UseAutoRigging.Value;
 
             return outSettingsModel;

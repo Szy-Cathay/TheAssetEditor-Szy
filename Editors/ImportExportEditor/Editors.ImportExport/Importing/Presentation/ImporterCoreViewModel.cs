@@ -68,7 +68,7 @@ namespace Editors.ImportExport.Importing.Presentation
                     SelectedImporter = viewModel;
             }
 
-            if (SelectedImporter == null)
+            if (SelectedImporter == null && PossibleImporters.Count > 0)
                 SelectedImporter = PossibleImporters.First();
         }
 

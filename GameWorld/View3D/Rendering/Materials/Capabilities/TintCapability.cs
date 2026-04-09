@@ -34,7 +34,6 @@ namespace GameWorld.Core.Rendering.Materials.Capabilities
                                  
             effect.GetParameter("Tint_UseTinting").SetValue(UseTinting);
             effect.GetParameter("Tint_TintColours").SetValue(TintColours);
-            effect.GetParameter("Tint_TintColours").SetValue(TintColours);
         }
 
         public ICapability Clone()

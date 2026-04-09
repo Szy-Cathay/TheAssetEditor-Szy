@@ -41,9 +41,9 @@ namespace AssetManagement.AssetBuilders
             for (var i = 0; i < model.Mesh.IndexList.Length; i += 3)
             {
                 // build 1 un-indexed triangle
-                var c1 = model.Mesh.IndexList[i * 3 + 0];
-                var c2 = model.Mesh.IndexList[i * 3 + 1];
-                var c3 = model.Mesh.IndexList[i * 3 + 2];
+                var c1 = model.Mesh.IndexList[i + 0];
+                var c2 = model.Mesh.IndexList[i + 1];
+                var c3 = model.Mesh.IndexList[i + 2];
 
                 var v1 = ConvertToPackedVertex(model.Mesh.VertexList[c1]);
                 var v2 = ConvertToPackedVertex(model.Mesh.VertexList[c2]);
