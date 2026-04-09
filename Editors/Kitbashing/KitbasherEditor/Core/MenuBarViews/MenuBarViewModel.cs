@@ -61,8 +61,9 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
             RegisterUiCommand<ImportGeneralReferenceCommand>();
             RegisterUiCommand<ImportKarlHammerReferenceCommand>();
             
-            RegisterUiCommand<DeleteLodsCommand>();    
+            RegisterUiCommand<DeleteLodsCommand>();
             RegisterUiCommand<UndoCommand>();
+            RegisterUiCommand<RedoCommand>();
             RegisterUiCommand<SortMeshesCommand>();
 
             RegisterUiCommand<GroupItemsCommand>();
@@ -137,6 +138,7 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
             builder.CreateButton<SaveCommand>(IconLibrary.SaveFileIcon);
             builder.CreateButton<BrowseForReferenceCommand>(IconLibrary.OpenReferenceMeshIcon);
             builder.CreateButton<UndoCommand>(IconLibrary.UndoIcon);
+            builder.CreateButton<RedoCommand>(IconLibrary.UndoIcon);  // TODO: Create dedicated Redo icon
             builder.CreateButtonSeparator();
 
             // Gizmo buttons
@@ -216,9 +218,13 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
         void OnUndoStackChanged(CommandStackChangedEvent notification)
         {
             var undoAction = GetMenuAction<UndoCommand>();
+            var redoAction = GetMenuAction<RedoCommand>();
 
             undoAction.ToolTip = notification.HintText;
             undoAction.IsActionEnabled.Value = _commandExecutor.CanUndo();
+
+            redoAction.ToolTip = _commandExecutor.GetRedoHint();
+            redoAction.IsActionEnabled.Value = _commandExecutor.CanRedo();
         }
 
         void OnSelectionChanged(SelectionChangedEvent notification)

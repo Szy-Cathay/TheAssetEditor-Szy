@@ -20,6 +20,7 @@ namespace GameWorld.Core.Services
     {
         protected ILogger _logger = Logging.Create<CommandExecutor>();
         private readonly Stack<ICommand> _commands = new Stack<ICommand>();
+        private readonly Stack<ICommand> _redoCommands = new Stack<ICommand>();
         private readonly IEventHub _eventHub;
 
         public CommandExecutor(IEventHub eventHub)
@@ -35,7 +36,10 @@ namespace GameWorld.Core.Services
             // Only push mutation commands to the undo stack.
             // Selection and mode-switch commands (IsMutation=false) are transient UI state.
             if (isUndoable && command.IsMutation)
+            {
+                _redoCommands.Clear();  // New command invalidates redo history
                 _commands.Push(command);
+            }
 
             _logger.Here().Information($"Executing {command.GetType().Name}");
             try
@@ -74,8 +78,43 @@ namespace GameWorld.Core.Services
                     _logger.Here().Error($"Failed to Undoing command : {e}");
                 }
 
+                _redoCommands.Push(command);
                 _eventHub.Publish(new CommandStackUndoEvent() { HintText = GetUndoHint() });
             }
+        }
+
+        public bool CanRedo() => _redoCommands.Count != 0;
+
+        public void Redo()
+        {
+            if (!CanRedo())
+                return;
+
+            var command = _redoCommands.Pop();
+            _logger.Here().Information($"Redoing {command.GetType().Name}");
+            try
+            {
+                command.Execute();
+            }
+            catch (Exception e)
+            {
+                _logger.Here().Error($"Failed to Redo command : {e}");
+            }
+
+            _commands.Push(command);
+            _eventHub.Publish(new CommandStackChangedEvent()
+            {
+                HintText = command.HintText,
+                IsMutation = command.IsMutation,
+            });
+        }
+
+        public string GetRedoHint()
+        {
+            if (!CanRedo())
+                return "No items to redo";
+
+            return _redoCommands.Peek().HintText;
         }
 
         public string GetUndoHint()

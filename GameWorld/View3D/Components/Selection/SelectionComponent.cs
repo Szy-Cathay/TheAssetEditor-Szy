@@ -83,10 +83,12 @@ namespace GameWorld.Core.Components.Selection
                 _skipNextSelection = true;
             }
 
+            // Keyboard shortcuts work regardless of mouse ownership
+            HandleSelectionKeyboardShortcuts();
+            ChangeSelectionMode();
+
             if (!_mouseComponent.IsMouseOwner(this))
                 return;
-
-            ChangeSelectionMode();
 
             _currentMousePos = _mouseComponent.Position();
 
@@ -321,6 +323,53 @@ namespace GameWorld.Core.Components.Selection
             {
                 if (SetBoneSelectionMode())
                     return true;
+            }
+
+            return false;
+        }
+
+        bool HandleSelectionKeyboardShortcuts()
+        {
+            var currentState = _selectionManager.GetState();
+
+            // A key = Select All / Deselect All (Blender behavior: toggle)
+            if (_keyboardComponent.IsKeyReleased(Keys.A) && !_keyboardComponent.IsKeyDown(Keys.LeftControl))
+            {
+                if (currentState.Mode == GeometrySelectionMode.Object)
+                {
+                    var objState = currentState as ObjectSelectionState;
+                    if (objState != null && objState.SelectionCount() > 0)
+                    {
+                        // Deselect All
+                        _commandFactory.Create<ObjectSelectionCommand>()
+                            .Configure(x => x.Configure(new List<ISelectable>(), false, false))
+                            .BuildAndExecute();
+                    }
+                    else
+                    {
+                        // Select All
+                        var allSelectables = SceneNodeHelper.GetChildrenOfType<ISelectable>(_sceneManger.RootNode);
+                        _commandFactory.Create<ObjectSelectionCommand>()
+                            .Configure(x => x.Configure(allSelectables, false, false))
+                            .BuildAndExecute();
+                    }
+                    return true;
+                }
+            }
+
+            // Ctrl+I = Invert Selection
+            if (_keyboardComponent.IsKeyDown(Keys.LeftControl) && _keyboardComponent.IsKeyReleased(Keys.I))
+            {
+                if (currentState.Mode == GeometrySelectionMode.Object && currentState is ObjectSelectionState objState)
+                {
+                    var allSelectables = SceneNodeHelper.GetChildrenOfType<ISelectable>(_sceneManger.RootNode);
+                    var currentlySelected = objState.CurrentSelection();
+                    var inverted = allSelectables.Where(x => !currentlySelected.Contains(x)).ToList();
+                    _commandFactory.Create<ObjectSelectionCommand>()
+                        .Configure(x => x.Configure(inverted, false, false))
+                        .BuildAndExecute();
+                    return true;
+                }
             }
 
             return false;

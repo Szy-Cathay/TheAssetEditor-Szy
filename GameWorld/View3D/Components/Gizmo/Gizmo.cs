@@ -171,6 +171,7 @@ namespace GameWorld.Core.Components.Gizmo
 
         public bool SnapEnabled = false;
         public float RotationSnapValue = 30;
+        public float TranslationSnapValue = 1.0f;
         private float _rotationSnapDelta;
 
 
@@ -364,18 +365,27 @@ namespace GameWorld.Core.Components.Gizmo
             // User can type numbers directly for precise input
             HandleNumericInput();
 
-            // Axis locking via X/Y/Z keys
-            if (_keyboard.IsKeyReleased(Keys.X))
+            // Axis/Plane locking via X/Y/Z keys (Blender-style)
+            // Shift+X/Y/Z = plane lock, X/Y/Z alone = axis lock
+            bool isShiftHeld = _keyboard.IsKeyDown(Keys.LeftShift) || _keyboard.IsKeyDown(Keys.RightShift);
+
+            if (isShiftHeld)
             {
-                ActiveAxis = (ActiveAxis == GizmoAxis.X) ? GizmoAxis.None : GizmoAxis.X;
+                if (_keyboard.IsKeyReleased(Keys.X))
+                    ActiveAxis = (ActiveAxis == GizmoAxis.YZ) ? GizmoAxis.None : GizmoAxis.YZ;
+                else if (_keyboard.IsKeyReleased(Keys.Y))
+                    ActiveAxis = (ActiveAxis == GizmoAxis.XZ) ? GizmoAxis.None : GizmoAxis.XZ;
+                else if (_keyboard.IsKeyReleased(Keys.Z))
+                    ActiveAxis = (ActiveAxis == GizmoAxis.XY) ? GizmoAxis.None : GizmoAxis.XY;
             }
-            else if (_keyboard.IsKeyReleased(Keys.Y))
+            else
             {
-                ActiveAxis = (ActiveAxis == GizmoAxis.Y) ? GizmoAxis.None : GizmoAxis.Y;
-            }
-            else if (_keyboard.IsKeyReleased(Keys.Z))
-            {
-                ActiveAxis = (ActiveAxis == GizmoAxis.Z) ? GizmoAxis.None : GizmoAxis.Z;
+                if (_keyboard.IsKeyReleased(Keys.X))
+                    ActiveAxis = (ActiveAxis == GizmoAxis.X) ? GizmoAxis.None : GizmoAxis.X;
+                else if (_keyboard.IsKeyReleased(Keys.Y))
+                    ActiveAxis = (ActiveAxis == GizmoAxis.Y) ? GizmoAxis.None : GizmoAxis.Y;
+                else if (_keyboard.IsKeyReleased(Keys.Z))
+                    ActiveAxis = (ActiveAxis == GizmoAxis.Z) ? GizmoAxis.None : GizmoAxis.Z;
             }
 
             // Cancel via Right mouse button or Escape
@@ -536,6 +546,38 @@ namespace GameWorld.Core.Components.Gizmo
 
                 return cameraRight * -totalDisplacement.X * sensitivity + cameraUp * -totalDisplacement.Y * sensitivity;
             }
+            else if (ActiveAxis == GizmoAxis.YZ || ActiveAxis == GizmoAxis.XZ || ActiveAxis == GizmoAxis.XY)
+            {
+                // Plane-locked translation: free movement on view plane, then zero out the excluded axis
+                Vector3 viewDir = _camera.LookAt - _camera.Position;
+                viewDir.Normalize();
+
+                float distanceToObject = (_position - _camera.Position).Length();
+                float sensitivity = 0.001f * distanceToObject;
+
+                Vector3 cameraRight = Vector3.Cross(viewDir, Vector3.Up);
+                if (cameraRight.LengthSquared() < 0.001f)
+                    cameraRight = Vector3.Cross(viewDir, Vector3.UnitX);
+                cameraRight.Normalize();
+                Vector3 cameraUp = Vector3.Cross(cameraRight, viewDir);
+                cameraUp.Normalize();
+
+                Vector3 result = cameraRight * -totalDisplacement.X * sensitivity + cameraUp * -totalDisplacement.Y * sensitivity;
+
+                // Zero out the excluded axis in local space
+                Vector3 excludeAxis = ActiveAxis switch
+                {
+                    GizmoAxis.YZ => _rotationMatrix.Right,      // exclude X
+                    GizmoAxis.XZ => _rotationMatrix.Up,          // exclude Y
+                    GizmoAxis.XY => _rotationMatrix.Forward,     // exclude Z
+                    _ => Vector3.Zero
+                };
+                excludeAxis.Normalize();
+
+                // Project out the excluded axis component
+                result -= Vector3.Dot(result, excludeAxis) * excludeAxis;
+                return result;
+            }
             else
             {
                 // Axis-constrained translation
@@ -589,6 +631,16 @@ namespace GameWorld.Core.Components.Gizmo
         {
             if (totalTranslation == Vector3.Zero)
                 return;
+
+            // Apply translation snap (increment snap)
+            if (SnapEnabled && TranslationSnapValue > 0)
+            {
+                totalTranslation = new Vector3(
+                    (float)Math.Round(totalTranslation.X / TranslationSnapValue) * TranslationSnapValue,
+                    (float)Math.Round(totalTranslation.Y / TranslationSnapValue) * TranslationSnapValue,
+                    (float)Math.Round(totalTranslation.Z / TranslationSnapValue) * TranslationSnapValue
+                );
+            }
 
             foreach (var entity in Selection)
             {
@@ -865,6 +917,50 @@ namespace GameWorld.Core.Components.Gizmo
 
                 return cameraRight * mouseDelta.X * sensitivity + cameraUp * -mouseDelta.Y * sensitivity;
             }
+            else if (ActiveAxis == GizmoAxis.YZ || ActiveAxis == GizmoAxis.XZ || ActiveAxis == GizmoAxis.XY)
+            {
+                // Plane-locked: free movement then project out excluded axis
+                Vector3 viewDir = _camera.LookAt - _camera.Position;
+                viewDir.Normalize();
+                Plane viewPlane = new Plane(viewDir, -Vector3.Dot(viewDir, _position));
+
+                var currentRay = _camera.CreateCameraRay(_mouse.Position());
+                var lastRay = _camera.CreateCameraRay(_mouse.Position() - mouseDelta);
+
+                var currentIntersect = currentRay.Intersects(viewPlane);
+                var lastIntersect = lastRay.Intersects(viewPlane);
+
+                Vector3 result;
+                if (currentIntersect.HasValue && lastIntersect.HasValue)
+                {
+                    var currentPoint = currentRay.Position + currentRay.Direction * currentIntersect.Value;
+                    var lastPoint = lastRay.Position + lastRay.Direction * lastIntersect.Value;
+                    result = currentPoint - lastPoint;
+                }
+                else
+                {
+                    float distanceToObject = (_position - _camera.Position).Length();
+                    float sensitivity = 0.001f * distanceToObject;
+                    Vector3 cameraRight = Vector3.Cross(viewDir, Vector3.Up);
+                    if (cameraRight.LengthSquared() < 0.001f)
+                        cameraRight = Vector3.Cross(viewDir, Vector3.UnitX);
+                    cameraRight.Normalize();
+                    Vector3 cameraUp = Vector3.Cross(cameraRight, viewDir);
+                    cameraUp.Normalize();
+                    result = cameraRight * mouseDelta.X * sensitivity + cameraUp * -mouseDelta.Y * sensitivity;
+                }
+
+                Vector3 excludeAxis = ActiveAxis switch
+                {
+                    GizmoAxis.YZ => _rotationMatrix.Right,
+                    GizmoAxis.XZ => _rotationMatrix.Up,
+                    GizmoAxis.XY => _rotationMatrix.Forward,
+                    _ => Vector3.Zero
+                };
+                excludeAxis.Normalize();
+                result -= Vector3.Dot(result, excludeAxis) * excludeAxis;
+                return result;
+            }
             else
             {
                 // Axis-constrained translation using ray-plane intersection
@@ -895,6 +991,35 @@ namespace GameWorld.Core.Components.Gizmo
                 cameraUp.Normalize();
 
                 return cameraRight * -frameDelta.X * sensitivity + cameraUp * -frameDelta.Y * sensitivity;
+            }
+            else if (ActiveAxis == GizmoAxis.YZ || ActiveAxis == GizmoAxis.XZ || ActiveAxis == GizmoAxis.XY)
+            {
+                // Plane-locked: free movement then project out excluded axis
+                Vector3 viewDir = _camera.LookAt - _camera.Position;
+                viewDir.Normalize();
+
+                float distanceToObject = (_position - _camera.Position).Length();
+                float sensitivity = 0.001f * distanceToObject;
+
+                Vector3 cameraRight = Vector3.Cross(viewDir, Vector3.Up);
+                if (cameraRight.LengthSquared() < 0.001f)
+                    cameraRight = Vector3.Cross(viewDir, Vector3.UnitX);
+                cameraRight.Normalize();
+                Vector3 cameraUp = Vector3.Cross(cameraRight, viewDir);
+                cameraUp.Normalize();
+
+                Vector3 result = cameraRight * -frameDelta.X * sensitivity + cameraUp * -frameDelta.Y * sensitivity;
+
+                Vector3 excludeAxis = ActiveAxis switch
+                {
+                    GizmoAxis.YZ => _rotationMatrix.Right,
+                    GizmoAxis.XZ => _rotationMatrix.Up,
+                    GizmoAxis.XY => _rotationMatrix.Forward,
+                    _ => Vector3.Zero
+                };
+                excludeAxis.Normalize();
+                result -= Vector3.Dot(result, excludeAxis) * excludeAxis;
+                return result;
             }
             else
             {
@@ -1249,20 +1374,27 @@ namespace GameWorld.Core.Components.Gizmo
                 return;
             }
 
-            // Blender-style axis locking via X/Y/Z keys during transform
+            // Blender-style axis/plane locking via X/Y/Z keys during transform
             if (_keyboard != null && _mouse.IsMouseButtonDown(MouseButton.Left))
             {
-                if (_keyboard.IsKeyReleased(Keys.X))
+                bool isShift = _keyboard.IsKeyDown(Keys.LeftShift) || _keyboard.IsKeyDown(Keys.RightShift);
+                if (isShift)
                 {
-                    ActiveAxis = GizmoAxis.X;
+                    if (_keyboard.IsKeyReleased(Keys.X))
+                        ActiveAxis = GizmoAxis.YZ;
+                    else if (_keyboard.IsKeyReleased(Keys.Y))
+                        ActiveAxis = GizmoAxis.XZ;
+                    else if (_keyboard.IsKeyReleased(Keys.Z))
+                        ActiveAxis = GizmoAxis.XY;
                 }
-                else if (_keyboard.IsKeyReleased(Keys.Y))
+                else
                 {
-                    ActiveAxis = GizmoAxis.Y;
-                }
-                else if (_keyboard.IsKeyReleased(Keys.Z))
-                {
-                    ActiveAxis = GizmoAxis.Z;
+                    if (_keyboard.IsKeyReleased(Keys.X))
+                        ActiveAxis = GizmoAxis.X;
+                    else if (_keyboard.IsKeyReleased(Keys.Y))
+                        ActiveAxis = GizmoAxis.Y;
+                    else if (_keyboard.IsKeyReleased(Keys.Z))
+                        ActiveAxis = GizmoAxis.Z;
                 }
             }
 
@@ -1448,8 +1580,26 @@ namespace GameWorld.Core.Components.Gizmo
 
             if (ActiveMode == GizmoMode.Translate)
             {
-                out_transformLocal = Vector3.Transform(deltaTransform, SceneWorld);  // local;
-                out_transfromWorld = Vector3.Transform(deltaTransform, _rotationMatrix);  // World;
+                var localResult = Vector3.Transform(deltaTransform, SceneWorld);
+                var worldResult = Vector3.Transform(deltaTransform, _rotationMatrix);
+
+                // Apply translation snap for non-modal gizmo drag
+                if (SnapEnabled && TranslationSnapValue > 0)
+                {
+                    localResult = new Vector3(
+                        (float)Math.Round(localResult.X / TranslationSnapValue) * TranslationSnapValue,
+                        (float)Math.Round(localResult.Y / TranslationSnapValue) * TranslationSnapValue,
+                        (float)Math.Round(localResult.Z / TranslationSnapValue) * TranslationSnapValue
+                    );
+                    worldResult = new Vector3(
+                        (float)Math.Round(worldResult.X / TranslationSnapValue) * TranslationSnapValue,
+                        (float)Math.Round(worldResult.Y / TranslationSnapValue) * TranslationSnapValue,
+                        (float)Math.Round(worldResult.Z / TranslationSnapValue) * TranslationSnapValue
+                    );
+                }
+
+                out_transformLocal = localResult;
+                out_transfromWorld = worldResult;
             }
             else if (ActiveMode == GizmoMode.NonUniformScale || ActiveMode == GizmoMode.UniformScale)
             {
@@ -1790,18 +1940,21 @@ namespace GameWorld.Core.Components.Gizmo
         {
             _renderEngineComponent.CommonSpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
 
-            // Show active axis text near cursor
+            // Show active axis/plane text near cursor
             if (ActiveAxis != GizmoAxis.None)
             {
                 var mousePos = _mouse.Position();
                 var axisText = ActiveAxis.ToString();
 
-                // Determine color based on axis
+                // Determine color based on axis/plane
                 Color axisColor = ActiveAxis switch
                 {
                     GizmoAxis.X => Color.Red,
                     GizmoAxis.Y => Color.Green,
                     GizmoAxis.Z => Color.Blue,
+                    GizmoAxis.YZ => Color.Red,    // YZ plane excludes X (red)
+                    GizmoAxis.XZ => Color.Green,  // XZ plane excludes Y (green)
+                    GizmoAxis.XY => Color.Blue,   // XY plane excludes Z (blue)
                     _ => Color.White
                 };
 
@@ -1972,6 +2125,9 @@ namespace GameWorld.Core.Components.Gizmo
         X,
         Y,
         Z,
+        YZ,   // Shift+X: lock to YZ plane (exclude X)
+        XZ,   // Shift+Y: lock to XZ plane (exclude Y)
+        XY,   // Shift+Z: lock to XY plane (exclude Z)
         None
     }
 

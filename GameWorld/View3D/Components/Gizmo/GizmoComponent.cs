@@ -194,9 +194,29 @@ namespace GameWorld.Core.Components.Gizmo
                 }
             }
 
+            // Alt+Z to toggle viewport shading mode (Textured → Solid → Wireframe)
+            // Only when NOT in modal transform and NOT dragging gizmo
+            if (!_gizmo.IsInModalTransform && !_isEnabled)
+            {
+                bool isAltHeld = _keyboard.IsKeyDown(Keys.LeftAlt) || _keyboard.IsKeyDown(Keys.RightAlt);
+                if (isAltHeld && _keyboard.IsKeyReleased(Keys.Z))
+                {
+                    var current = _resourceLibary.ShadingMode;
+                    _resourceLibary.ShadingMode = current switch
+                    {
+                        ViewportShadingMode.Textured => ViewportShadingMode.Wireframe,
+                        ViewportShadingMode.Wireframe => ViewportShadingMode.Solid,
+                        _ => ViewportShadingMode.Textured
+                    };
+                }
+            }
+
             // Handle modal transform updates
             if (_gizmo.IsInModalTransform)
             {
+                // Ctrl key toggles snap during modal transform
+                _gizmo.SnapEnabled = _keyboard.IsKeyDown(Keys.LeftControl) || _keyboard.IsKeyDown(Keys.RightControl);
+
                 var isCameraMoving = _keyboard.IsKeyDown(Keys.LeftAlt);
                 _gizmo.Update(gameTime, !isCameraMoving);
                 return;

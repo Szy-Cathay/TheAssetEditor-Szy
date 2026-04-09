@@ -43,6 +43,11 @@ namespace GameWorld.Core.Components.Rendering
         public SpriteBatch CommonSpriteBatch { get; private set; }
         public SpriteFont DefaultFont { get; private set; }
 
+        /// <summary>
+        /// Viewport shading mode - controls how 3D objects are rendered
+        /// </summary>
+        public ViewportShadingMode ShadingMode { get; set; } = ViewportShadingMode.Textured;
+
         public RenderEngineComponent(IWpfGame wpfGame, ResourceLibrary resourceLibrary, ArcBallCamera camera, IDeviceResolver deviceResolverComponent, ApplicationSettingsService applicationSettingsService, SceneRenderParametersStore sceneLightParametersStore, IEventHub eventHub)
         {
             UpdateOrder = (int)ComponentUpdateOrderEnum.RenderEngine;
@@ -231,7 +236,12 @@ namespace GameWorld.Core.Components.Rendering
         void Render3DObjects(CommonShaderParameters commonShaderParameters, RenderingTechnique renderingTechnique)
         {
             var device = _deviceResolverComponent.Device;
-            device.RasterizerState = _rasterStates[RasterizerStateEnum.Normal];
+
+            // Apply shading mode to the normal render bucket
+            if (ShadingMode == ViewportShadingMode.Wireframe)
+                device.RasterizerState = _rasterStates[RasterizerStateEnum.Wireframe];
+            else
+                device.RasterizerState = _rasterStates[RasterizerStateEnum.Normal];
 
             if (renderingTechnique == RenderingTechnique.Normal && _renderLines.Count != 0)
             {
@@ -303,5 +313,15 @@ namespace GameWorld.Core.Components.Rendering
                 item.Dispose();
             _rasterStates.Clear();
         }
+    }
+
+    /// <summary>
+    /// Viewport shading mode for 3D rendering
+    /// </summary>
+    public enum ViewportShadingMode
+    {
+        Textured,   // Default: PBR materials with textures
+        Solid,      // Solid fill without textures (same as Textured for now)
+        Wireframe   // Wireframe only
     }
 }
