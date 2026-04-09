@@ -20,7 +20,7 @@
 GBufferMaterial GetMaterial(in PixelInputType input)
 {
     GBufferMaterial material;
-    
+
     // default values
     material.diffuse = float4(0.2f, 0.2f, 0.2f, 1);
     material.specular = float4(0, 0, 0, 0);
@@ -30,19 +30,19 @@ GBufferMaterial GetMaterial(in PixelInputType input)
     material.maskValue = float4(0, 0, 0, 0);
 
     float2 texCord = float2(nfmod(input.tex.x, 1), nfmod(input.tex.y, 1));
-    
+
     if (UseSpecular)
     {
         material.specular.rgb = _linear(SpecularTexture.Sample(SampleType, texCord).rgb);
     }
-    
+
     if (UseDiffuse)
     {
         float4 diffuseValue = DiffuseTexture.Sample(SampleType, texCord);
         material.diffuse.rgb = _linear(diffuseValue.rgb);
         material.diffuse.a = diffuseValue.a;
     }
-    
+
     if (UseGloss)
     {
         float4 glossTexSample = GlossTexture.Sample(SampleType, texCord);
@@ -50,63 +50,84 @@ GBufferMaterial GetMaterial(in PixelInputType input)
         material.roughness = (glossTexSample.g);
 
     }
-    
+
     if (UseNormal)
     {
         material.pixelNormal = GetPixelNormal(input);
     }
-    
+
     if (UseMask)
     {
         material.maskValue = MaskTexture.Sample(SampleType, texCord);
     }
-    
+
     return material;
 }
 
 float4 DefaultPixelShader(in PixelInputType input, bool bIsFrontFace : SV_IsFrontFace) : SV_TARGET0
-{    
-    GBufferMaterial material = GetMaterial(input);        
-    
-    if (UseAlpha == 1)    
-        alpha_test(material.diffuse.a);    
-    
-    //float3 normalizedViewDirection = -normalize(input.viewDirection);    
-    
-    float3 normalizedViewDirection = -normalize(CameraPos - input.worldPosition);    
-    float3 rotatedNormalizedLightDirection = normalize(mul(light_Direction_Constant, (float3x3) DirLightTransform));    
-               
-    const float occlusion = 1.0f; // no SSAO yet = no occlusion
-    
-    //  Create the standard material.  This is what gets written to the gbuffer...
-    R2_5_StandardLightingModelMaterial_For_GBuffer standard_mat_compressed = 
+{
+    GBufferMaterial material = GetMaterial(input);
+
+    if (UseAlpha == 1)
+        alpha_test(material.diffuse.a);
+
+    float3 normalizedViewDirection = -normalize(CameraPos - input.worldPosition);
+    float3 rotatedNormalizedLightDirection = normalize(mul(light_Direction_Constant, (float3x3) DirLightTransform));
+
+    const float occlusion = 1.0f;
+
+    R2_5_StandardLightingModelMaterial_For_GBuffer standard_mat_compressed =
         R2_5_create_standard_lighting_material_for_gbuffer(
         material.diffuse.rgb,
         material.pixelNormal,
-        material.roughness, 
+        material.roughness,
         material.metalness,
-        occlusion);    
-    
-	//	Create the uncompressed material.  This is what is read from the gbuffer...
-    R2_5_StandardLightingModelMaterial_For_Lighting slm_uncompressed = R2_5_get_slm_for_lighting(standard_mat_compressed);
+        occlusion);
 
-	//	Apply faction colours...    
+    R2_5_StandardLightingModelMaterial_For_Lighting slm_uncompressed = R2_5_get_slm_for_lighting(standard_mat_compressed);
     slm_uncompressed.Diffuse_Colour.rgb = ApplyTintAndFactionColours(slm_uncompressed.Diffuse_Colour.rgb, material.maskValue);
 
-    float unchartedSunFactor = 3.0f;
-    
-    //  Light the pixel...    
-    float3 hdr_linear_col = standard_lighting_model_directional_light(get_sun_colour() * unchartedSunFactor, rotatedNormalizedLightDirection, normalizedViewDirection, slm_uncompressed);
+    // ====== FOUR-STUDIO-LIGHT SETUP ======
+    float3x3 lightRot = (float3x3)DirLightTransform;
+    const float studioLightScale = 60000.0f;
 
-    //  Tone-map the pixel...            
-    //float3 ldr_linear_col = saturate(tone_map_linear_hdr_to_linear_ldr_reinhard(hdr_linear_col));    
-    float3 ldr_linear_col = saturate(Uncharted2ToneMapping(hdr_linear_col));    
-    
+    float3 L[4];
+    L[0] = normalize(mul(normalize(float3(-0.35f, 0.17f, -0.92f)), lightRot));
+    L[1] = normalize(mul(normalize(float3(-0.41f, 0.35f,  0.84f)), lightRot));
+    L[2] = normalize(mul(normalize(float3( 0.52f, 0.83f,  0.21f)), lightRot));
+    L[3] = normalize(mul(normalize(float3( 0.62f, -0.56f, -0.54f)), lightRot));
+
+    float3 lightCol[4];
+    lightCol[0] = float3(0.03f, 0.03f, 0.03f) * studioLightScale;
+    lightCol[1] = float3(0.52f, 0.54f, 0.54f) * studioLightScale;
+    lightCol[2] = float3(0.04f, 0.03f, 0.05f) * studioLightScale;
+    lightCol[3] = float3(0.09f, 0.08f, 0.07f) * studioLightScale;
+
+    float3 dir_light = float3(0, 0, 0);
+    float3 R = reflect(normalizedViewDirection, slm_uncompressed.Normal);
+
+    [unroll]
+    for (int i = 0; i < 4; i++)
+    {
+        dir_light += standard_lighting_model_directional_light_SM4_private(
+            lightCol[i],
+            L[i],
+            normalizedViewDirection,
+            R,
+            slm_uncompressed);
+    }
+
+    float3 env_light = standard_lighting_model_environment_light_SM4_private(
+        normalizedViewDirection,
+        R,
+        slm_uncompressed);
+
+    float3 hdr_linear_col = env_light + dir_light;
+    float3 ldr_linear_col = saturate(Uncharted2ToneMapping(hdr_linear_col));
+
     float3 emissiveColour = GetEmissiveColour(input.tex, material.maskValue, rotatedNormalizedLightDirection, material.pixelNormal);
-    
-    // Combine all colours
-    float3 color = ldr_linear_col + emissiveColour;	
-    
+
+    float3 color = ldr_linear_col + emissiveColour;
     return float4(_gamma(color), 1.0f);
 }
 
@@ -115,10 +136,10 @@ float4 EmissiveLayerPixelShader(in PixelInputType input, bool bIsFrontFace : SV_
     GBufferMaterial material = GetMaterial(input);
     float3 normlizedViewDirection = normalize(input.viewDirection);
     float3 emissiveColour = GetEmissiveColour(input.tex, material.maskValue, normlizedViewDirection, material.pixelNormal);
-	
+
     if (UseAlpha == 1)
         alpha_test(material.diffuse.a);
-   
+
     return float4(emissiveColour, 1);
 }
 

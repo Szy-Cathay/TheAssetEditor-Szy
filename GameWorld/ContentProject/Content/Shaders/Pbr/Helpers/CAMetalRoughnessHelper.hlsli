@@ -355,15 +355,15 @@ float3 get_sun_colour()
 
 float3 get_environment_colour(in float3 direction, in float lod)
 {
-    const float specularCubeMapBrightness = 0.261f;
+    const float specularCubeMapBrightness = 1.0f;
     
     return tex_cube_specular.SampleLevel(SampleType, direction, lod).rgb * specularCubeMapBrightness * LightMult;
 }
 
 //	Ambient diffuse
 float3 cube_ambient(in float3 N)
-{	
-    const float diffuseCubeMapBrightness = 0.261f;
+{
+    const float diffuseCubeMapBrightness = 0.5f;
     
     return tex_cube_diffuse.Sample(SampleType, N).rgb * diffuseCubeMapBrightness * LightMult;
 }

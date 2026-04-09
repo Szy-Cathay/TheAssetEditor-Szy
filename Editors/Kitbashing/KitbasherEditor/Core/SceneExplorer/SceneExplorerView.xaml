@@ -55,12 +55,10 @@
                         <TextBlock  Text="{Binding Path=Content.Name, UpdateSourceTrigger=PropertyChanged}" Margin="2,0">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{DynamicResource ABrush.Foreground.Static}"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsReference, UpdateSourceTrigger=PropertyChanged}" Value="true">
-                                            <Setter Property="Foreground" Value="Gray" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding IsReference, UpdateSourceTrigger=PropertyChanged}" Value="false">
-                                            <Setter Property="Foreground" Value="White" />
+                                            <Setter Property="Foreground" Value="{DynamicResource ABrush.Foreground.Disabled}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -95,11 +93,6 @@
 
             <local:MultiSelectTreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}"	BasedOn="{StaticResource {x:Type TreeViewItem}}" >
-                    <Style.Resources>
-                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="White" />
-                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Red" />
-                    </Style.Resources>
-
                     <Setter Property="IsExpanded" Value="{Binding Content.IsExpanded, UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" />
                     <Setter Property="KeyboardNavigation.AcceptsReturn" Value="True" />
                     <Setter Property="ContextMenu" Value="{StaticResource NodeContextMenu}"/>
