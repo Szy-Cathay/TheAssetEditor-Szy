@@ -1,6 +1,7 @@
 ﻿using GameWorld.Core.Commands;
 using GameWorld.Core.Commands.Bone;
 using GameWorld.Core.Commands.Bone.Clipboard;
+using GameWorld.Core.Commands.Edge;
 using GameWorld.Core.Commands.Face;
 using GameWorld.Core.Commands.Object;
 using GameWorld.Core.Commands.Vertex;
@@ -122,6 +123,7 @@ namespace GameWorld.Core
 
             serviceCollection.AddTransient<ConvertFacesToVertexSelectionCommand>();
             serviceCollection.AddTransient<FaceSelectionCommand>();
+            serviceCollection.AddTransient<EdgeSelectionCommand>();
             serviceCollection.AddTransient<DuplicateFacesCommand>();
             serviceCollection.AddTransient<VertexSelectionCommand>();
             serviceCollection.AddTransient<ObjectSelectionCommand>();

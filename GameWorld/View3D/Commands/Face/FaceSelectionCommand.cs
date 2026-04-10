@@ -15,7 +15,7 @@ namespace GameWorld.Core.Commands.Face
         List<int> _selectedFaces;
 
         public string HintText { get => "Face selected"; }
-        public bool IsMutation { get => false; }
+        public bool IsMutation { get => true; }
 
         public FaceSelectionCommand(SelectionManager selectionManager)
         {

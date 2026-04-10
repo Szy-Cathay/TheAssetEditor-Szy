@@ -66,19 +66,22 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
         private void SelectionChanged(ISelectionState state)
         {
             ShowVertexFalloff.Value = false;
-            if (state.Mode == GeometrySelectionMode.Face)
+            if (state is ObjectSelectionState objectSelectionState)
+                ButtonEnabled = objectSelectionState.SelectionCount() != 0;
+            else if (state is VertexSelectionState vertexSelectionState)
             {
-                ButtonEnabled = false;
+                ButtonEnabled = vertexSelectionState.SelectionCount() != 0;
+                ShowVertexFalloff.Value = true;
             }
-            else
+            else if (state is FaceSelectionState faceSelectionState)
             {
-                if (state is ObjectSelectionState objectSelectionState)
-                    ButtonEnabled = objectSelectionState.SelectionCount() != 0;
-                else if (state is VertexSelectionState vertexSelectionState)
-                {
-                    ButtonEnabled = vertexSelectionState.SelectionCount() != 0;
-                    ShowVertexFalloff.Value = true;
-                }
+                ButtonEnabled = faceSelectionState.SelectionCount() != 0;
+                ShowVertexFalloff.Value = true;
+            }
+            else if (state is EdgeSelectionState edgeSelectionState)
+            {
+                ButtonEnabled = edgeSelectionState.SelectionCount() != 0;
+                ShowVertexFalloff.Value = true;
             }
         }
 

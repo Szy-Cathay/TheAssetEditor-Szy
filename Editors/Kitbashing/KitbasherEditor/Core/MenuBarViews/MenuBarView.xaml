@@ -91,8 +91,46 @@
             </Menu.Resources>
         </Menu>
 
-        <ToolBarTray DockPanel.Dock="Top" VerticalAlignment="Center">
-            <ToolBar ItemsSource="{Binding Path=CustomButtons}" ItemTemplateSelector="{StaticResource buttonStyleSelector}"  />
-        </ToolBarTray>
+        <Grid DockPanel.Dock="Top">
+            <ToolBarTray VerticalAlignment="Center">
+                <ToolBar ItemsSource="{Binding Path=CustomButtons}" ItemTemplateSelector="{StaticResource buttonStyleSelector}" />
+            </ToolBarTray>
+
+            <!-- Proportional editing toggle + dropdown -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0"
+                        Visibility="{Binding ProportionalEditing.IsVisible.Value, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToCollapsedConverter}}">
+                <Border Background="{DynamicResource ToolBarTrayBackground}" CornerRadius="3" Margin="0,0,2,0">
+                    <StackPanel Orientation="Horizontal">
+                        <!-- Toggle button - Focusable=False prevents stealing keyboard focus from 3D viewport -->
+                        <ToggleButton x:Name="PropToggleBtn"
+                                      ToolTip="衰减编辑 (Proportional Editing)"
+                                      IsChecked="{Binding ProportionalEditing.IsEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Focusable="False"
+                                      BorderThickness="0" Background="Transparent" Padding="4,2">
+                            <Image Width="24" Height="24" Source="{Binding ProportionalEditing.CurrentIcon, UpdateSourceTrigger=PropertyChanged}"/>
+                        </ToggleButton>
+                        <!-- Dropdown arrow - Focusable=False for same reason -->
+                        <ToggleButton x:Name="PropArrowBtn" Content="▾" FontSize="10" FontWeight="Bold"
+                                      BorderThickness="0" Background="Transparent" Padding="2,0,4,0"
+                                      Focusable="False"
+                                      ToolTip="调整衰减距离"/>
+                    </StackPanel>
+                </Border>
+                <!-- Popup for falloff value -->
+                <Popup x:Name="FalloffPopup" PlacementTarget="{Binding ElementName=PropArrowBtn}"
+                       IsOpen="{Binding IsChecked, ElementName=PropArrowBtn, Mode=TwoWay}"
+                       StaysOpen="False" AllowsTransparency="True">
+                    <Border Background="{DynamicResource ToolBarTrayBackground}" BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="10,8">
+                        <StackPanel>
+                            <TextBlock Text="衰减距离 (Falloff)" Margin="0,0,0,6" Foreground="White"/>
+                            <TextBox x:Name="FalloffTextBox"
+                                     Text="{Binding ProportionalEditing.FalloffDistance, UpdateSourceTrigger=LostFocus, Mode=TwoWay, StringFormat='{}{0:0.###}'}"
+                                     Width="100" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
+                                     PreviewKeyDown="FalloffTextBox_PreviewKeyDown"/>
+                        </StackPanel>
+                    </Border>
+                </Popup>
+            </StackPanel>
+        </Grid>
     </DockPanel>
 </UserControl>

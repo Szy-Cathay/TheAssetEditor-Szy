@@ -34,6 +34,11 @@ namespace GameWorld.Core.Components.Gizmo
         List<int> _selectedBones;
         private readonly CommandFactory _commandFactory;
         ISelectionState _selectionState;
+        // Vertex indices from selected faces (used by FaceSelectionState transform)
+        HashSet<int> _faceVertexIndices;
+        // Falloff weights for face/edge mode proportional editing
+        Dictionary<int, float> _falloffWeights;
+        float _falloffDistance = 0f;
 
         Matrix _totalGizomTransform = Matrix.Identity;
         bool _invertedWindingOrder = false;
@@ -67,6 +72,41 @@ namespace GameWorld.Core.Components.Gizmo
                     Position += _effectedObjects[0].GetVertexById(vertSelectionState.SelectedVertices[i]);
 
                 Position = Position / vertSelectionState.SelectedVertices.Count;
+            }
+            if (_selectionState is FaceSelectionState faceSelectionState)
+            {
+                _effectedObjects = effectedObjects;
+
+                // Extract vertex indices from selected faces
+                var indexBuffer = _effectedObjects[0].GetIndexBuffer();
+                _faceVertexIndices = new HashSet<int>();
+                foreach (var face in faceSelectionState.SelectedFaces)
+                {
+                    _faceVertexIndices.Add(indexBuffer[face]);
+                    _faceVertexIndices.Add(indexBuffer[face + 1]);
+                    _faceVertexIndices.Add(indexBuffer[face + 2]);
+                }
+
+                // Compute center position from face vertices
+                foreach (var vertIdx in _faceVertexIndices)
+                    Position += _effectedObjects[0].GetVertexById(vertIdx);
+
+                if (_faceVertexIndices.Count > 0)
+                    Position = Position / _faceVertexIndices.Count;
+            }
+            if (_selectionState is EdgeSelectionState edgeSelectionState)
+            {
+                _effectedObjects = effectedObjects;
+
+                // Extract vertex indices from selected edges
+                _faceVertexIndices = edgeSelectionState.GetSelectedVertexIndices();
+
+                // Compute center position from edge vertices
+                foreach (var vertIdx in _faceVertexIndices)
+                    Position += _effectedObjects[0].GetVertexById(vertIdx);
+
+                if (_faceVertexIndices.Count > 0)
+                    Position = Position / _faceVertexIndices.Count;
             }
         }
 
@@ -122,6 +162,10 @@ namespace GameWorld.Core.Components.Gizmo
                 transformVertexCommand.InvertWindingOrder = _invertedWindingOrder;
                 transformVertexCommand.Transform = _totalGizomTransform;
                 transformVertexCommand.PivotPoint = Position;
+                if (_faceVertexIndices != null)
+                    transformVertexCommand.AffectedVertexIndices = new HashSet<int>(_faceVertexIndices);
+                if (_falloffWeights != null && _falloffDistance > 0)
+                    transformVertexCommand.FalloffWeights = new Dictionary<int, float>(_falloffWeights);
                 commandManager.ExecuteCommand(_activeCommand);
                 _activeCommand = null;
             }
@@ -144,6 +188,9 @@ namespace GameWorld.Core.Components.Gizmo
             {
                 _totalGizomTransform = Matrix.Identity;
                 _activeCommand = _commandFactory.Create<TransformVertexCommand>().Configure(x => x.Configure(_effectedObjects, Position)).Build();
+                // Pass affected vertex indices for Face/Edge mode undo
+                if (_activeCommand is TransformVertexCommand tvc && _faceVertexIndices != null)
+                    tvc.AffectedVertexIndices = new HashSet<int>(_faceVertexIndices);
             }
 
         }
@@ -155,6 +202,10 @@ namespace GameWorld.Core.Components.Gizmo
                 transformVertexCommand.InvertWindingOrder = _invertedWindingOrder;
                 transformVertexCommand.Transform = _totalGizomTransform;
                 transformVertexCommand.PivotPoint = Position;
+                if (_faceVertexIndices != null)
+                    transformVertexCommand.AffectedVertexIndices = new HashSet<int>(_faceVertexIndices);
+                if (_falloffWeights != null && _falloffDistance > 0)
+                    transformVertexCommand.FalloffWeights = new Dictionary<int, float>(_falloffWeights);
                 commandManager.ExecuteCommand(_activeCommand);
                 _activeCommand = null;
                 return;
@@ -196,6 +247,12 @@ namespace GameWorld.Core.Components.Gizmo
                 command.InvertWindingOrder = _invertedWindingOrder;
                 command.Transform = _totalGizomTransform;
                 command.PivotPoint = Position;
+                // Pass affected vertex indices for Face/Edge mode undo
+                if (_faceVertexIndices != null)
+                    command.AffectedVertexIndices = new HashSet<int>(_faceVertexIndices);
+                // Pass falloff weights for proportional editing undo
+                if (_falloffWeights != null && _falloffDistance > 0)
+                    command.FalloffWeights = new Dictionary<int, float>(_falloffWeights);
                 commandManager.ExecuteCommand(command);
             }
 
@@ -341,6 +398,113 @@ namespace GameWorld.Core.Components.Gizmo
                         }
                     }
                 }
+                else if (_selectionState is FaceSelectionState)
+                {
+                    // If falloff is enabled, transform ALL vertices with weights
+                    // Otherwise, transform only vertices belonging to selected faces
+                    if (_falloffDistance > 0 && _falloffWeights != null && _falloffWeights.Count > 0)
+                    {
+                        // Proportional editing mode - transform all vertices with falloff weights
+                        for (int i = 0; i < geo.VertexCount(); i++)
+                        {
+                            if (!_falloffWeights.TryGetValue(i, out var weight) || weight == 0)
+                                continue;
+
+                            var vertexScale = Vector3.Lerp(Vector3.One, scale, weight);
+                            var vertRot = Quaternion.Slerp(Quaternion.Identity, rot, weight);
+                            var vertTrans = trans * weight;
+                            var weightedTransform = Matrix.CreateScale(vertexScale) * Matrix.CreateFromQuaternion(vertRot) * Matrix.CreateTranslation(vertTrans);
+                            var combinedTransform = Matrix.CreateTranslation(-objCenter) * weightedTransform * Matrix.CreateTranslation(objCenter);
+
+                            if (gizmoMode == GizmoMode.Translate)
+                                geo.TransformVertexTranslation(i, combinedTransform);
+                            else if (gizmoMode == GizmoMode.Rotate)
+                            {
+                                var normalMatrix = Matrix.Transpose(Matrix.Invert(combinedTransform));
+                                geo.TransformVertexRotation(i, combinedTransform, normalMatrix);
+                            }
+                            else
+                            {
+                                var normalMatrix = Matrix.Transpose(Matrix.Invert(combinedTransform));
+                                geo.TransformVertex(i, combinedTransform, normalMatrix);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // No falloff - transform only selected face vertices
+                        foreach (var vertIdx in _faceVertexIndices)
+                        {
+                            var combinedTransform = Matrix.CreateTranslation(-objCenter) * transform * Matrix.CreateTranslation(objCenter);
+
+                            if (gizmoMode == GizmoMode.Translate)
+                                geo.TransformVertexTranslation(vertIdx, combinedTransform);
+                            else if (gizmoMode == GizmoMode.Rotate)
+                            {
+                                var normalMatrix = Matrix.Transpose(Matrix.Invert(combinedTransform));
+                                geo.TransformVertexRotation(vertIdx, combinedTransform, normalMatrix);
+                            }
+                            else
+                            {
+                                var normalMatrix = Matrix.Transpose(Matrix.Invert(combinedTransform));
+                                geo.TransformVertex(vertIdx, combinedTransform, normalMatrix);
+                            }
+                        }
+                    }
+                }
+                else if (_selectionState is EdgeSelectionState)
+                {
+                    // Edge mode: similar to face mode, use falloff if enabled
+                    if (_falloffDistance > 0 && _falloffWeights != null && _falloffWeights.Count > 0)
+                    {
+                        // Proportional editing mode - transform all vertices with falloff weights
+                        for (int i = 0; i < geo.VertexCount(); i++)
+                        {
+                            if (!_falloffWeights.TryGetValue(i, out var weight) || weight == 0)
+                                continue;
+
+                            var vertexScale = Vector3.Lerp(Vector3.One, scale, weight);
+                            var vertRot = Quaternion.Slerp(Quaternion.Identity, rot, weight);
+                            var vertTrans = trans * weight;
+                            var weightedTransform = Matrix.CreateScale(vertexScale) * Matrix.CreateFromQuaternion(vertRot) * Matrix.CreateTranslation(vertTrans);
+                            var combinedTransform = Matrix.CreateTranslation(-objCenter) * weightedTransform * Matrix.CreateTranslation(objCenter);
+
+                            if (gizmoMode == GizmoMode.Translate)
+                                geo.TransformVertexTranslation(i, combinedTransform);
+                            else if (gizmoMode == GizmoMode.Rotate)
+                            {
+                                var normalMatrix = Matrix.Transpose(Matrix.Invert(combinedTransform));
+                                geo.TransformVertexRotation(i, combinedTransform, normalMatrix);
+                            }
+                            else
+                            {
+                                var normalMatrix = Matrix.Transpose(Matrix.Invert(combinedTransform));
+                                geo.TransformVertex(i, combinedTransform, normalMatrix);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // No falloff - transform only edge vertices
+                        foreach (var vertIdx in _faceVertexIndices)
+                        {
+                            var combinedTransform = Matrix.CreateTranslation(-objCenter) * transform * Matrix.CreateTranslation(objCenter);
+
+                            if (gizmoMode == GizmoMode.Translate)
+                                geo.TransformVertexTranslation(vertIdx, combinedTransform);
+                            else if (gizmoMode == GizmoMode.Rotate)
+                            {
+                                var normalMatrix = Matrix.Transpose(Matrix.Invert(combinedTransform));
+                                geo.TransformVertexRotation(vertIdx, combinedTransform, normalMatrix);
+                            }
+                            else
+                            {
+                                var normalMatrix = Matrix.Transpose(Matrix.Invert(combinedTransform));
+                                geo.TransformVertex(vertIdx, combinedTransform, normalMatrix);
+                            }
+                        }
+                    }
+                }
 
                 geo.RebuildVertexBuffer();
             }
@@ -477,6 +641,65 @@ namespace GameWorld.Core.Components.Gizmo
             _invertedWindingOrder = false;
         }
 
+        /// <summary>
+        /// Set falloff distance for face/edge mode proportional editing
+        /// </summary>
+        public void SetFalloffDistance(float distance)
+        {
+            _falloffDistance = distance;
+            ComputeFalloffWeights();
+        }
+
+        /// <summary>
+        /// Compute falloff weights for all vertices based on distance from selected face/edge vertices.
+        /// Weight = 1.0 for directly selected vertices, linearly falloff to 0 at _falloffDistance.
+        /// </summary>
+        void ComputeFalloffWeights()
+        {
+            if (_faceVertexIndices == null || _faceVertexIndices.Count == 0 || _falloffDistance <= 0 || _effectedObjects == null || _effectedObjects.Count == 0)
+                return;
+
+            _falloffWeights = new Dictionary<int, float>();
+            var geo = _effectedObjects[0];
+            var vertexArray = geo.VertexArray;
+            var vertCount = geo.VertexCount();
+
+            // Pre-compute selected vertex positions
+            var selectedPositions = new Vector3[_faceVertexIndices.Count];
+            int idx = 0;
+            foreach (var vertIdx in _faceVertexIndices)
+            {
+                var pos = vertexArray[vertIdx].Position;
+                selectedPositions[idx++] = new Vector3(pos.X, pos.Y, pos.Z);
+            }
+
+            // Compute weights for all vertices
+            for (int i = 0; i < vertCount; i++)
+            {
+                if (_faceVertexIndices.Contains(i))
+                {
+                    _falloffWeights[i] = 1.0f;
+                }
+                else
+                {
+                    var pos = vertexArray[i].Position;
+                    var currentPos = new Vector3(pos.X, pos.Y, pos.Z);
+                    float minDist = float.MaxValue;
+                    for (int j = 0; j < selectedPositions.Length; j++)
+                    {
+                        var dx = currentPos.X - selectedPositions[j].X;
+                        var dy = currentPos.Y - selectedPositions[j].Y;
+                        var dz = currentPos.Z - selectedPositions[j].Z;
+                        var distSq = dx * dx + dy * dy + dz * dz;
+                        if (distSq < minDist) minDist = distSq;
+                    }
+                    var dist = MathF.Sqrt(minDist);
+                    if (dist <= _falloffDistance)
+                        _falloffWeights[i] = 1.0f - dist / _falloffDistance;
+                }
+            }
+        }
+
         #endregion
 
         public static TransformGizmoWrapper CreateFromSelectionState(ISelectionState state, CommandFactory commandFactory)
@@ -491,6 +714,16 @@ namespace GameWorld.Core.Components.Gizmo
             {
                 if (vertexSelectionState.SelectedVertices.Count != 0)
                     return new TransformGizmoWrapper(commandFactory, new List<MeshObject>() { vertexSelectionState.RenderObject.Geometry }, vertexSelectionState);
+            }
+            else if (state is FaceSelectionState faceSelectionState)
+            {
+                if (faceSelectionState.SelectedFaces.Count != 0 && faceSelectionState.RenderObject != null)
+                    return new TransformGizmoWrapper(commandFactory, new List<MeshObject>() { faceSelectionState.RenderObject.Geometry }, faceSelectionState);
+            }
+            else if (state is EdgeSelectionState edgeSelectionState)
+            {
+                if (edgeSelectionState.SelectedEdges.Count != 0 && edgeSelectionState.RenderObject != null)
+                    return new TransformGizmoWrapper(commandFactory, new List<MeshObject>() { edgeSelectionState.RenderObject.Geometry }, edgeSelectionState);
             }
             else if (state is BoneSelectionState boneSelectionState)
             {

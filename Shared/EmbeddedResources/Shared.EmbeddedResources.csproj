@@ -72,6 +72,10 @@
     <None Remove="Resources\Icons\Kitbasher\SelectionMode_face.png" />
     <None Remove="Resources\Icons\Kitbasher\SelectionMode_object.png" />
     <None Remove="Resources\Icons\Kitbasher\SelectionMode_Vertex.png" />
+    <None Remove="Resources\Icons\Kitbasher\vertex_select.png" />
+    <None Remove="Resources\Icons\Kitbasher\edge_select.png" />
+    <None Remove="Resources\Icons\Kitbasher\face_select.png" />
+    <None Remove="Resources\Icons\Kitbasher\blender-2.png" />
     <None Remove="Resources\Icons\Kitbasher\ShowSelection.png" />
     <None Remove="Resources\Icons\Kitbasher\SnapVertex.png" />
     <None Remove="Resources\Icons\Kitbasher\tool_combine.png" />
@@ -271,6 +275,27 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Icons\icons8-xml-file-48.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Icons\Kitbasher\BlenderHelp.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Icons\Kitbasher\blender-2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Icons\Kitbasher\edge_select.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Icons\Kitbasher\vertex_select.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Icons\Kitbasher\face_select.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Icons\Kitbasher\proportional_off.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Icons\Kitbasher\proportional_on.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Icons\Kitbasher\Camera_Focus.png">

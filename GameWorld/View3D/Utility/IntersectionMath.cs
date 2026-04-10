@@ -269,5 +269,156 @@ namespace GameWorld.Core.Utility
             Vector3.Transform(corners, ref matrix, corners);
             return BoundingBox.CreateFromPoints(corners);
         }
+
+        /// <summary>
+        /// Pick an edge by ray-to-line-segment distance test.
+        /// Returns the closest edge as ordered pair (min(v0,v1), max(v0,v1)).
+        /// </summary>
+        public static float? IntersectEdge(Ray ray, MeshObject geometry, Vector3 cameraPos, Matrix matrix, out (int v0, int v1) selectedEdge)
+        {
+            selectedEdge = (-1, -1);
+            var inverseTransform = Matrix.Invert(matrix);
+            ray.Position = Vector3.Transform(ray.Position, inverseTransform);
+            ray.Direction = Vector3.TransformNormal(ray.Direction, inverseTransform);
+            cameraPos = Vector3.Transform(cameraPos, inverseTransform);
+
+            var bestDistance = float.MaxValue;
+            var edgeThreshold = 0.0025f; // Base threshold
+
+            // Build unique edges from triangle index buffer
+            var processedEdges = new HashSet<(int, int)>();
+            var indexBuffer = geometry.IndexArray;
+
+            for (var i = 0; i < indexBuffer.Length; i += 3)
+            {
+                var i0 = indexBuffer[i];
+                var i1 = indexBuffer[i + 1];
+                var i2 = indexBuffer[i + 2];
+
+                var edges = new[] { (Math.Min(i0, i1), Math.Max(i0, i1)), (Math.Min(i1, i2), Math.Max(i1, i2)), (Math.Min(i0, i2), Math.Max(i0, i2)) };
+
+                foreach (var edge in edges)
+                {
+                    if (processedEdges.Contains(edge))
+                        continue;
+                    processedEdges.Add(edge);
+
+                    var p0 = geometry.GetVertexById(edge.Item1);
+                    var p1 = geometry.GetVertexById(edge.Item2);
+
+                    var midPoint = (p0 + p1) * 0.5f;
+                    var distToCamera = (cameraPos - midPoint).Length();
+                    var scaledThreshold = edgeThreshold * distToCamera * 1.5f;
+
+                    var dist = RayToLineSegmentDistance(ray, p0, p1);
+                    if (dist < scaledThreshold && dist < bestDistance)
+                    {
+                        bestDistance = dist;
+                        selectedEdge = edge;
+                    }
+                }
+            }
+
+            if (selectedEdge.Item1 == -1)
+                return null;
+
+            return bestDistance;
+        }
+
+        /// <summary>
+        /// Pick edges within a frustum (for rectangle selection).
+        /// </summary>
+        public static bool IntersectEdges(BoundingFrustum boundingFrustum, MeshObject geometry, Matrix matrix, out List<(int v0, int v1)> edges)
+        {
+            edges = new List<(int, int)>();
+            var processedEdges = new HashSet<(int, int)>();
+            var indexBuffer = geometry.IndexArray;
+
+            // Pre-transform all vertices
+            var vertCount = geometry.VertexArray.Length;
+            var transformedVerts = new Vector3[vertCount];
+            for (var i = 0; i < vertCount; i++)
+                transformedVerts[i] = Vector3.Transform(geometry.GetVertexById(i), matrix);
+
+            for (var i = 0; i < indexBuffer.Length; i += 3)
+            {
+                var i0 = indexBuffer[i];
+                var i1 = indexBuffer[i + 1];
+                var i2 = indexBuffer[i + 2];
+
+                var edgeList = new[] { (Math.Min(i0, i1), Math.Max(i0, i1)), (Math.Min(i1, i2), Math.Max(i1, i2)), (Math.Min(i0, i2), Math.Max(i0, i2)) };
+
+                foreach (var edge in edgeList)
+                {
+                    if (processedEdges.Contains(edge))
+                        continue;
+                    processedEdges.Add(edge);
+
+                    // Edge is selected if both vertices are in frustum
+                    if (boundingFrustum.Contains(transformedVerts[edge.Item1]) != ContainmentType.Disjoint &&
+                        boundingFrustum.Contains(transformedVerts[edge.Item2]) != ContainmentType.Disjoint)
+                    {
+                        edges.Add(edge);
+                    }
+                }
+            }
+
+            if (edges.Count == 0)
+                return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Calculate minimum distance from a ray to a line segment in 3D.
+        /// Uses the closest approach of two lines, clamped to segment endpoints.
+        /// </summary>
+        static float RayToLineSegmentDistance(Ray ray, Vector3 segStart, Vector3 segEnd)
+        {
+            var rayDir = ray.Direction;
+            var segDir = segEnd - segStart;
+            var segLength = segDir.Length();
+
+            if (segLength < 0.0001f)
+            {
+                // Degenerate edge (zero-length)
+                var toPoint = segStart - ray.Position;
+                var projection = Vector3.Dot(toPoint, rayDir);
+                var closestOnRay = ray.Position + rayDir * projection;
+                return (closestOnRay - segStart).Length();
+            }
+
+            segDir /= segLength; // Normalize
+
+            var w0 = ray.Position - segStart;
+            var a = Vector3.Dot(rayDir, rayDir);     // 1 (ray direction is normalized)
+            var b = Vector3.Dot(rayDir, segDir);
+            var c = Vector3.Dot(segDir, segDir);      // 1 (seg direction is normalized)
+            var d = Vector3.Dot(rayDir, w0);
+            var e = Vector3.Dot(segDir, w0);
+
+            var denom = a * c - b * b;
+
+            float s, t;
+            if (denom < 0.0001f)
+            {
+                // Lines are nearly parallel
+                s = 0f;
+                t = d / b;
+            }
+            else
+            {
+                s = (b * e - c * d) / denom;
+                t = (a * e - b * d) / denom;
+            }
+
+            // Clamp t to segment
+            t = MathHelper.Clamp(t, 0f, segLength);
+
+            // Calculate closest points on ray and segment
+            var rayPt = ray.Position + rayDir * s;
+            var segPt = segStart + segDir * t;
+
+            return (rayPt - segPt).Length();
+        }
     }
 }

@@ -14,6 +14,11 @@ namespace GameWorld.Core.Commands.Vertex
         public Matrix Transform { get; set; }
         public bool InvertWindingOrder { get; set; } = false;
 
+        // Affected vertex indices for Face/Edge mode undo (null = all vertices, used by Object mode)
+        public HashSet<int> AffectedVertexIndices { get; set; } = null;
+        // Falloff weights for proportional editing undo (null = no falloff)
+        public Dictionary<int, float> FalloffWeights { get; set; } = null;
+
         SelectionManager _selectionManager;
         ISelectionState _oldSelectionState;
 
@@ -64,8 +69,32 @@ namespace GameWorld.Core.Commands.Vertex
                         }
                     }
                 }
+                else if (AffectedVertexIndices != null && FalloffWeights != null && FalloffWeights.Count > 0)
+                {
+                    // Face/Edge mode with falloff: per-vertex weighted inverse
+                    // Uses scale/rot/trans already decomposed at the top
+                    foreach (var kvp in FalloffWeights)
+                    {
+                        var vertIdx = kvp.Key;
+                        var weight = kvp.Value;
+                        var vertexScale = Vector3.Lerp(Vector3.One, scale, weight);
+                        var vertRot = Quaternion.Slerp(Quaternion.Identity, rot, weight);
+                        var vertTrans = trans * weight;
+                        var weightedUndoTransform = Matrix.CreateScale(vertexScale) * Matrix.CreateFromQuaternion(vertRot) * Matrix.CreateTranslation(vertTrans);
+                        var finalMatrix = Matrix.CreateTranslation(-PivotPoint) * Matrix.Invert(weightedUndoTransform) * Matrix.CreateTranslation(PivotPoint);
+                        geo.TransformVertex(vertIdx, finalMatrix);
+                    }
+                }
+                else if (AffectedVertexIndices != null)
+                {
+                    // Face/Edge mode without falloff: only undo vertices that were actually transformed
+                    var undoMatrix = Matrix.CreateTranslation(-PivotPoint) * Matrix.Invert(Transform) * Matrix.CreateTranslation(PivotPoint);
+                    foreach (var vertIdx in AffectedVertexIndices)
+                        geo.TransformVertex(vertIdx, undoMatrix);
+                }
                 else
                 {
+                    // Object mode: undo all vertices
                     var undoMatrix = Matrix.CreateTranslation(-PivotPoint) * Matrix.Invert(Transform) * Matrix.CreateTranslation(PivotPoint);
                     for (var v = 0; v < geo.VertexCount(); v++)
                         geo.TransformVertex(v, undoMatrix);

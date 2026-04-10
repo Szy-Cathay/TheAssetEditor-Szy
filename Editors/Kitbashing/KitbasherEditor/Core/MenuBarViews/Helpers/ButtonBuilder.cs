@@ -23,10 +23,10 @@ namespace KitbasherEditor.ViewModels.MenuBarViews.Helpers
             _menuBarButtons.Add(new MenuBarButton(action) { Image = image, ShowRule = buttonVisibilityRule });
         }
 
-        public void CreateGroupedButton<T>(string groupName, bool isChecked, BitmapImage image) where T : IKitbasherUiCommand
+        public void CreateGroupedButton<T>(string groupName, bool isChecked, BitmapImage image, ButtonVisibilityRule buttonVisibilityRule = ButtonVisibilityRule.Always) where T : IKitbasherUiCommand
         {
             var action = GetMenuAction<T>();
-            _menuBarButtons.Add(new MenuBarGroupButton(action, groupName, isChecked) { Image = image });
+            _menuBarButtons.Add(new MenuBarGroupButton(action, groupName, isChecked) { Image = image, ShowRule = buttonVisibilityRule });
         }
 
         public void CreateButtonSeparator()

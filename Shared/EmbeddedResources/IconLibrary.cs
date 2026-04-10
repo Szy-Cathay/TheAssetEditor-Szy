@@ -28,9 +28,10 @@ namespace Shared.EmbeddedResources
         [AllowNull]public static BitmapImage Gizmo_RotateIcon { get; private set; }
         [AllowNull]public static BitmapImage Gizmo_ScaleIcon { get; private set; }
 
-        [AllowNull]public static BitmapImage Selection_Object_Icon { get; private set; } 
-        [AllowNull]public static BitmapImage Selection_Face_Icon { get; private set; } 
+        [AllowNull]public static BitmapImage Selection_Object_Icon { get; private set; }
+        [AllowNull]public static BitmapImage Selection_Face_Icon { get; private set; }
         [AllowNull]public static BitmapImage Selection_Vertex_Icon { get; private set; }
+        [AllowNull] public static BitmapImage Selection_Edge_Icon { get; private set; }
 
         [AllowNull]public static BitmapImage ViewSelectedIcon { get; private set; } 
 
@@ -53,6 +54,10 @@ namespace Shared.EmbeddedResources
         [AllowNull]public static BitmapImage FaceToVertexIcon { get; private set; } 
         [AllowNull]public static BitmapImage MergeVertexIcon { get; private set; } 
         [AllowNull]public static BitmapImage VertexDebuggerIcon { get; private set; }
+        [AllowNull] public static BitmapImage HelpIcon { get; private set; }
+
+        [AllowNull] public static BitmapImage ProportionalOffIcon { get; private set; }
+        [AllowNull] public static BitmapImage ProportionalOnIcon { get; private set; }
 
         [AllowNull] public static BitmapSource InformationIcon { get; private set; }
 
@@ -82,8 +87,9 @@ namespace Shared.EmbeddedResources
             Gizmo_ScaleIcon = BitmapToImageSource(@"Kitbasher.Gizmo_scale.png");
 
             Selection_Object_Icon = BitmapToImageSource(@"Kitbasher.SelectionMode_object.png");
-            Selection_Face_Icon = BitmapToImageSource(@"Kitbasher.SelectionMode_face.png");
-            Selection_Vertex_Icon = BitmapToImageSource(@"Kitbasher.SelectionMode_Vertex.png");
+            Selection_Face_Icon = BitmapToImageSource(@"Kitbasher.face_select.png");
+            Selection_Vertex_Icon = BitmapToImageSource(@"Kitbasher.vertex_select.png");
+            Selection_Edge_Icon = BitmapToImageSource(@"Kitbasher.edge_select.png");
 
             ViewSelectedIcon = BitmapToImageSource(@"Kitbasher.ShowSelection.png");
 
@@ -107,6 +113,10 @@ namespace Shared.EmbeddedResources
             FaceToVertexIcon = BitmapToImageSource(@"Kitbasher.FaceToVertex.png");
             MergeVertexIcon = BitmapToImageSource(@"Kitbasher.tool_mergeVertex.png");
             VertexDebuggerIcon = BitmapToImageSource(@"icons8-question-mark-48.png");
+            HelpIcon = BitmapToImageSource(@"Kitbasher.blender-2.png");
+
+            ProportionalOffIcon = BitmapToImageSource(@"Kitbasher.proportional_off.png");
+            ProportionalOnIcon = BitmapToImageSource(@"Kitbasher.proportional_on.png");
 
             InformationIcon = BitmapToImageSource(SystemIcons.Information);
 

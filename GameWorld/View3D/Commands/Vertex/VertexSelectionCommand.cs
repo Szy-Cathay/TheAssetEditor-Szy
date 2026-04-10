@@ -19,7 +19,7 @@ namespace GameWorld.Core.Commands.Vertex
 
 
         public string HintText { get => "Select Vertex"; }
-        public bool IsMutation { get => false; }
+        public bool IsMutation { get => true; }
 
 
         public void Configure(List<int> selectedVertices, bool isAdd, bool isRemove)

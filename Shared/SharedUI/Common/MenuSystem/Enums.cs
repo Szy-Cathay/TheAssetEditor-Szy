@@ -21,5 +21,6 @@
         ObjectMode,
         FaceMode,
         VertexMode,
+        EditMode,  // Visible in Vertex/Face/Edge edit modes, hidden in Object mode
     }
 }

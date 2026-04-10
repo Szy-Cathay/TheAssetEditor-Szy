@@ -7,6 +7,7 @@ using GameWorld.Core.SceneNodes;
 using GameWorld.Core.Services;
 using GameWorld.Core.Utility;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Shared.Core.Events;
 
 namespace GameWorld.Core.Components.Selection
@@ -77,6 +78,10 @@ namespace GameWorld.Core.Components.Selection
                     _currentState = new FaceSelectionState();
                     break;
 
+                case GeometrySelectionMode.Edge:
+                    _currentState = new EdgeSelectionState();
+                    break;
+
                 case GeometrySelectionMode.Vertex:
                     _currentState = new VertexSelectionState(selectedObj, _vertexSelectionFalloff);
                     break;
@@ -143,6 +148,24 @@ namespace GameWorld.Core.Components.Selection
                 var vertexObject = selectionVertexState.RenderObject as Rmv2MeshNode;
                 _renderEngine.AddRenderItem(RenderBuckedId.Normal, new VertexRenderItem() { Node = vertexObject, ModelMatrix = vertexObject.RenderMatrix, SelectedVertices = selectionVertexState, VertexRenderer = _vertexRenderer });
                 _renderEngine.AddRenderItem(RenderBuckedId.Wireframe, new GeometryRenderItem(vertexObject.Geometry, _wireframeEffect, vertexObject.RenderMatrix));
+            }
+
+            if (selectionState is EdgeSelectionState selectionEdgeState && selectionEdgeState.RenderObject is Rmv2MeshNode edgeNode)
+            {
+                _renderEngine.AddRenderItem(RenderBuckedId.Wireframe, new GeometryRenderItem(edgeNode.Geometry, _wireframeEffect, edgeNode.RenderMatrix));
+                // Render selected edges as highlighted line segments
+                var geometry = edgeNode.Geometry;
+                var matrix = edgeNode.RenderMatrix;
+                foreach (var edge in selectionEdgeState.SelectedEdges)
+                {
+                    var p0 = Vector3.Transform(geometry.GetVertexById(edge.v0), matrix);
+                    var p1 = Vector3.Transform(geometry.GetVertexById(edge.v1), matrix);
+                    _renderEngine.AddRenderLines(new VertexPositionColor[]
+                    {
+                        new VertexPositionColor(p0, Color.Orange),
+                        new VertexPositionColor(p1, Color.Orange)
+                    });
+                }
             }
 
             if (selectionState is BoneSelectionState selectionBoneState && selectionBoneState.RenderObject != null)
@@ -214,6 +237,8 @@ namespace GameWorld.Core.Components.Selection
             if (vertexSelectionState != null)
                 vertexSelectionState.UpdateWeights(_vertexSelectionFalloff);
         }
+
+        public float VertexSelectionFalloff => _vertexSelectionFalloff;
     }
 }
 

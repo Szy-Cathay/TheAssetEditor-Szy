@@ -25,7 +25,9 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
     {
         public ObservableCollection<ToolbarItem> MenuItems { get; set; } = new ObservableCollection<ToolbarItem>();
         public ObservableCollection<MenuBarButton> CustomButtons { get; set; } = new ObservableCollection<MenuBarButton>();
+        public ObservableCollection<MenuBarButton> SidebarButtons { get; set; } = new ObservableCollection<MenuBarButton>();
         public TransformToolViewModel TransformTool { get; set; }
+        public ProportionalEditingViewModel ProportionalEditing { get; set; }
 
         private readonly IUiCommandFactory _uiCommandFactory;
         private readonly CommandExecutor _commandExecutor;
@@ -34,17 +36,19 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
         private readonly WindowKeyboard _keyboard;
         private readonly Dictionary<Type, MenuAction> _uiCommands = new();
 
-        public MenuBarViewModel(CommandExecutor commandExecutor, IEventHub eventHub, MenuItemVisibilityRuleEngine menuItemVisibilityRuleEngine, TransformToolViewModel transformToolViewModel,IUiCommandFactory uiCommandFactory, WindowKeyboard windowKeyboard)
+        public MenuBarViewModel(CommandExecutor commandExecutor, IEventHub eventHub, MenuItemVisibilityRuleEngine menuItemVisibilityRuleEngine, TransformToolViewModel transformToolViewModel, IUiCommandFactory uiCommandFactory, WindowKeyboard windowKeyboard, SelectionManager selectionManager)
         {
             _commandExecutor = commandExecutor;
             _menuItemVisibilityRuleEngine = menuItemVisibilityRuleEngine;
             _uiCommandFactory = uiCommandFactory;
             _keyboard = windowKeyboard;
             TransformTool = transformToolViewModel;
+            ProportionalEditing = new ProportionalEditingViewModel(selectionManager, eventHub);
 
             RegisterActions();
             RegisterHotkeys();
             CustomButtons = CreateButtons();
+            SidebarButtons = CreateSidebarButtons();
             MenuItems = CreateToolbarMenu();
 
             eventHub.Register<CommandStackChangedEvent>(this, OnUndoStackChanged);
@@ -82,6 +86,7 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
             RegisterUiCommand<ResetCameraCommand>();
             RegisterUiCommand<FocusCameraCommand>();
             RegisterUiCommand<OpenRenderSettingsWindowCommand>();
+            RegisterUiCommand<OpenBlenderShortcutsHelpCommand>();
 
             RegisterUiCommand<DivideSubMeshCommand>();
             RegisterUiCommand<MergeObjectsCommand>();
@@ -141,17 +146,6 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
             builder.CreateButton<RedoCommand>(IconLibrary.UndoIcon);  // TODO: Create dedicated Redo icon
             builder.CreateButtonSeparator();
 
-            // Gizmo buttons
-            builder.CreateGroupedButton<SelectGizmoModeCommand>("Gizmo", true, IconLibrary.Gizmo_CursorIcon);
-            builder.CreateGroupedButton<MoveGizmoModeCommand>("Gizmo", false, IconLibrary.Gizmo_MoveIcon);
-            builder.CreateGroupedButton<RotateGizmoModeCommand>("Gizmo", false, IconLibrary.Gizmo_RotateIcon);
-            builder.CreateGroupedButton<ScaleGizmoModeCommand>("Gizmo", false, IconLibrary.Gizmo_ScaleIcon);
-            builder.CreateButtonSeparator();
-
-            // Selection buttons
-            builder.CreateGroupedButton<ObjectSelectionModeCommand>("SelectionMode", true, IconLibrary.Selection_Object_Icon);
-            builder.CreateGroupedButton<FaceSelectionModeCommand>("SelectionMode", false, IconLibrary.Selection_Face_Icon);
-            builder.CreateGroupedButton<VertexSelectionModeCommand>("SelectionMode", false, IconLibrary.Selection_Vertex_Icon);
             builder.CreateButton<ToggleViewSelectedCommand>(IconLibrary.ViewSelectedIcon);
             builder.CreateButtonSeparator();
 
@@ -163,7 +157,6 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
             builder.CreateButton<CreateStaticMeshCommand>(IconLibrary.FreezeAnimationIcon, ButtonVisibilityRule.ObjectMode);
             builder.CreateButtonSeparator();
             builder.CreateButton<ReduceMeshCommand>(IconLibrary.ReduceMeshIcon, ButtonVisibilityRule.ObjectMode);
-            //builder.CreateButton<OpenBmiToolCommand>(ResourceController.BmiToolIcon, ButtonVisibilityRule.ObjectMode);    <-- Disabled to see if anyone complains. Plan is to delete it
             builder.CreateButton<OpenSkeletonReshaperToolCommand>(IconLibrary.SkeletonReshaperIcon, ButtonVisibilityRule.ObjectMode);
             builder.CreateButton<OpenReriggingToolCommand>(IconLibrary.ReRiggingIcon, ButtonVisibilityRule.ObjectMode);
             builder.CreateButton<OpenPinToolCommand>(IconLibrary.PinIcon, ButtonVisibilityRule.ObjectMode);
@@ -178,7 +171,29 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
 
             // Vertex buttons
             builder.CreateButton<OpenVertexDebuggerCommand>(IconLibrary.VertexDebuggerIcon, ButtonVisibilityRule.VertexMode);
-            
+
+            builder.CreateButtonSeparator();
+            builder.CreateButton<OpenBlenderShortcutsHelpCommand>(IconLibrary.HelpIcon);
+
+            return builder.Build();
+        }
+
+        ObservableCollection<MenuBarButton> CreateSidebarButtons()
+        {
+            var builder = new ButtonBuilder(_uiCommands);
+
+            // Gizmo tools (Blender-style left sidebar, always visible)
+            builder.CreateGroupedButton<SelectGizmoModeCommand>("Gizmo", true, IconLibrary.Gizmo_CursorIcon);
+            builder.CreateGroupedButton<MoveGizmoModeCommand>("Gizmo", false, IconLibrary.Gizmo_MoveIcon);
+            builder.CreateGroupedButton<RotateGizmoModeCommand>("Gizmo", false, IconLibrary.Gizmo_RotateIcon);
+            builder.CreateGroupedButton<ScaleGizmoModeCommand>("Gizmo", false, IconLibrary.Gizmo_ScaleIcon);
+            builder.CreateButtonSeparator();
+
+            // Selection modes - Object mode always visible, sub-modes only in edit mode
+            builder.CreateGroupedButton<ObjectSelectionModeCommand>("SelectionMode", true, IconLibrary.Selection_Object_Icon);
+            builder.CreateGroupedButton<VertexSelectionModeCommand>("SelectionMode", false, IconLibrary.Selection_Vertex_Icon, ButtonVisibilityRule.EditMode);
+            builder.CreateGroupedButton<FaceSelectionModeCommand>("SelectionMode", false, IconLibrary.Selection_Face_Icon, ButtonVisibilityRule.EditMode);
+
             return builder.Build();
         }
 
@@ -237,11 +252,19 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
                 GetMenuAction<FaceSelectionModeCommand>().TriggerAction();
             else if (state.Mode == GeometrySelectionMode.Vertex)
                 GetMenuAction<VertexSelectionModeCommand>().TriggerAction();
+            else if (state.Mode == GeometrySelectionMode.Bone)
+            {
+                // Bone mode - no sidebar button for this, just skip trigger
+            }
             else
                 throw new NotImplementedException("Unknown state");
 
             // Validate if tool button is visible
             foreach (var button in CustomButtons)
+                _menuItemVisibilityRuleEngine.Validate(button);
+
+            // Validate if sidebar buttons visibility (EditMode rule)
+            foreach (var button in SidebarButtons)
                 _menuItemVisibilityRuleEngine.Validate(button);
 
             // Validate if menu action is enabled

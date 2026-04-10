@@ -1,5 +1,6 @@
 ﻿using System;
 using GameWorld.Core.Commands;
+using GameWorld.Core.Commands.Object;
 using GameWorld.Core.Components.Input;
 using GameWorld.Core.Components.Rendering;
 using GameWorld.Core.Components.Selection;
@@ -27,6 +28,10 @@ namespace GameWorld.Core.Components.Gizmo
         bool _isEnabled = false;
         TransformGizmoWrapper _activeTransformation;
         bool _isCtrlPressed = false;
+
+        // Edit mode state (Tab to toggle, 1/2/3 for sub-modes)
+        private bool _isInEditMode = false;
+        private GeometrySelectionMode _lastEditSubMode = GeometrySelectionMode.Vertex;
 
 
         public GizmoComponent(IEventHub eventHub,
@@ -72,7 +77,12 @@ namespace GameWorld.Core.Components.Gizmo
             _gizmo.Selection.Clear();
             _activeTransformation = TransformGizmoWrapper.CreateFromSelectionState(state, _commandFactory);
             if (_activeTransformation != null)
+            {
+                // Pass falloff value for face/edge mode proportional editing
+                if (state is FaceSelectionState || state is EdgeSelectionState)
+                    _activeTransformation.SetFalloffDistance(_selectionManager.VertexSelectionFalloff);
                 _gizmo.Selection.Add(_activeTransformation);
+            }
 
             _gizmo.ResetDeltas();
             // Note: Don't auto-enable Gizmo here - user must click toolbar icon first
@@ -97,6 +107,9 @@ namespace GameWorld.Core.Components.Gizmo
             // Only set mouse owner, don't start command here
             // Command will be started in GizmoTransformEnd for confirm
             _mouse.MouseOwner = this;
+            // Update falloff on active transformation when starting transform
+            if (_activeTransformation != null && _selectionManager.GetState() is FaceSelectionState or EdgeSelectionState)
+                _activeTransformation.SetFalloffDistance(_selectionManager.VertexSelectionFalloff);
         }
 
         private void GizmoTransformEnd()
@@ -194,6 +207,29 @@ namespace GameWorld.Core.Components.Gizmo
                 }
             }
 
+            // Tab = Toggle edit mode (Object <-> last sub-mode)
+            // Only when not in modal transform
+            if (!_gizmo.IsInModalTransform && _keyboard.IsKeyReleased(Keys.Tab))
+            {
+                HandleEditModeToggle();
+                return;
+            }
+
+            // 1/3 = Switch sub-mode in edit mode (Blender: 1=Vertex, 3=Face)
+            if (_isInEditMode && !_gizmo.IsInModalTransform)
+            {
+                if (_keyboard.IsKeyReleased(Keys.D1))
+                {
+                    SwitchEditSubMode(GeometrySelectionMode.Vertex);
+                    return;
+                }
+                if (_keyboard.IsKeyReleased(Keys.D2))
+                {
+                    SwitchEditSubMode(GeometrySelectionMode.Face);
+                    return;
+                }
+            }
+
             // Alt+Z to toggle viewport shading mode (Textured → Solid → Wireframe)
             // Only when NOT in modal transform and NOT dragging gizmo
             if (!_gizmo.IsInModalTransform && !_isEnabled)
@@ -233,6 +269,59 @@ namespace GameWorld.Core.Components.Gizmo
 
             var isCameraMoving2 = _keyboard.IsKeyDown(Keys.LeftAlt);
             _gizmo.Update(gameTime, !isCameraMoving2);
+        }
+
+        /// <summary>
+        /// Toggle edit mode (Tab key, Blender behavior)
+        /// Object mode -> edit mode (last sub-mode or vertex)
+        /// Edit mode -> object mode
+        /// </summary>
+        private void HandleEditModeToggle()
+        {
+            var currentMode = _selectionManager.GetState().Mode;
+
+            if (currentMode == GeometrySelectionMode.Object)
+            {
+                // Enter edit mode: switch to last sub-mode (or vertex by default)
+                var selectedObj = _selectionManager.GetState().GetSingleSelectedObject();
+                if (selectedObj == null)
+                    return; // Need an object selected to enter edit mode
+
+                _commandFactory.Create<ObjectSelectionModeCommand>()
+                    .Configure(x => x.Configure(selectedObj, _lastEditSubMode))
+                    .BuildAndExecute();
+                _isInEditMode = true;
+            }
+            else if (currentMode == GeometrySelectionMode.Face || currentMode == GeometrySelectionMode.Edge || currentMode == GeometrySelectionMode.Vertex || currentMode == GeometrySelectionMode.Bone)
+            {
+                // Save current sub-mode for next time
+                _lastEditSubMode = currentMode;
+                // Exit to object mode
+                var selectedObj = _selectionManager.GetState().GetSingleSelectedObject();
+                _commandFactory.Create<ObjectSelectionModeCommand>()
+                    .Configure(x => x.Configure(selectedObj, GeometrySelectionMode.Object))
+                    .BuildAndExecute();
+                _isInEditMode = false;
+            }
+        }
+
+        /// <summary>
+        /// Switch sub-mode within edit mode (1/2/3 keys, Blender behavior)
+        /// </summary>
+        private void SwitchEditSubMode(GeometrySelectionMode newMode)
+        {
+            var currentMode = _selectionManager.GetState().Mode;
+            if (currentMode == newMode)
+                return;
+
+            var selectedObj = _selectionManager.GetState().GetSingleSelectedObject();
+            if (selectedObj == null)
+                return;
+
+            _commandFactory.Create<ObjectSelectionModeCommand>()
+                .Configure(x => x.Configure(selectedObj, newMode))
+                .BuildAndExecute();
+            _lastEditSubMode = newMode;
         }
 
         /// <summary>

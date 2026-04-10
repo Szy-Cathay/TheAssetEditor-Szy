@@ -19,6 +19,7 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
             _buttonVisabilityRules[ButtonVisibilityRule.ObjectMode] = IsObjectMode;
             _buttonVisabilityRules[ButtonVisibilityRule.FaceMode] = IsFaceMode;
             _buttonVisabilityRules[ButtonVisibilityRule.VertexMode] = IsVertexMode;
+            _buttonVisabilityRules[ButtonVisibilityRule.EditMode] = IsEditMode;
 
             _actionEnabledRules[ActionEnabledRule.Always] = AllwaysTrueRule;
             _actionEnabledRules[ActionEnabledRule.OneObjectSelected] = OneObjectSelectedRule;
@@ -36,6 +37,7 @@ namespace KitbasherEditor.ViewModels.MenuBarViews
         bool IsObjectMode() => _selectionManager.GetState().Mode == GeometrySelectionMode.Object;
         bool IsFaceMode() => _selectionManager.GetState().Mode == GeometrySelectionMode.Face;
         bool IsVertexMode() => _selectionManager.GetState().Mode == GeometrySelectionMode.Vertex;
+        bool IsEditMode() => _selectionManager.GetState().Mode != GeometrySelectionMode.Object;
         bool AllwaysTrueRule() => true;
 
         bool OneObjectSelectedRule() => IsObjectMode() && _selectionManager.GetState().SelectionCount() == 1;

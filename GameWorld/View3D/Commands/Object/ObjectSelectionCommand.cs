@@ -19,7 +19,7 @@ namespace GameWorld.Core.Commands.Object
         List<ISelectable> _items { get; set; } = new List<ISelectable>();
 
         public string HintText { get => "Object Selected"; }
-        public bool IsMutation { get => false; }
+        public bool IsMutation { get => true; }
 
         public ObjectSelectionCommand(SelectionManager selectionManager)
         {

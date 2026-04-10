@@ -5,6 +5,7 @@ using System.Resources;
 using System.Windows.Forms;
 using GameWorld.Core.Commands;
 using GameWorld.Core.Commands.Bone;
+using GameWorld.Core.Commands.Edge;
 using GameWorld.Core.Commands.Face;
 using GameWorld.Core.Commands.Object;
 using GameWorld.Core.Commands.Vertex;
@@ -155,18 +156,18 @@ namespace GameWorld.Core.Components.Selection
             if (currentState.Mode == GeometrySelectionMode.Face && currentState is FaceSelectionState faceState)
             {
                 if (IntersectionMath.IntersectFaces(unprojectedSelectionRect, faceState.RenderObject.Geometry, faceState.RenderObject.RenderMatrix, out var faces))
-                {
                     _commandFactory.Create<FaceSelectionCommand>().Configure(x => x.Configure(faces, isSelectionModification, removeSelection)).BuildAndExecute();
-                    return;
-                }
+                else if (!isSelectionModification && !removeSelection && faceState.SelectedFaces.Count > 0)
+                    _commandFactory.Create<FaceSelectionCommand>().Configure(x => x.Configure(new List<int>(), false, false)).BuildAndExecute();
+                return;
             }
             else if (currentState.Mode == GeometrySelectionMode.Vertex && currentState is VertexSelectionState vertexState)
             {
                 if (IntersectionMath.IntersectVertices(unprojectedSelectionRect, vertexState.RenderObject.Geometry, vertexState.RenderObject.RenderMatrix, out var vertices))
-                {
                     _commandFactory.Create<VertexSelectionCommand>().Configure(x => x.Configure(vertices, isSelectionModification, removeSelection)).BuildAndExecute();
-                    return;
-                }
+                else if (!isSelectionModification && !removeSelection && vertexState.SelectedVertices.Count > 0)
+                    _commandFactory.Create<VertexSelectionCommand>().Configure(x => x.Configure(new List<int>(), false, false)).BuildAndExecute();
+                return;
             }
             else if (currentState.Mode == GeometrySelectionMode.Bone && currentState is BoneSelectionState boneState)
             {
@@ -188,15 +189,15 @@ namespace GameWorld.Core.Components.Selection
                         Console.WriteLine($"bone id: {bone}");
                     }
                     _commandFactory.Create<BoneSelectionCommand>().Configure(x => x.Configure(bones, isSelectionModification, removeSelection)).BuildAndExecute();
-                    return;
                 }
+                return;
             }
 
+            // Object mode only: pick objects
             var selectedObjects = _sceneManger.SelectObjects(unprojectedSelectionRect);
             if (selectedObjects.Count() == 0 && isSelectionModification == false)
             {
-                // Only clear selection if we are not in geometry mode and the selection count is not empty
-                if (currentState.Mode != GeometrySelectionMode.Object || currentState.SelectionCount() != 0)
+                if (currentState.SelectionCount() != 0)
                     _commandFactory.Create<ObjectSelectionCommand>().Configure(x => x.Configure(new List<ISelectable>(), false, false)).BuildAndExecute();
             }
             else if (selectedObjects != null)
@@ -209,30 +210,32 @@ namespace GameWorld.Core.Components.Selection
         {
             var ray = _camera.CreateCameraRay(mousePosition);
             var currentState = _selectionManager.GetState();
+
+            // Edit mode: handle mode-specific selection, never fall through to object picking
             if (currentState is FaceSelectionState faceState)
             {
                 if (IntersectionMath.IntersectFace(ray, faceState.RenderObject.Geometry, faceState.RenderObject.RenderMatrix, out var selectedFace) != null)
-                {
                     _commandFactory.Create<FaceSelectionCommand>().Configure(x => x.Configure(selectedFace.Value, isSelectionModification, removeSelection)).BuildAndExecute();
-                    return;
-                }
+                else if (!isSelectionModification && !removeSelection && faceState.SelectedFaces.Count > 0)
+                    _commandFactory.Create<FaceSelectionCommand>().Configure(x => x.Configure(new List<int>(), false, false)).BuildAndExecute();
+                return;
             }
 
             if (currentState is VertexSelectionState vertexState)
             {
                 if (IntersectionMath.IntersectVertex(ray, vertexState.RenderObject.Geometry, _camera.Position, vertexState.RenderObject.RenderMatrix, out var selecteVert) != null)
-                {
                     _commandFactory.Create<VertexSelectionCommand>().Configure(x => x.Configure(new List<int>() { selecteVert }, isSelectionModification, removeSelection)).BuildAndExecute();
-                    return;
-                }
+                else if (!isSelectionModification && !removeSelection && vertexState.SelectedVertices.Count > 0)
+                    _commandFactory.Create<VertexSelectionCommand>().Configure(x => x.Configure(new List<int>(), false, false)).BuildAndExecute();
+                return;
             }
 
-            // Pick object
+            // Object mode only: pick objects
             var selectedObject = _sceneManger.SelectObject(ray);
             if (selectedObject == null && isSelectionModification == false)
             {
-                // Only clear selection if we are not in geometry mode and the selection count is not empty
-                if (currentState.Mode != GeometrySelectionMode.Object || currentState.SelectionCount() != 0)
+                // Object mode: clear selection if not empty
+                if (currentState.SelectionCount() != 0)
                     _commandFactory.Create<ObjectSelectionCommand>().Configure(x => x.Configure(new List<ISelectable>(), false, false)).BuildAndExecute();
             }
             else if (selectedObject != null)
@@ -283,6 +286,21 @@ namespace GameWorld.Core.Components.Selection
             return false;
         }
 
+        public bool SetEdgeSelectionMode()
+        {
+            var selectionState = _selectionManager.GetState();
+            if (_selectionManager.GetState().Mode != GeometrySelectionMode.Edge)
+            {
+                var selectedObject = selectionState.GetSingleSelectedObject();
+                if (selectedObject != null)
+                {
+                    _commandFactory.Create<ObjectSelectionModeCommand>().Configure(x => x.Configure(selectedObject, GeometrySelectionMode.Edge)).BuildAndExecute();
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public bool SetBoneSelectionMode()
         {
             var selectionState = _selectionManager.GetState();
@@ -301,25 +319,8 @@ namespace GameWorld.Core.Components.Selection
 
         bool ChangeSelectionMode()
         {
-            if (_keyboardComponent.IsKeyReleased(Keys.F1))
-            {
-                if (SetObjectSelectionMode())
-                    return true;
-            }
-
-            else if (_keyboardComponent.IsKeyReleased(Keys.F2))
-            {
-                if (SetFaceSelectionMode())
-                    return true;
-            }
-
-            else if (_keyboardComponent.IsKeyReleased(Keys.F3))
-            {
-                if (SetVertexSelectionMode())
-                    return true;
-            }
-
-            else if (_keyboardComponent.IsKeyReleased(Keys.F9))
+            // F1/F2/F3 removed - use Tab to toggle Object/Edit mode, 1/2/3 for sub-modes (handled by GizmoComponent)
+            if (_keyboardComponent.IsKeyReleased(Keys.F9))
             {
                 if (SetBoneSelectionMode())
                     return true;
@@ -370,6 +371,167 @@ namespace GameWorld.Core.Components.Selection
                         .BuildAndExecute();
                     return true;
                 }
+            }
+
+            // Ctrl+L = Select Linked (Blender behavior: select all connected geometry)
+            if (_keyboardComponent.IsKeyDown(Keys.LeftControl) && _keyboardComponent.IsKeyReleased(Keys.L))
+            {
+                return SelectLinked(currentState);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Ctrl+L Select Linked - BFS to find all connected geometry (Blender behavior)
+        /// For faces: propagate through shared edges
+        /// For vertices: propagate through shared edges (adjacent vertices)
+        /// For edges: propagate through shared vertices
+        /// </summary>
+        bool SelectLinked(ISelectionState state)
+        {
+            if (state is FaceSelectionState faceState && faceState.RenderObject != null && faceState.SelectedFaces.Count > 0)
+            {
+                var geometry = faceState.RenderObject.Geometry;
+                var indexBuffer = geometry.GetIndexBuffer();
+                // Build face adjacency from shared edges
+                var edgeToFaces = new Dictionary<(int, int), List<int>>();
+                for (int i = 0; i < indexBuffer.Count; i += 3)
+                {
+                    var verts = new[] { indexBuffer[i], indexBuffer[i + 1], indexBuffer[i + 2] };
+                    for (int j = 0; j < 3; j++)
+                    {
+                        var edge = (Math.Min(verts[j], verts[(j + 1) % 3]), Math.Max(verts[j], verts[(j + 1) % 3]));
+                        if (!edgeToFaces.ContainsKey(edge))
+                            edgeToFaces[edge] = new List<int>();
+                        edgeToFaces[edge].Add(i);
+                    }
+                }
+
+                // BFS from selected faces
+                var visited = new HashSet<int>(faceState.SelectedFaces);
+                var queue = new Queue<int>(faceState.SelectedFaces);
+                while (queue.Count > 0)
+                {
+                    var face = queue.Dequeue();
+                    var v0 = indexBuffer[face];
+                    var v1 = indexBuffer[face + 1];
+                    var v2 = indexBuffer[face + 2];
+                    var edges = new[] {
+                        (Math.Min(v0, v1), Math.Max(v0, v1)),
+                        (Math.Min(v1, v2), Math.Max(v1, v2)),
+                        (Math.Min(v0, v2), Math.Max(v0, v2))
+                    };
+                    foreach (var edge in edges)
+                    {
+                        if (edgeToFaces.TryGetValue(edge, out var adjacentFaces))
+                        {
+                            foreach (var adjFace in adjacentFaces)
+                            {
+                                if (visited.Add(adjFace))
+                                    queue.Enqueue(adjFace);
+                            }
+                        }
+                    }
+                }
+
+                _commandFactory.Create<FaceSelectionCommand>()
+                    .Configure(x => x.Configure(new List<int>(visited), false, false))
+                    .BuildAndExecute();
+                return true;
+            }
+            else if (state is VertexSelectionState vertState && vertState.RenderObject != null && vertState.SelectedVertices.Count > 0)
+            {
+                var geometry = vertState.RenderObject.Geometry;
+                var indexBuffer = geometry.GetIndexBuffer();
+                // Build vertex adjacency from edges
+                var vertexAdj = new Dictionary<int, HashSet<int>>();
+                for (int i = 0; i < indexBuffer.Count; i += 3)
+                {
+                    var v0 = indexBuffer[i];
+                    var v1 = indexBuffer[i + 1];
+                    var v2 = indexBuffer[i + 2];
+                    if (!vertexAdj.ContainsKey(v0)) vertexAdj[v0] = new HashSet<int>();
+                    if (!vertexAdj.ContainsKey(v1)) vertexAdj[v1] = new HashSet<int>();
+                    if (!vertexAdj.ContainsKey(v2)) vertexAdj[v2] = new HashSet<int>();
+                    vertexAdj[v0].Add(v1); vertexAdj[v0].Add(v2);
+                    vertexAdj[v1].Add(v0); vertexAdj[v1].Add(v2);
+                    vertexAdj[v2].Add(v0); vertexAdj[v2].Add(v1);
+                }
+
+                // BFS from selected vertices
+                var visited = new HashSet<int>(vertState.SelectedVertices);
+                var queue = new Queue<int>(vertState.SelectedVertices);
+                while (queue.Count > 0)
+                {
+                    var v = queue.Dequeue();
+                    if (vertexAdj.TryGetValue(v, out var adjacent))
+                    {
+                        foreach (var adj in adjacent)
+                        {
+                            if (visited.Add(adj))
+                                queue.Enqueue(adj);
+                        }
+                    }
+                }
+
+                _commandFactory.Create<VertexSelectionCommand>()
+                    .Configure(x => x.Configure(new List<int>(visited), false, false))
+                    .BuildAndExecute();
+                return true;
+            }
+            else if (state is EdgeSelectionState edgeState && edgeState.RenderObject != null && edgeState.SelectedEdges.Count > 0)
+            {
+                var geometry = edgeState.RenderObject.Geometry;
+                var indexBuffer = geometry.GetIndexBuffer();
+                // Build edge adjacency from shared vertices
+                var edgeAdj = new Dictionary<(int, int), HashSet<(int, int)>>();
+                var allEdges = new HashSet<(int, int)>();
+                for (int i = 0; i < indexBuffer.Count; i += 3)
+                {
+                    var v0 = indexBuffer[i];
+                    var v1 = indexBuffer[i + 1];
+                    var v2 = indexBuffer[i + 2];
+                    var triEdges = new[] {
+                        (Math.Min(v0, v1), Math.Max(v0, v1)),
+                        (Math.Min(v1, v2), Math.Max(v1, v2)),
+                        (Math.Min(v0, v2), Math.Max(v0, v2))
+                    };
+                    foreach (var e in triEdges)
+                    {
+                        allEdges.Add(e);
+                        if (!edgeAdj.ContainsKey(e)) edgeAdj[e] = new HashSet<(int, int)>();
+                    }
+                    // Edges sharing a vertex are adjacent
+                    for (int j = 0; j < 3; j++)
+                    {
+                        for (int k = 0; k < 3; k++)
+                        {
+                            if (j != k) edgeAdj[triEdges[j]].Add(triEdges[k]);
+                        }
+                    }
+                }
+
+                // BFS from selected edges
+                var visited = new HashSet<(int, int)>(edgeState.SelectedEdges);
+                var queue = new Queue<(int, int)>(edgeState.SelectedEdges);
+                while (queue.Count > 0)
+                {
+                    var e = queue.Dequeue();
+                    if (edgeAdj.TryGetValue(e, out var adjacent))
+                    {
+                        foreach (var adj in adjacent)
+                        {
+                            if (visited.Add(adj))
+                                queue.Enqueue(adj);
+                        }
+                    }
+                }
+
+                _commandFactory.Create<EdgeSelectionCommand>()
+                    .Configure(x => x.Configure(new List<(int, int)>(visited), false, false))
+                    .BuildAndExecute();
+                return true;
             }
 
             return false;

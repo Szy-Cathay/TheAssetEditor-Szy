@@ -89,17 +89,8 @@ namespace GameWorld.Core.Components.Navigation
                 }
             }
 
-            // In ortho view, exit ortho mode when middle mouse is pressed for rotation
-            // Camera.cs handles the actual rotation and mouse ownership
-            // We just need to detect the middle mouse press and exit ortho view
-            if (_isInOrthoView && _mouse.IsMouseButtonPressed(MouseButton.Middle))
-            {
-                if (!_keyboard.IsKeyDown(Keys.LeftShift) && !_keyboard.IsKeyDown(Keys.RightShift))
-                {
-                    // Middle mouse without shift - exit ortho view to allow free rotation
-                    ExitOrthoView();
-                }
-            }
+            // Blender behavior: middle-mouse rotation in orthographic mode stays orthographic.
+            // No need to exit ortho view - the camera handles rotation naturally in both modes.
         }
 
         private void HandleNumpadShortcuts()
@@ -167,14 +158,19 @@ namespace GameWorld.Core.Components.Navigation
         {
             if (_isInOrthoView)
             {
-                ExitOrthoView();
+                // Exit ortho: switch to perspective, keep current camera angles (Blender behavior)
+                _isInOrthoView = false;
+                _currentOrthoView = ViewPresetType.Perspective;
+                _camera.CurrentProjectionType = ProjectionType.Perspective;
             }
             else
             {
-                // Switch to the closest orthographic view
-                var detected = ViewPresets.DetectViewPreset(_camera.Yaw, _camera.Pitch);
-                var targetView = detected ?? ViewPresetType.Front;
-                SwitchToView(targetView);
+                // Enter ortho: just toggle projection type, keep current camera angles (Blender behavior)
+                // Blender's Numpad 5 only flips rv3d->persp without changing view rotation
+                _isInOrthoView = true;
+                _currentOrthoView = ViewPresetType.Perspective; // No specific axis view
+                _camera.CurrentProjectionType = ProjectionType.Orthographic;
+                _camera.OrthoSize = _camera.Zoom * 0.5f;
             }
         }
 

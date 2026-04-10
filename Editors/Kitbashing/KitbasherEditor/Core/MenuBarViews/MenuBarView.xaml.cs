@@ -1,6 +1,7 @@
 ﻿using Shared.Ui.Common.MenuSystem;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -55,6 +56,27 @@ namespace KitbasherEditor.Views
             if (DataContext is IKeyboardHandler keyboardHandler)
             {
                 keyboardHandler.OnKeyDown(e.Key, e.SystemKey, Keyboard.Modifiers);
+            }
+        }
+
+        /// <summary>
+        /// Close falloff popup on Enter key and return focus to the main window
+        /// </summary>
+        private void FalloffTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                // Commit the value and close popup
+                var textBox = sender as TextBox;
+                if (textBox != null)
+                {
+                    var binding = BindingOperations.GetBindingExpression(textBox, TextBox.TextProperty);
+                    binding?.UpdateSource();
+                }
+                PropArrowBtn.IsChecked = false;
+                // Move focus away from TextBox back to the window
+                Keyboard.Focus(null);
+                e.Handled = true;
             }
         }
 

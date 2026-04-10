@@ -39,7 +39,7 @@ namespace Editors.KitbasherEditor.UiCommands
     public class ObjectSelectionModeCommand : SetSelectionModeCommand
     {
         public override string ToolTip { get; set; } = "Object mode";
-        public override Hotkey? HotKey { get; } = new Hotkey(Key.F1, ModifierKeys.None);
+        public override Hotkey? HotKey { get; } = null;
 
         public ObjectSelectionModeCommand(SelectionComponent selectionComponent) : base(selectionComponent)
         {
@@ -51,7 +51,7 @@ namespace Editors.KitbasherEditor.UiCommands
     public class FaceSelectionModeCommand : SetSelectionModeCommand
     {
         public override string ToolTip { get; set; } = "Face mode";
-        public override Hotkey? HotKey { get; } = new Hotkey(Key.F2, ModifierKeys.None);
+        public override Hotkey? HotKey { get; } = null;
 
         public FaceSelectionModeCommand(SelectionComponent selectionComponent) : base(selectionComponent)
         {
@@ -63,7 +63,7 @@ namespace Editors.KitbasherEditor.UiCommands
     public class VertexSelectionModeCommand : SetSelectionModeCommand
     {
         public override string ToolTip { get; set; } = "Vertex mode";
-        public override Hotkey? HotKey { get; } = new Hotkey(Key.F3, ModifierKeys.None);
+        public override Hotkey? HotKey { get; } = null;
 
         public VertexSelectionModeCommand(SelectionComponent selectionComponent) : base(selectionComponent)
         {

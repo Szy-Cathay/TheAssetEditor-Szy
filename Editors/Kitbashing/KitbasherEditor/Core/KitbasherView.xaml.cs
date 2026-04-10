@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using Shared.Ui.BaseDialogs.PackFileTree;
 using Shared.Ui.Common;
+using Shared.Ui.Common.MenuSystem;
 
 namespace KitbasherEditor.Views
 {
@@ -31,6 +32,29 @@ namespace KitbasherEditor.Views
                     e.Handled = true;
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Template selector for sidebar buttons (Button vs GroupButton vs Separator)
+    /// </summary>
+    public class SidebarTemplateSelector : DataTemplateSelector
+    {
+        public DataTemplate DefaultTemplate { get; set; }
+        public DataTemplate RadioTemplate { get; set; }
+        public DataTemplate SeparatorTemplate { get; set; }
+
+        public override DataTemplate SelectTemplate(object item, DependencyObject container)
+        {
+            if (item is MenuBarButton button)
+            {
+                if (button.IsSeperator)
+                    return SeparatorTemplate;
+                if (button is MenuBarGroupButton)
+                    return RadioTemplate;
+                return DefaultTemplate;
+            }
+            return DefaultTemplate;
         }
     }
 }
