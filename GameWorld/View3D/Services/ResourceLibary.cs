@@ -18,6 +18,7 @@ namespace GameWorld.Core.Services
         Pbs_MetalRough,
         BasicEffect,
         GeometryInstance,
+        VertexPoint,
         Glow,
         BloomFilter,
         OutlinePostProcess
@@ -61,6 +62,7 @@ namespace GameWorld.Core.Services
                 LoadEffect("Shaders\\TexturePreview", ShaderTypes.TexturePreview);
                 LoadEffect("Shaders\\LineShader", ShaderTypes.Line);
                 LoadEffect("Shaders\\InstancingShader", ShaderTypes.GeometryInstance);
+                LoadEffect("Shaders\\VertexPointShader", ShaderTypes.VertexPoint);
 
                 _pbrDiffuse = _content.Load<TextureCube>("textures\\phazer\\DiffuseAmbientLightCubeMap");
                 _pbrSpecular= _content.Load<TextureCube>("textures\\phazer\\SpecularAmbientLightCubemap");

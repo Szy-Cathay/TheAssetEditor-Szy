@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using GameWorld.Core.Components.Rendering;
 using GameWorld.Core.Rendering;
 using GameWorld.Core.Rendering.Materials.Shaders;
@@ -148,6 +149,59 @@ namespace GameWorld.Core.Components.Selection
                 var vertexObject = selectionVertexState.RenderObject as Rmv2MeshNode;
                 _renderEngine.AddRenderItem(RenderBuckedId.Normal, new VertexRenderItem() { Node = vertexObject, ModelMatrix = vertexObject.RenderMatrix, SelectedVertices = selectionVertexState, VertexRenderer = _vertexRenderer });
                 _renderEngine.AddRenderItem(RenderBuckedId.Wireframe, new GeometryRenderItem(vertexObject.Geometry, _wireframeEffect, vertexObject.RenderMatrix));
+
+                // Draw gradient edges connected to selected vertices (Blender style)
+                if (selectionVertexState.SelectedVertices.Count > 0)
+                {
+                    var geo = vertexObject.Geometry;
+                    var matrix = vertexObject.RenderMatrix;
+                    var selectedSet = new HashSet<int>(selectionVertexState.SelectedVertices);
+                    var processedEdges = new HashSet<(int, int)>();
+                    var weights = selectionVertexState.VertexWeights;
+                    var wireframeColor = new Color(0.15f, 0.15f, 0.18f);
+                    var highlightColor = Color.White;
+
+                    for (var i = 0; i < geo.IndexArray.Length; i += 3)
+                    {
+                        var i0 = geo.IndexArray[i];
+                        var i1 = geo.IndexArray[i + 1];
+                        var i2 = geo.IndexArray[i + 2];
+
+                        var edgeList = new[] {
+                            (Math.Min(i0, i1), Math.Max(i0, i1)),
+                            (Math.Min(i1, i2), Math.Max(i1, i2)),
+                            (Math.Min(i0, i2), Math.Max(i0, i2))
+                        };
+
+                        foreach (var edge in edgeList)
+                        {
+                            if (processedEdges.Contains(edge))
+                                continue;
+
+                            var v0Selected = selectedSet.Contains(edge.Item1);
+                            var v1Selected = selectedSet.Contains(edge.Item2);
+                            if (!v0Selected && !v1Selected)
+                                continue;
+
+                            processedEdges.Add(edge);
+
+                            var p0 = Vector3.Transform(geo.GetVertexById(edge.Item1), matrix);
+                            var p1 = Vector3.Transform(geo.GetVertexById(edge.Item2), matrix);
+
+                            // Gradient: lerp between wireframe color and highlight based on selection weight
+                            var w0 = weights[edge.Item1];
+                            var w1 = weights[edge.Item2];
+                            var c0 = Color.Lerp(wireframeColor, highlightColor, w0);
+                            var c1 = Color.Lerp(wireframeColor, highlightColor, w1);
+
+                            _renderEngine.AddRenderLines(new VertexPositionColor[]
+                            {
+                                new VertexPositionColor(p0, c0),
+                                new VertexPositionColor(p1, c1)
+                            });
+                        }
+                    }
+                }
             }
 
             if (selectionState is EdgeSelectionState selectionEdgeState && selectionEdgeState.RenderObject is Rmv2MeshNode edgeNode)

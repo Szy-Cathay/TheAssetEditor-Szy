@@ -23,39 +23,60 @@ namespace GameWorld.Core.Utility
             return res;
         }
 
-        public static float? IntersectVertex(Ray ray, MeshObject geometry, Vector3 cameraPos, Matrix matrix, out int selectedVertex)
+        /// <summary>
+        /// Pick a vertex using screen-space projection (Blender-style).
+        /// Projects all vertices to 2D screen coordinates and compares Manhattan distance
+        /// to the mouse position. This matches exactly what the user sees on screen.
+        /// </summary>
+        /// <param name="mouseScreenPos">Mouse position in screen pixels</param>
+        /// <param name="geometry">Mesh geometry</param>
+        /// <param name="modelMatrix">Object world matrix</param>
+        /// <param name="viewProjection">Camera View * Projection matrix</param>
+        /// <param name="viewportWidth">Viewport width in pixels</param>
+        /// <param name="viewportHeight">Viewport height in pixels</param>
+        /// <param name="selectedVertex">Output: index of closest vertex, or -1</param>
+        /// <returns>Screen-space Manhattan distance to the closest vertex, or null if none within threshold</returns>
+        public static float? IntersectVertex(Vector2 mouseScreenPos, MeshObject geometry, Matrix modelMatrix,
+            Matrix viewProjection, float viewportWidth, float viewportHeight, out int selectedVertex)
         {
-            var inverseTransform = Matrix.Invert(matrix);
-            ray.Position = Vector3.Transform(ray.Position, inverseTransform);
-            ray.Direction = Vector3.TransformNormal(ray.Direction, inverseTransform);
-            cameraPos = Vector3.Transform(cameraPos, inverseTransform);
-
-            var bestDistance = float.MaxValue;
             selectedVertex = -1;
-            // Access VertexArray directly to avoid GetVertexList() allocation
+            var bestDist = float.MaxValue;
+
+            // Manhattan distance threshold in pixels (Blender uses 75, AE points are smaller)
+            const float pixelThreshold = 25.0f;
+
             for (var i = 0; i < geometry.VertexArray.Length; i++)
             {
-                var vertexPos = geometry.GetVertexById(i);
-                var distance = (cameraPos - vertexPos).Length();
-                var distanceScale = 0.0025f * distance * 1.5f;
+                // Transform vertex to world space, then to clip space
+                var worldPos = Vector3.Transform(geometry.GetVertexById(i), modelMatrix);
+                var clipPos = Vector4.Transform(new Vector4(worldPos, 1.0f), viewProjection);
 
-                var bb = new BoundingBox(new Vector3(distanceScale * -0.5f) + vertexPos, new Vector3(distanceScale * 0.5f) + vertexPos);
-                var res = bb.Intersects(ray);
-                if (res != null)
+                // Skip vertices behind the camera
+                if (clipPos.W <= 0.0f)
+                    continue;
+
+                // Project to NDC, then to screen pixels
+                var invW = 1.0f / clipPos.W;
+                var screenX = (clipPos.X * invW + 1.0f) * 0.5f * viewportWidth;
+                var screenY = (1.0f - clipPos.Y * invW) * 0.5f * viewportHeight;
+
+                // Manhattan distance (like Blender)
+                var dist = MathF.Abs(screenX - mouseScreenPos.X) + MathF.Abs(screenY - mouseScreenPos.Y);
+
+                if (dist < bestDist)
                 {
-                    var dist = res.Value;
-                    if (dist < bestDistance)
-                    {
-                        selectedVertex = i;
-                        bestDistance = dist;
-                    }
+                    bestDist = dist;
+                    selectedVertex = i;
                 }
             }
 
-            if (selectedVertex == -1)
+            if (selectedVertex == -1 || bestDist > pixelThreshold)
+            {
+                selectedVertex = -1;
                 return null;
+            }
 
-            return bestDistance;
+            return bestDist;
         }
 
         public static float? IntersectFace(Ray ray, MeshObject geometry, Matrix matrix, out int? face)

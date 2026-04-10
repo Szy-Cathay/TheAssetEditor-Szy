@@ -38,6 +38,12 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/InstancingShader.fx
 
+#begin Shaders/VertexPointShader.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/VertexPointShader.fx
+
 #begin Shaders/LineShader.fx
 /importer:EffectImporter
 /processor:EffectProcessor

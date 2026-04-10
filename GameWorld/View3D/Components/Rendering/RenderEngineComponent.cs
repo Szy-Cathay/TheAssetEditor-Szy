@@ -149,7 +149,7 @@ namespace GameWorld.Core.Components.Rendering
                 return;
             }
 
-            var commonShaderParameters = CommonShaderParameterBuilder.Build(_camera, _sceneLightParameters);
+            var commonShaderParameters = CommonShaderParameterBuilder.Build(_camera, _sceneLightParameters, screenHeight);
 
             _defaultRenderTarget = RenderTargetHelper.GetRenderTarget(device, _defaultRenderTarget);
             _glowRenderTarget = RenderTargetHelper.GetRenderTarget(device, _glowRenderTarget);
