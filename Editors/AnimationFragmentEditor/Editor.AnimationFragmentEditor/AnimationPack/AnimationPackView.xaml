@@ -7,8 +7,14 @@
              xmlns:s="http://schemas.singulink.com/xaml"
              xmlns:texteditor="clr-namespace:CommonControls.Editors.TextEditor;assembly=Editors.Shared.Core"
              xmlns:loc="clr-namespace:Shared.Ui.Common;assembly=Shared.Ui"
+             xmlns:local="clr-namespace:CommonControls.Editors.AnimationPack"
+             xmlns:converters="clr-namespace:Editors.AnimationFragmentEditor.AnimationPack.Converters"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -30,6 +36,9 @@
                     <Separator/>
                     <MenuItem Header="{loc:Loc AnimPack.ExportAnimSlotsWh3}"  Command="{Binding ExportAnimationSlotsWh3ActionCommand}" />
                     <MenuItem Header="{loc:Loc AnimPack.ExportAnimSlotsWh2}"  Command="{Binding ExportAnimationSlotsWh2ActionCommand}" />
+                </MenuItem>
+                <MenuItem Header="{loc:Loc AnimPack.ViewMenu}">
+                    <MenuItem Header="{loc:Loc AnimPack.TableView}" IsCheckable="True" IsChecked="{Binding IsTableView}"/>
                 </MenuItem>
             </Menu>
         </DockPanel>
@@ -94,8 +103,18 @@
             </ListView>
         </Grid>
 
-        <!-- Right side - Main view -->
-        <texteditor:TextEditorView Grid.Row="1" Grid.Column="2" DataContext="{Binding SelectedItemViewModel, UpdateSourceTrigger=PropertyChanged}"/>
+        <!-- Right side - dual view -->
+        <Grid Grid.Row="1" Grid.Column="2">
+            <!-- Table view (default) -->
+            <local:AnimSetTableEditorView
+                DataContext="{Binding TableEditorVM}"
+                Visibility="{Binding DataContext.IsTableView, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
+
+            <!-- XML text view (fallback) -->
+            <texteditor:TextEditorView
+                DataContext="{Binding SelectedItemViewModel, UpdateSourceTrigger=PropertyChanged}"
+                Visibility="{Binding DataContext.IsTableView, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBoolToVis}}"/>
+        </Grid>
 
     </Grid>
 </UserControl>

@@ -18,6 +18,8 @@ namespace GameWorld.Core.Test.TestUtility
         { }
         public void RebuildVertexBuffer(VertexPositionNormalTextureCustom[] vertArray, VertexDeclaration vertexDeclaration)
         { }
+        public void RebuildVertexBufferPartial(VertexPositionNormalTextureCustom[] vertArray, int startIndex, int count, VertexDeclaration vertexDeclaration, int vertexStride)
+        { }
 
         public IGraphicsCardGeometry Clone() { return this; }
         public void Dispose()

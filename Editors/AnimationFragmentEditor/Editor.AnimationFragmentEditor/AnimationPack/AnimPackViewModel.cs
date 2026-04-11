@@ -4,6 +4,7 @@ using Editors.AnimationFragmentEditor.AnimationPack.Commands;
 using Editors.AnimationFragmentEditor.AnimationPack.Converters.AnimationBinConverter;
 using Editors.AnimationFragmentEditor.AnimationPack.Converters.AnimationBinWh3Converter;
 using Editors.AnimationFragmentEditor.AnimationPack.Converters.AnimationFragmentConverter;
+using Editors.AnimationFragmentEditor.AnimationPack.ViewModels;
 using GameWorld.Core.Services;
 using Shared.Core.Events;
 using Shared.Core.Misc;
@@ -40,6 +41,12 @@ namespace CommonControls.Editors.AnimationPack
         SimpleTextEditorViewModel _selectedItemViewModel;
         public SimpleTextEditorViewModel SelectedItemViewModel { get => _selectedItemViewModel; set => SetAndNotify(ref _selectedItemViewModel, value); }
 
+        AnimSetTableEditorViewModel _tableEditorVM;
+        public AnimSetTableEditorViewModel TableEditorVM { get => _tableEditorVM; set => SetAndNotify(ref _tableEditorVM, value); }
+
+        bool _isTableView = true;
+        public bool IsTableView { get => _isTableView; set => SetAndNotify(ref _isTableView, value); }
+
         public AnimPackViewModel(IUiCommandFactory uiCommandFactory, 
             IPackFileService pfs, 
             ISkeletonAnimationLookUpHelper skeletonAnimationLookUpHelper, 
@@ -67,6 +74,7 @@ namespace CommonControls.Editors.AnimationPack
         [RelayCommand] private void ExportAnimationSlotsWh2Action() => _uiCommandFactory.Create<ExportAnimationSlotCommand>().Warhammer2();
 
         [RelayCommand] private void SaveAction() => Save();
+        [RelayCommand] private void ToggleViewMode() => IsTableView = !IsTableView;
 
         bool BeforeItemSelected(IAnimationPackFile item)
         {
@@ -97,15 +105,25 @@ namespace CommonControls.Editors.AnimationPack
                 SelectedItemViewModel.TextEditor?.SetSyntaxHighlighting("XML");
                 SelectedItemViewModel.Text = "";
                 SelectedItemViewModel.ResetChangeLog();
+                TableEditorVM = null;
             }
             else
             {
+                // Create text editor vm (for XML view fallback)
                 SelectedItemViewModel = new SimpleTextEditorViewModel();
                 SelectedItemViewModel.SaveCommand = new RelayCommand(() => SaveActiveFile());
                 SelectedItemViewModel.TextEditor?.ShowLineNumbers(true);
                 SelectedItemViewModel.TextEditor?.SetSyntaxHighlighting(_activeConverter.GetSyntaxType());
                 SelectedItemViewModel.Text = _activeConverter.GetText(seletedFile.ToByteArray());
                 SelectedItemViewModel.ResetChangeLog();
+
+                // Create table editor vm
+                var tableVM = new AnimSetTableEditorViewModel(
+                    _pfs, _skeletonAnimationLookUpHelper, _metaDataFileParser,
+                    CurrentFile, _appSettings.CurrentSettings.CurrentGame);
+                tableVM.LoadFromBinary(seletedFile.ToByteArray(), seletedFile.FileName);
+                tableVM.SaveCommand = new RelayCommand(() => SaveActiveFile());
+                TableEditorVM = tableVM;
             }
 
         }
@@ -125,12 +143,23 @@ namespace CommonControls.Editors.AnimationPack
             }
 
             var fileName = AnimationPackItems.SelectedItem.FileName;
-            var bytes = _activeConverter.ToBytes(SelectedItemViewModel.Text, fileName, _pfs, out var error);
+            byte[] bytes;
+            ITextConverter.SaveError? error;
+
+            if (IsTableView && TableEditorVM != null)
+            {
+                bytes = TableEditorVM.SaveToBinary(fileName, out error);
+            }
+            else
+            {
+                bytes = _activeConverter.ToBytes(SelectedItemViewModel.Text, fileName, _pfs, out error);
+            }
 
             if (bytes == null || error != null)
             {
-                SelectedItemViewModel.TextEditor.HightLightText(error.ErrorLineNumber, error.ErrorPosition, error.ErrorLength);
-                MessageBox.Show(error.Text, LocalizationManager.Instance.Get("Msg.GeneralError"));
+                if (error != null && SelectedItemViewModel?.TextEditor != null)
+                    SelectedItemViewModel.TextEditor.HightLightText(error.ErrorLineNumber, error.ErrorPosition, error.ErrorLength);
+                MessageBox.Show(error?.Text ?? "Unknown error", LocalizationManager.Instance.Get("Msg.GeneralError"));
                 return false;
             }
 
