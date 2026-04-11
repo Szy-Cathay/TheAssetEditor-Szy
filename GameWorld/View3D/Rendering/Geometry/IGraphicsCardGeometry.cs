@@ -10,6 +10,7 @@ namespace GameWorld.Core.Rendering.Geometry
 
         void RebuildIndexBuffer(ushort[] indexList);
         void RebuildVertexBuffer(VertexPositionNormalTextureCustom[] vertArray, VertexDeclaration vertexDeclaration);
+        void RebuildVertexBufferPartial(VertexPositionNormalTextureCustom[] vertArray, int startIndex, int count, VertexDeclaration vertexDeclaration, int vertexStride);
 
         IGraphicsCardGeometry Clone();
         void Dispose();
@@ -78,6 +79,14 @@ namespace GameWorld.Core.Rendering.Geometry
 
             VertexBuffer = new VertexBuffer(Device, vertexDeclaration, vertArray.Length, BufferUsage.WriteOnly);
             VertexBuffer.SetData(vertArray);
+        }
+
+        public virtual void RebuildVertexBufferPartial(VertexPositionNormalTextureCustom[] vertArray, int startIndex, int count, VertexDeclaration vertexDeclaration, int vertexStride)
+        {
+            if (VertexBuffer == null || startIndex < 0 || count <= 0)
+                return;
+            int offsetInBytes = startIndex * vertexStride;
+            VertexBuffer.SetData(offsetInBytes, vertArray, startIndex, count, vertexStride);
         }
 
         public IGraphicsCardGeometry Clone()

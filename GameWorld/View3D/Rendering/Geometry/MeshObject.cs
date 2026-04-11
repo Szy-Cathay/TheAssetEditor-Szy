@@ -494,6 +494,15 @@ namespace GameWorld.Core.Rendering.Geometry
                 BuildBoundingBox();
         }
 
+        public void RebuildVertexBufferPartial(int startIndex, int endIndex)
+        {
+            if (startIndex < 0 || endIndex < startIndex) return;
+            var count = endIndex - startIndex + 1;
+            Context.RebuildVertexBufferPartial(VertexArray, startIndex, count,
+                VertexPositionNormalTextureCustom.VertexDeclaration,
+                VertexPositionNormalTextureCustom.VertexDeclaration.VertexStride);
+        }
+
         public void RebuildIndexBuffer()
         {
             Context.RebuildIndexBuffer(IndexArray);

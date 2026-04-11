@@ -50,6 +50,11 @@ namespace GameWorld.Core.Components.Gizmo
         private Quaternion _backupOrientation;           // Backup initial orientation
         private bool _hasBackup = false;
 
+        // -- Partial VBO upload tracking -- //
+        private int _modifiedMin = int.MaxValue;
+        private int _modifiedMax = -1;
+        private bool _hasModifications = false;
+
         public TransformGizmoWrapper(CommandFactory commandFactory, List<MeshObject> effectedObjects, ISelectionState vertexSelectionState)
         {
             _commandFactory = commandFactory;
@@ -393,8 +398,24 @@ namespace GameWorld.Core.Components.Gizmo
                             var vertTrnas = trans * weight;
 
                             var weightedTransform = Matrix.CreateScale(vertexScale) * Matrix.CreateFromQuaternion(vertRot) * Matrix.CreateTranslation(vertTrnas);
+                            var combinedTransform = Matrix.CreateTranslation(-objCenter) * weightedTransform * Matrix.CreateTranslation(objCenter);
 
-                            TransformVertex(weightedTransform, geo, objCenter, i);
+                            if (gizmoMode == GizmoMode.Translate)
+                                geo.TransformVertexTranslation(i, combinedTransform);
+                            else if (gizmoMode == GizmoMode.Rotate)
+                            {
+                                var normalMatrix = Matrix.Transpose(Matrix.Invert(combinedTransform));
+                                geo.TransformVertexRotation(i, combinedTransform, normalMatrix);
+                            }
+                            else
+                            {
+                                var normalMatrix = Matrix.Transpose(Matrix.Invert(combinedTransform));
+                                geo.TransformVertex(i, combinedTransform, normalMatrix);
+                            }
+
+                            _modifiedMin = Math.Min(_modifiedMin, i);
+                            _modifiedMax = Math.Max(_modifiedMax, i);
+                            _hasModifications = true;
                         }
                     }
                 }
@@ -506,7 +527,17 @@ namespace GameWorld.Core.Components.Gizmo
                     }
                 }
 
-                geo.RebuildVertexBuffer();
+                if (_hasModifications)
+                {
+                    if (_selectionState is ObjectSelectionState)
+                        geo.RebuildVertexBuffer();
+                    else
+                        geo.RebuildVertexBufferPartial(_modifiedMin, _modifiedMax);
+                }
+                else
+                {
+                    geo.RebuildVertexBuffer();
+                }
             }
         }
 
@@ -538,6 +569,10 @@ namespace GameWorld.Core.Components.Gizmo
         /// </summary>
         public void BackupVertexState()
         {
+            _modifiedMin = int.MaxValue;
+            _modifiedMax = -1;
+            _hasModifications = false;
+
             if (_effectedObjects == null || _effectedObjects.Count == 0)
                 return;
 
@@ -577,6 +612,10 @@ namespace GameWorld.Core.Components.Gizmo
         {
             if (!_hasBackup || _effectedObjects == null)
                 return;
+
+            _modifiedMin = int.MaxValue;
+            _modifiedMax = -1;
+            _hasModifications = false;
 
             for (int meshIndex = 0; meshIndex < _effectedObjects.Count && meshIndex < _backupVertexArrays.Count; meshIndex++)
             {

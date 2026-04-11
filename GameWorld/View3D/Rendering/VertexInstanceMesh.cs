@@ -56,12 +56,18 @@ namespace GameWorld.Core.Rendering
         readonly int _maxInstanceCount = 50000;
         int _currentInstanceCount;
 
-        // Colors - match Blender: unselected = wireframe color, selected = white
-        Vector3 _selectedColour = new(1.0f, 1.0f, 1.0f);          // White (selected)
-        Vector3 _deselectedColour = new(0.15f, 0.15f, 0.18f);     // Dim wireframe color (unselected)
+        // Colors - EXACT Blender match: unselected = black (visible via z-bias), selected = orange
+        // Blender theme: TH_VERTEX = 0x000000ff (black), TH_VERTEX_SELECT = 0xff7a00ff (orange)
+        Vector3 _selectedColour = new(1.0f, 0.47f, 0.0f);           // Orange (255, 122, 0)
+        Vector3 _deselectedColour = new(0.0f, 0.0f, 0.0f);          // Black (0, 0, 0)
 
-        // Screen-space vertex size in pixels (diameter)
-        public float VertexPixelSize { get; set; } = 6.0f;
+        // Screen-space vertex size in pixels (diameter) - EXACT Blender match
+        // Blender: sizes.vert = max(1.0, TH_VERTEX_SIZE * sqrt2 / 2) = ~2.12, then * 2.0 = 4.24 pixels
+        public float VertexPixelSize { get; set; } = 5.5f;
+
+        // Additional size boost for selected vertices (pixels added to diameter)
+        // Blender uses same base size, but we add slight boost for visibility
+        public float SelectedSizeBoost { get; set; } = 2.0f;
 
         // Selection threshold multiplier (selection radius = render radius * this)
         public float SelectionThresholdMultiplier { get; set; } = 2.0f;
@@ -123,7 +129,7 @@ namespace GameWorld.Core.Rendering
         public void Update(MeshObject geo, Matrix modelMatrix, Vector3 cameraPos,
             float cameraFov, float viewportHeight, VertexSelectionState selectedVertexes)
         {
-            _currentInstanceCount = geo.VertexCount();
+            _currentInstanceCount = Math.Min(geo.VertexCount(), _maxInstanceCount);
 
             // Pre-calculate scale factor for screen-space size
             // Formula: worldSize = pixelSize * distance * (2 * tan(fov/2) / viewportHeight)
@@ -137,13 +143,15 @@ namespace GameWorld.Core.Rendering
                 // Distance from camera
                 var distance = (cameraPos - vertPos).Length();
 
-                // Screen-space size in world units
-                // Scale by distance to maintain constant pixel size
-                var worldScale = VertexPixelSize * distance * fovScale;
-
                 // Color based on selection weight
                 var weight = selectedVertexes.VertexWeights[i];
                 var color = Vector3.Lerp(_deselectedColour, _selectedColour, weight);
+
+                // Screen-space size in world units
+                // Scale by distance to maintain constant pixel size
+                // Selected vertices are larger (like Blender)
+                var effectivePixelSize = VertexPixelSize + weight * SelectedSizeBoost;
+                var worldScale = effectivePixelSize * distance * fovScale;
 
                 _instanceData[i].InstancePosition = vertPos;
                 _instanceData[i].InstanceScale = worldScale;
@@ -172,12 +180,17 @@ namespace GameWorld.Core.Rendering
             _effect.Parameters["ViewProjection"].SetValue(view * projection);
             _effect.Parameters["CameraPosition"].SetValue(cameraPos);
 
+            // Alpha blending required for anti-aliased circle edges and outline ring transparency
+            device.BlendState = BlendState.AlphaBlend;
+
             device.Indices = _indexBuffer;
             _effect.CurrentTechnique.Passes[0].Apply();
 
             device.SetVertexBuffers(_bindings);
             // Draw 2 triangles (one quad) per instance
             device.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 4, 0, 2, _currentInstanceCount);
+
+            device.BlendState = BlendState.Opaque;
         }
 
         public void Dispose()

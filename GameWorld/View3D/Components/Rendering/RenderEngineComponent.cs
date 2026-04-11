@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Shared.Core.Events;
 using Shared.Core.Services;
 using Shared.Core.Settings;
+using GameWorld.Core.Components;
 
 namespace GameWorld.Core.Components.Rendering
 {
@@ -22,10 +23,13 @@ namespace GameWorld.Core.Components.Rendering
         private readonly ArcBallCamera _camera;
         private readonly Dictionary<RenderBuckedId, List<IRenderItem>> _renderItems = [];
         private readonly List<VertexPositionColor> _renderLines = [];
+        private readonly List<VertexPositionColor> _overlayLines = [];
         private VertexPositionColor[] _renderLinesArray;     // Cached array to avoid ToArray() per frame
+        private VertexPositionColor[] _overlayLinesArray;    // Cached array for overlay lines
         private readonly IDeviceResolver _deviceResolverComponent;
         private readonly SceneRenderParametersStore _sceneLightParameters;
         private readonly IEventHub _eventHub;
+        private readonly GridComponent _gridComponent;
 
         bool _cullingEnabled = false;
         bool _bigSceneDepthBiasMode = false;
@@ -48,7 +52,7 @@ namespace GameWorld.Core.Components.Rendering
         /// </summary>
         public ViewportShadingMode ShadingMode { get; set; } = ViewportShadingMode.Textured;
 
-        public RenderEngineComponent(IWpfGame wpfGame, ResourceLibrary resourceLibrary, ArcBallCamera camera, IDeviceResolver deviceResolverComponent, ApplicationSettingsService applicationSettingsService, SceneRenderParametersStore sceneLightParametersStore, IEventHub eventHub)
+        public RenderEngineComponent(IWpfGame wpfGame, ResourceLibrary resourceLibrary, ArcBallCamera camera, IDeviceResolver deviceResolverComponent, ApplicationSettingsService applicationSettingsService, SceneRenderParametersStore sceneLightParametersStore, IEventHub eventHub, GridComponent gridComponent)
         {
             UpdateOrder = (int)ComponentUpdateOrderEnum.RenderEngine;
             DrawOrder = (int)ComponentDrawOrderEnum.RenderEngine;
@@ -65,6 +69,7 @@ namespace GameWorld.Core.Components.Rendering
             _deviceResolverComponent = deviceResolverComponent;
             _sceneLightParameters = sceneLightParametersStore;
             _eventHub = eventHub;
+            _gridComponent = gridComponent;
 
             foreach (RenderBuckedId value in Enum.GetValues(typeof(RenderBuckedId)))
                 _renderItems.Add(value, new List<IRenderItem>(100));
@@ -128,12 +133,19 @@ namespace GameWorld.Core.Components.Rendering
             _renderLines.AddRange(lineVertices);
         }
 
+        public void AddOverlayLines(VertexPositionColor[] lineVertices)
+        {
+            Guard.IsTrue(lineVertices.Length % 2 == 0);
+            _overlayLines.AddRange(lineVertices);
+        }
+
         public override void Update(GameTime gameTime)
         {
             foreach (var value in _renderItems.Keys)
                 _renderItems[value].Clear();
 
             _renderLines.Clear();
+            _overlayLines.Clear();
         }
 
         public override void Draw(GameTime gameTime)
@@ -149,10 +161,10 @@ namespace GameWorld.Core.Components.Rendering
                 return;
             }
 
-            var commonShaderParameters = CommonShaderParameterBuilder.Build(_camera, _sceneLightParameters, screenHeight);
+            var commonShaderParameters = CommonShaderParameterBuilder.Build(_camera, _sceneLightParameters, screenHeight, screenWidth);
 
-            _defaultRenderTarget = RenderTargetHelper.GetRenderTarget(device, _defaultRenderTarget);
-            _glowRenderTarget = RenderTargetHelper.GetRenderTarget(device, _glowRenderTarget);
+            _defaultRenderTarget = RenderTargetHelper.GetRenderTarget(device, _defaultRenderTarget, enableMsaa: true);
+            _glowRenderTarget = RenderTargetHelper.GetRenderTarget(device, _glowRenderTarget, enableMsaa: false);
 
             // Configure render targets
             var backBufferRenderTarget = device.GetRenderTargets()[0].RenderTarget as RenderTarget2D;
@@ -160,6 +172,14 @@ namespace GameWorld.Core.Components.Rendering
 
             // 2D drawing
             Render2DObjects(device, commonShaderParameters);
+
+            // Clear depth buffer before 3D rendering (SpriteBatch uses DepthStencilState.None,
+            // so depth buffer may contain garbage from the new render target)
+            device.Clear(ClearOptions.DepthBuffer, Color.Black, 1.0f, 0);
+
+            // Infinite grid (rendered before 3D objects so objects correctly occlude it)
+            device.DepthStencilState = DepthStencilState.Default;
+            _gridComponent.RenderGrid(device, commonShaderParameters);
 
             // 3D drawing - Normal scene
             device.DepthStencilState = DepthStencilState.Default;
@@ -267,6 +287,25 @@ namespace GameWorld.Core.Components.Rendering
             device.RasterizerState = _rasterStates[RasterizerStateEnum.Wireframe];
             foreach (var item in _renderItems[RenderBuckedId.Wireframe])
                 item.Draw(device, commonShaderParameters, renderingTechnique);
+
+            // Overlay lines rendered AFTER wireframe bucket (e.g. gradient edges for vertex selection)
+            if (renderingTechnique == RenderingTechnique.Normal && _overlayLines.Count != 0)
+            {
+                var shader = _resourceLibrary.GetStaticEffect(ShaderTypes.Line);
+                shader.Parameters["View"].SetValue(commonShaderParameters.View);
+                shader.Parameters["Projection"].SetValue(commonShaderParameters.Projection);
+                shader.Parameters["World"].SetValue(Matrix.Identity);
+
+                device.RasterizerState = _rasterStates[RasterizerStateEnum.Normal];
+                foreach (var pass in shader.CurrentTechnique.Passes)
+                {
+                    pass.Apply();
+                    if (_overlayLinesArray == null || _overlayLinesArray.Length < _overlayLines.Count)
+                        _overlayLinesArray = new VertexPositionColor[_overlayLines.Count];
+                    _overlayLines.CopyTo(_overlayLinesArray, 0);
+                    device.DrawUserPrimitives(PrimitiveType.LineList, _overlayLinesArray, 0, _overlayLines.Count / 2);
+                }
+            }
 
             device.RasterizerState = _rasterStates[RasterizerStateEnum.SelectedFaces];
             foreach (var item in _renderItems[RenderBuckedId.Selection])
