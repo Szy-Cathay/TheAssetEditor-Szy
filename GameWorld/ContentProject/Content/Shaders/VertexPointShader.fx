@@ -50,7 +50,7 @@ VSOutput VertexPointVS(VSInput input, VSInstanceInput instance)
     // Offset billboard center slightly toward camera (in world space)
     // This prevents the quad from extending behind the surface and being half-clipped
     float3 toCamera = normalize(CameraPosition - instance.InstancePosition);
-    float3 adjustedPos = instance.InstancePosition + toCamera * 0.005 * instance.InstanceScale;
+    float3 adjustedPos = instance.InstancePosition + toCamera * 0.02 * instance.InstanceScale;
 
     // Billboard offset from center
     float3 offset = (input.Position.xyz * instance.InstanceScale);
@@ -66,16 +66,19 @@ VSOutput VertexPointVS(VSInput input, VSInstanceInput instance)
     output.Color = float4(instance.InstanceColor, 1.0);
     output.Weight = instance.InstanceWeight;
 
-    // Small Z-bias for selected vertices only (like Blender: 5e-7 * abs(w))
+    // Z-bias for ALL vertices to render on top of mesh surface
+    // Blender: gl_Position.z -= ndc_offset_factor * vert_ndc_offset (applied to all)
+    output.Position.z -= 1e-6 * abs(output.Position.w);
+
+    // Extra Z-bias for selected vertices (Blender: 5e-7 * abs(w) for selected/active)
     if (instance.InstanceWeight > 0.5)
-    {
-        output.Position.z -= 0.0000005 * abs(output.Position.w);
-    }
+        output.Position.z -= 5e-7 * abs(output.Position.w);
 
     return output;
 }
 
-// Pixel shader: circle clipping with anti-aliasing and outline for selected vertices
+// Pixel shader: circle clipping with anti-aliasing
+// Blender 3D viewport style: solid circle with AA edge, no outline ring
 float4 VertexPointPS(VSOutput input) : COLOR0
 {
     // Distance from center (0.5, 0.5) in UV space
@@ -86,20 +89,10 @@ float4 VertexPointPS(VSOutput input) : COLOR0
     if (dist > 0.5)
         discard;
 
-    // Anti-aliased edge using smoothstep
-    float alpha = smoothstep(0.5, 0.45, dist);
+    // Anti-aliased outer edge using smoothstep
+    float alpha = smoothstep(0.5, 0.42, dist);
 
-    // Selected vertices get an outline ring
-    if (input.Weight > 0.5)
-    {
-        // Draw dark outline ring for selected vertices
-        if (dist > 0.35 && dist < 0.48)
-        {
-            float outlineAlpha = smoothstep(0.35, 0.38, dist) * smoothstep(0.48, 0.45, dist);
-            return float4(0.15, 0.15, 0.15, outlineAlpha * alpha);
-        }
-    }
-
+    // Solid circle with AA edge (Blender 3D viewport style - no outline ring)
     return float4(input.Color.rgb, alpha);
 }
 

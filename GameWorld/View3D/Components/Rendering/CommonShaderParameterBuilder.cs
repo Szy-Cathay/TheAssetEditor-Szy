@@ -8,7 +8,7 @@ namespace GameWorld.Core.Components.Rendering
         // Pre-allocated array to avoid per-frame allocation
         private static readonly Vector3[] _cachedFactionColours = new Vector3[3];
 
-        public static CommonShaderParameters Build(ArcBallCamera camera, SceneRenderParametersStore sceneLightParameters, float viewportHeight = 0)
+        public static CommonShaderParameters Build(ArcBallCamera camera, SceneRenderParametersStore sceneLightParameters, float viewportHeight = 0, float viewportWidth = 0)
         {
             // Reuse the cached array (rendering is single-threaded)
             _cachedFactionColours[0] = sceneLightParameters.FactionColour0;
@@ -27,7 +27,8 @@ namespace GameWorld.Core.Components.Rendering
                 sceneLightParameters.LightIntensityMult,
 
                 _cachedFactionColours,
-                viewportHeight);
+                viewportHeight,
+                viewportWidth);
 
             return commonShaderParameters;
         }

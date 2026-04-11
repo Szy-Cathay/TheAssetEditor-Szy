@@ -342,3 +342,6 @@ healthchecksdb
 
 # MonoGame build outputs
 /GameWorld/ContentProject/Content/bin/
+
+# Claude Code local config (never upload)
+.claude/

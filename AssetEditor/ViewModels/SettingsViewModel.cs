@@ -58,7 +58,6 @@ namespace AssetEditor.ViewModels
         }
 
         [ObservableProperty] private string _selectedFontWeight;
-        [ObservableProperty] private int _visualEditorsGridSize;
         [ObservableProperty] private bool _startMaximised;
         [ObservableProperty] private GameTypeEnum _currentGame;
         [ObservableProperty] private bool _loadCaPacksByDefault;
@@ -95,8 +94,6 @@ namespace AssetEditor.ViewModels
             CustomBackgroundG = rgbParts.Length > 1 ? rgbParts[1].Trim() : "50";
             CustomBackgroundB = rgbParts.Length > 2 ? rgbParts[2].Trim() : "50";
             IsCustomBackgroundVisible = CurrentRenderEngineBackgroundColour == BackgroundColour.Custom;
-
-            VisualEditorsGridSize = _settingsService.CurrentSettings.VisualEditorsGridSize;
 
             // Font settings
             AvailableFonts = new ObservableCollection<AppFontFamily>((AppFontFamily[])Enum.GetValues(typeof(AppFontFamily)));
@@ -141,7 +138,6 @@ namespace AssetEditor.ViewModels
         {
             _settingsService.CurrentSettings.Theme = CurrentTheme;
             _settingsService.CurrentSettings.RenderEngineBackgroundColour = CurrentRenderEngineBackgroundColour;
-            _settingsService.CurrentSettings.VisualEditorsGridSize = VisualEditorsGridSize;
             _settingsService.CurrentSettings.StartMaximised = StartMaximised;
             _settingsService.CurrentSettings.CurrentGame = CurrentGame;
             _settingsService.CurrentSettings.LoadCaPacksByDefault = LoadCaPacksByDefault;

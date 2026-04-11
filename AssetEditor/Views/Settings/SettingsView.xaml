@@ -129,9 +129,6 @@
             <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:Loc SettingsWindow.OnlyLoadLod0}" Margin="5, 0, 0, 0" ToolTip="When importing a reference mesh in the Kitbash tool, only import Lod0 in order to save memory."/>
             <CheckBox Grid.Row="4" Grid.Column="1" Margin="-1, 0, 0, 5" IsChecked="{Binding OnlyLoadLod0ForReferenceMeshes, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
 
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="{loc:Loc SettingsWindow.GridSize}" Margin="5, 0, 0, 0" ToolTip="Size of the grid in visual editors"/>
-            <TextBox  Grid.Row="5" Grid.Column="1" Text="{Binding VisualEditorsGridSize, UpdateSourceTrigger=LostFocus}" MaxLength="4" Width="150" Margin="0, 0, 0, 5" HorizontalAlignment="Left" HorizontalContentAlignment="Right"/>
-
 
 
         </Grid>

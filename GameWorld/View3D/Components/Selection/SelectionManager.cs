@@ -28,9 +28,26 @@ namespace GameWorld.Core.Components.Selection
         BasicShader _outlineEffect;
 
         VertexInstanceMesh _vertexRenderer;
+        EdgeQuadInstanceMesh _edgeQuadRenderer;
+        EdgeQuadRenderItem _edgeQuadRenderItem;
+        VertexRenderItem _vertexRenderItem;
         float _vertexSelectionFalloff = 0;
         private readonly IScopedResourceLibrary _resourceLib;
         private readonly IDeviceResolver _deviceResolverComponent;
+
+        // Cached edge topology for current mesh (avoids per-frame recomputation)
+        private (int v0, int v1)[] _cachedEdgeIndices;
+        private Rmv2MeshNode _cachedEdgeMesh;
+        private bool _edgeDataDirty = true;
+
+        // Sample vertex positions to detect vertex transformation without full iteration
+        private Vector3 _samplePos0, _samplePos1;
+        private int _sampleIdx0 = 0;
+        private int _sampleIdx1 = 1;
+
+        // Pre-allocated edge data buffer (matches EdgeQuadInstanceMesh max instance count)
+        const int MaxRenderEdges = 50000;
+        private EdgeData[] _edgeDataCache = new EdgeData[MaxRenderEdges];
 
         public SelectionManager(IEventHub eventHub, RenderEngineComponent renderEngine, IScopedResourceLibrary resourceLib, IDeviceResolver deviceResolverComponent)
         {
@@ -45,9 +62,12 @@ namespace GameWorld.Core.Components.Selection
             CreateSelectionSate(GeometrySelectionMode.Object, null, false);
 
             _vertexRenderer = new VertexInstanceMesh(_deviceResolverComponent, _resourceLib);
+            _edgeQuadRenderer = new EdgeQuadInstanceMesh(_deviceResolverComponent, _resourceLib);
+            _edgeQuadRenderItem = new EdgeQuadRenderItem { EdgeQuadRenderer = _edgeQuadRenderer };
+            _vertexRenderItem = new VertexRenderItem { VertexRenderer = _vertexRenderer };
 
             _wireframeEffect = new BasicShader(_deviceResolverComponent.Device);
-            _wireframeEffect.DiffuseColour = new Vector3(0.15f, 0.15f, 0.18f); // Dim wireframe overlay for face/vertex topology
+            _wireframeEffect.DiffuseColour = new Vector3(0.0f, 0.0f, 0.0f); // Pure black wireframe (Blender style)
 
             _selectedFacesEffect = new BasicShader(_deviceResolverComponent.Device);
             _selectedFacesEffect.DiffuseColour = new Vector3(1, 0, 0);
@@ -119,6 +139,7 @@ namespace GameWorld.Core.Components.Selection
 
         private void SelectionManager_SelectionChanged(ISelectionState state, bool sendEvent)
         {
+            _edgeDataDirty = true;
             _eventHub.Publish(new SelectionChangedEvent { NewState = state });
         }
 
@@ -147,61 +168,63 @@ namespace GameWorld.Core.Components.Selection
             if (selectionState is VertexSelectionState selectionVertexState && selectionVertexState.RenderObject != null)
             {
                 var vertexObject = selectionVertexState.RenderObject as Rmv2MeshNode;
-                _renderEngine.AddRenderItem(RenderBuckedId.Normal, new VertexRenderItem() { Node = vertexObject, ModelMatrix = vertexObject.RenderMatrix, SelectedVertices = selectionVertexState, VertexRenderer = _vertexRenderer });
-                _renderEngine.AddRenderItem(RenderBuckedId.Wireframe, new GeometryRenderItem(vertexObject.Geometry, _wireframeEffect, vertexObject.RenderMatrix));
+                var geo = vertexObject.Geometry;
 
-                // Draw gradient edges connected to selected vertices (Blender style)
-                if (selectionVertexState.SelectedVertices.Count > 0)
+                // Rebuild edge topology cache when mesh changes
+                if (_cachedEdgeMesh != vertexObject)
                 {
-                    var geo = vertexObject.Geometry;
-                    var matrix = vertexObject.RenderMatrix;
-                    var selectedSet = new HashSet<int>(selectionVertexState.SelectedVertices);
-                    var processedEdges = new HashSet<(int, int)>();
-                    var weights = selectionVertexState.VertexWeights;
-                    var wireframeColor = new Color(0.15f, 0.15f, 0.18f);
-                    var highlightColor = Color.White;
+                    _cachedEdgeMesh = vertexObject;
+                    _cachedEdgeIndices = BuildEdgeIndexCache(geo);
+                    _edgeDataDirty = true;
+                }
 
-                    for (var i = 0; i < geo.IndexArray.Length; i += 3)
+                // Use selected vertices as sample targets (fixes edge freeze during transform)
+                if (selectionVertexState.SelectedVertices.Count >= 2)
+                {
+                    _sampleIdx0 = selectionVertexState.SelectedVertices[0];
+                    _sampleIdx1 = selectionVertexState.SelectedVertices[1];
+                }
+                else if (selectionVertexState.SelectedVertices.Count == 1)
+                {
+                    _sampleIdx0 = selectionVertexState.SelectedVertices[0];
+                    _sampleIdx1 = _sampleIdx0 < geo.VertexCount() - 1 ? _sampleIdx0 + 1 : 0;
+                }
+
+                // Detect vertex position changes during transformation by sampling selected vertices
+                if (!_edgeDataDirty && geo.VertexCount() >= 2)
+                {
+                    var p0 = geo.GetVertexById(_sampleIdx0);
+                    var p1 = geo.GetVertexById(_sampleIdx1);
+                    if (p0 != _samplePos0 || p1 != _samplePos1)
+                        _edgeDataDirty = true;
+                }
+
+                // Only rebuild edge data when dirty (selection change or position change)
+                if (_edgeDataDirty)
+                {
+                    UpdateEdgeQuadData(vertexObject, selectionVertexState);
+                    _edgeDataDirty = false;
+
+                    // Cache sample positions for next frame comparison
+                    if (geo.VertexCount() >= 2)
                     {
-                        var i0 = geo.IndexArray[i];
-                        var i1 = geo.IndexArray[i + 1];
-                        var i2 = geo.IndexArray[i + 2];
-
-                        var edgeList = new[] {
-                            (Math.Min(i0, i1), Math.Max(i0, i1)),
-                            (Math.Min(i1, i2), Math.Max(i1, i2)),
-                            (Math.Min(i0, i2), Math.Max(i0, i2))
-                        };
-
-                        foreach (var edge in edgeList)
-                        {
-                            if (processedEdges.Contains(edge))
-                                continue;
-
-                            var v0Selected = selectedSet.Contains(edge.Item1);
-                            var v1Selected = selectedSet.Contains(edge.Item2);
-                            if (!v0Selected && !v1Selected)
-                                continue;
-
-                            processedEdges.Add(edge);
-
-                            var p0 = Vector3.Transform(geo.GetVertexById(edge.Item1), matrix);
-                            var p1 = Vector3.Transform(geo.GetVertexById(edge.Item2), matrix);
-
-                            // Gradient: lerp between wireframe color and highlight based on selection weight
-                            var w0 = weights[edge.Item1];
-                            var w1 = weights[edge.Item2];
-                            var c0 = Color.Lerp(wireframeColor, highlightColor, w0);
-                            var c1 = Color.Lerp(wireframeColor, highlightColor, w1);
-
-                            _renderEngine.AddRenderLines(new VertexPositionColor[]
-                            {
-                                new VertexPositionColor(p0, c0),
-                                new VertexPositionColor(p1, c1)
-                            });
-                        }
+                        _samplePos0 = geo.GetVertexById(_sampleIdx0);
+                        _samplePos1 = geo.GetVertexById(_sampleIdx1);
                     }
                 }
+
+                // Submit cached render items (reuse single VertexRenderItem instance)
+                _renderEngine.AddRenderItem(RenderBuckedId.Normal, _edgeQuadRenderItem);
+                _vertexRenderItem.Node = vertexObject;
+                _vertexRenderItem.ModelMatrix = vertexObject.RenderMatrix;
+                _vertexRenderItem.SelectedVertices = selectionVertexState;
+                _renderEngine.AddRenderItem(RenderBuckedId.Normal, _vertexRenderItem);
+            }
+            else
+            {
+                // Reset cache when leaving vertex mode
+                _cachedEdgeMesh = null;
+                _edgeDataDirty = true;
             }
 
             if (selectionState is EdgeSelectionState selectionEdgeState && selectionEdgeState.RenderObject is Rmv2MeshNode edgeNode)
@@ -280,6 +303,12 @@ namespace GameWorld.Core.Components.Selection
                 _vertexRenderer = null;
             }
 
+            if (_edgeQuadRenderer != null)
+            {
+                _edgeQuadRenderer.Dispose();
+                _edgeQuadRenderer = null;
+            }
+
             _currentState?.Clear();
             _currentState = null;
         }
@@ -293,6 +322,72 @@ namespace GameWorld.Core.Components.Selection
         }
 
         public float VertexSelectionFalloff => _vertexSelectionFalloff;
+
+        /// <summary>
+        /// Build deduplicated edge index pairs from mesh geometry.
+        /// Called once per mesh, cached until mesh changes.
+        /// </summary>
+        private static (int v0, int v1)[] BuildEdgeIndexCache(GameWorld.Core.Rendering.Geometry.MeshObject geo)
+        {
+            var processedEdges = new HashSet<(int, int)>();
+            var result = new List<(int, int)>();
+
+            for (var i = 0; i < geo.IndexArray.Length; i += 3)
+            {
+                var i0 = geo.IndexArray[i];
+                var i1 = geo.IndexArray[i + 1];
+                var i2 = geo.IndexArray[i + 2];
+
+                var edges = new[] {
+                    (Math.Min(i0, i1), Math.Max(i0, i1)),
+                    (Math.Min(i1, i2), Math.Max(i1, i2)),
+                    (Math.Min(i0, i2), Math.Max(i0, i2))
+                };
+
+                foreach (var edge in edges)
+                {
+                    if (processedEdges.Add(edge))
+                        result.Add(edge);
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        /// <summary>
+        /// Update edge quad instance data (positions + colors).
+        /// Only called when dirty (mesh changed or selection changed).
+        /// </summary>
+        private void UpdateEdgeQuadData(Rmv2MeshNode meshNode, VertexSelectionState selectionState)
+        {
+            var geo = meshNode.Geometry;
+            var matrix = meshNode.RenderMatrix;
+            var weights = selectionState.VertexWeights;
+
+            var wireColor = new Vector3(0.15f, 0.15f, 0.15f);
+            var selectColor = new Vector3(1.0f, 0.47f, 0.0f);
+
+            // Only process up to max renderable edges (avoids iterating millions of edges for large meshes)
+            var edgeCount = Math.Min(_cachedEdgeIndices.Length, MaxRenderEdges);
+            for (var i = 0; i < edgeCount; i++)
+            {
+                var (v0, v1) = _cachedEdgeIndices[i];
+                var w0 = weights[v0];
+                var w1 = weights[v1];
+
+                _edgeDataCache[i] = new EdgeData
+                {
+                    P0 = Vector3.Transform(geo.GetVertexById(v0), matrix),
+                    P1 = Vector3.Transform(geo.GetVertexById(v1), matrix),
+                    C0 = Vector3.Lerp(wireColor, selectColor, w0),
+                    C1 = Vector3.Lerp(wireColor, selectColor, w1),
+                    Width = 0
+                };
+            }
+
+            _edgeQuadRenderItem.Edges = _edgeDataCache;
+            _edgeQuadRenderItem.MarkDirty();
+        }
     }
 }
 
