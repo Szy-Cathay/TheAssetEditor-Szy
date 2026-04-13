@@ -21,6 +21,7 @@ float light0_radiannce = 1;
 float light0_ambientFactor = 1;
 
 float3 TintColour = float3(1, 1, 1);
+float3 Constant_LightColour = float3(1, 1, 1);
 
 // Textures
 Texture2D<float4> DiffuseTexture;
